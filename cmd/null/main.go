@@ -80,7 +80,7 @@ func main() {
 	srv := api.NewServer(services, logger.WithPrefix("api"))
 	authConfig := &middleware.AuthConfig{
 		InternalAPIKey: cfg.APIKey,
-		WebURL:         cfg.NullWebURL,
+		WebURL:         cfg.NullGatewayURL,
 	}
 
 	handler := srv.GetHandler(authConfig)

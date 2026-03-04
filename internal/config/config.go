@@ -12,7 +12,7 @@ type Config struct {
 	APIKey        string // for for internal service communication
 
 	DatabaseURL     string
-	NullWebURL      string
+	NullGatewayURL  string
 	NullReceiptsURL string
 	ExchangeAPIURL  string
 
@@ -38,9 +38,9 @@ func Load() Config {
 		panic("API_KEY environment variable is required")
 	}
 
-	nullWebURL := os.Getenv("NULL_WEB_URL")
-	if nullWebURL == "" {
-		panic("NULL_WEB_URL environment variable is required")
+	nullGatewayURL := os.Getenv("NULL_GATEWAY_URL")
+	if nullGatewayURL == "" {
+		panic("NULL_GATEWAY_URL environment variable is required")
 	}
 
 	nullReceiptsURL := os.Getenv("NULL_RECEIPTS_URL")
@@ -84,7 +84,7 @@ func Load() Config {
 		ListenAddress:   parseAddress(listenAddr),
 		APIKey:          apiKey,
 		DatabaseURL:     databaseURL,
-		NullWebURL:      nullWebURL,
+		NullGatewayURL:  nullGatewayURL,
 		NullReceiptsURL: nullReceiptsURL,
 		ExchangeAPIURL:  exchangeAPIURL,
 		DataDir:         dataDir,

@@ -10,7 +10,7 @@ null-core is a high-performance gRPC (or rather [connect-go](https://github.com/
 |---------------------------|--------------------------------------------|----------------------|------------|
 | `API_KEY`                 | Authentication key for gRPC API access     |                      | [x]        |
 | `DATABASE_URL`            | PostgreSQL connection string               |                      | [x]        |
-| `NULL_WEB_URL`            | URL for null-web frontend                  |                      | [x]        |
+| `NULL_GATEWAY_URL`        | URL for null-gateway (auth + proxy)        |                      | [x]        |
 | `NULL_RECEIPTS_URL`       | gRPC endpoint for receipt parsing service  |                      | [x]        |
 | `EXCHANGE_API_URL`        | Exchange rate API endpoint                 |                      | [x]        |
 | `LISTEN_ADDRESS`          | Server listen address (port or host:port)  | `127.0.0.1:55555`    | [ ]        |

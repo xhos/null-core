@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"null-core/internal/db/sqlc"
 	pb "null-core/internal/gen/null/v1"
@@ -20,6 +21,11 @@ type AccountService interface {
 	Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAccountRequest) error
 	Delete(ctx context.Context, userID uuid.UUID, accountID int64) (int64, error)
 	List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, error)
+
+	AddAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error
+	RemoveAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error
+	SetAliases(ctx context.Context, userID uuid.UUID, accountID int64, aliases []string) error
+	FindByAlias(ctx context.Context, userID uuid.UUID, alias string) (*pb.Account, error)
 }
 
 type acctSvc struct {
@@ -60,7 +66,7 @@ func (s *acctSvc) Create(ctx context.Context, req *pb.CreateAccountRequest) (*pb
 		Name:               req.GetName(),
 		Bank:               req.GetBank(),
 		AccountType:        int16(req.GetType()),
-		Alias:              req.Alias,
+		FriendlyName:       req.FriendlyName,
 		AnchorBalanceCents: anchorCents,
 		AnchorCurrency:     anchorCurrency,
 		MainCurrency:       mainCurrency,
@@ -103,8 +109,8 @@ func (s *acctSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAc
 		accountType := int16(*req.AccountType)
 		params.AccountType = &accountType
 	}
-	if req.Alias != nil {
-		params.Alias = req.Alias
+	if req.FriendlyName != nil {
+		params.FriendlyName = req.FriendlyName
 	}
 	if req.AnchorDate != nil {
 		t := req.AnchorDate.AsTime()
@@ -163,6 +169,94 @@ func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, er
 	return accounts, nil
 }
 
+func (s *acctSvc) AddAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
+	alias = strings.TrimSpace(alias)
+	if alias == "" {
+		return wrapErr("AccountService.AddAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	}
+
+	existing, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
+		UserID: userID,
+		Alias:  alias,
+	})
+	if err == nil && existing.Account.ID != accountID {
+		return wrapErr("AccountService.AddAlias",
+			fmt.Errorf("%w: alias %q is already assigned to account %d", ErrValidation, alias, existing.Account.ID))
+	}
+
+	return wrapErr("AccountService.AddAlias",
+		s.queries.AddAccountAlias(ctx, sqlc.AddAccountAliasParams{
+			ID:    accountID,
+			UserID: userID,
+			Alias:  alias,
+		}))
+}
+
+func (s *acctSvc) RemoveAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
+	alias = strings.TrimSpace(alias)
+	if alias == "" {
+		return wrapErr("AccountService.RemoveAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	}
+
+	return wrapErr("AccountService.RemoveAlias",
+		s.queries.RemoveAccountAlias(ctx, sqlc.RemoveAccountAliasParams{
+			ID:    accountID,
+			UserID: userID,
+			Alias:  alias,
+		}))
+}
+
+func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID int64, aliases []string) error {
+	seen := make(map[string]struct{}, len(aliases))
+	cleaned := make([]string, 0, len(aliases))
+	for _, a := range aliases {
+		a = strings.TrimSpace(a)
+		if a == "" {
+			return wrapErr("AccountService.SetAliases", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+		}
+		if _, dup := seen[a]; dup {
+			continue
+		}
+		seen[a] = struct{}{}
+		cleaned = append(cleaned, a)
+	}
+
+	for _, a := range cleaned {
+		existing, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
+			UserID: userID,
+			Alias:  a,
+		})
+		if err == nil && existing.Account.ID != accountID {
+			return wrapErr("AccountService.SetAliases",
+				fmt.Errorf("%w: alias %q is already assigned to account %d", ErrValidation, a, existing.Account.ID))
+		}
+	}
+
+	return wrapErr("AccountService.SetAliases",
+		s.queries.SetAccountAliases(ctx, sqlc.SetAccountAliasesParams{
+			ID:      accountID,
+			UserID:  userID,
+			Aliases: cleaned,
+		}))
+}
+
+func (s *acctSvc) FindByAlias(ctx context.Context, userID uuid.UUID, alias string) (*pb.Account, error) {
+	alias = strings.TrimSpace(alias)
+	if alias == "" {
+		return nil, wrapErr("AccountService.FindByAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	}
+
+	row, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
+		UserID: userID,
+		Alias:  alias,
+	})
+	if err != nil {
+		return nil, wrapErr("AccountService.FindByAlias", err)
+	}
+
+	return accountRowToPb(row.Account, row.Account.AnchorBalanceCents, row.Account.AnchorCurrency), nil
+}
+
 // ----- conversion helpers -----------------------------------------------------------------------
 
 func accountRowToPb(a sqlc.Account, balanceCents int64, balanceCurrency string) *pb.Account {
@@ -172,7 +266,7 @@ func accountRowToPb(a sqlc.Account, balanceCents int64, balanceCurrency string) 
 		Name:          a.Name,
 		Bank:          a.Bank,
 		Type:          pb.AccountType(a.AccountType),
-		Alias:         a.Alias,
+		FriendlyName:  a.FriendlyName,
 		AnchorDate:    timestamppb.New(a.AnchorDate),
 		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
 		MainCurrency:  a.MainCurrency,

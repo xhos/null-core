@@ -65,7 +65,7 @@ insert into
     name,
     bank,
     account_type,
-    alias,
+    friendly_name,
     anchor_balance_cents,
     anchor_currency,
     main_currency,
@@ -77,7 +77,7 @@ values
     @name::text,
     @bank::text,
     @account_type::smallint,
-    sqlc.narg('alias')::text,
+    sqlc.narg('friendly_name')::text,
     @anchor_balance_cents::bigint,
     @anchor_currency::char(3),
     @main_currency::char(3),
@@ -93,7 +93,7 @@ set
   name = coalesce(sqlc.narg('name')::text, name),
   bank = coalesce(sqlc.narg('bank')::text, bank),
   account_type = coalesce(sqlc.narg('account_type')::smallint, account_type),
-  alias = coalesce(sqlc.narg('alias')::text, alias),
+  friendly_name = coalesce(sqlc.narg('friendly_name')::text, friendly_name),
   anchor_date = coalesce(sqlc.narg('anchor_date')::date, anchor_date),
   anchor_balance_cents = coalesce(sqlc.narg('anchor_balance_cents')::bigint, anchor_balance_cents),
   anchor_currency = coalesce(sqlc.narg('anchor_currency')::char(3), anchor_currency),
@@ -154,6 +154,33 @@ from
 where
   a.owner_id = @user_id::uuid
   or au.user_id is not null;
+
+-- name: AddAccountAlias :exec
+update accounts
+set aliases = array_append(aliases, @alias::text)
+where id = @id::bigint
+  and owner_id = @user_id::uuid
+  and not (aliases @> array[@alias::text]);
+
+-- name: RemoveAccountAlias :exec
+update accounts
+set aliases = array_remove(aliases, @alias::text)
+where id = @id::bigint
+  and owner_id = @user_id::uuid;
+
+-- name: SetAccountAliases :exec
+update accounts
+set aliases = @aliases::text[]
+where id = @id::bigint
+  and owner_id = @user_id::uuid;
+
+-- name: FindAccountByAlias :one
+select sqlc.embed(a)
+from accounts a
+  left join account_users au on au.account_id = a.id and au.user_id = @user_id::uuid
+where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.aliases @> array[@alias::text]
+limit 1;
 
 -- name: SyncAccountBalances :exec
 with anchor_transactions as (

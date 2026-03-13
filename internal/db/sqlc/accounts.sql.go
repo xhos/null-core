@@ -12,6 +12,25 @@ import (
 	"github.com/google/uuid"
 )
 
+const addAccountAlias = `-- name: AddAccountAlias :exec
+update accounts
+set aliases = array_append(aliases, $1::text)
+where id = $2::bigint
+  and owner_id = $3::uuid
+  and not (aliases @> array[$1::text])
+`
+
+type AddAccountAliasParams struct {
+	Alias  string    `db:"alias" json:"alias"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) AddAccountAlias(ctx context.Context, arg AddAccountAliasParams) error {
+	_, err := q.db.Exec(ctx, addAccountAlias, arg.Alias, arg.ID, arg.UserID)
+	return err
+}
+
 const createAccount = `-- name: CreateAccount :one
 insert into
   accounts (
@@ -19,7 +38,7 @@ insert into
     name,
     bank,
     account_type,
-    alias,
+    friendly_name,
     anchor_balance_cents,
     anchor_currency,
     main_currency,
@@ -38,7 +57,7 @@ values
     $9::text []
   )
 returning
-  id, owner_id, name, bank, account_type, alias, anchor_date, anchor_balance_cents, anchor_currency, main_currency, colors, created_at, updated_at
+  id, owner_id, name, bank, account_type, friendly_name, anchor_date, anchor_balance_cents, anchor_currency, main_currency, colors, created_at, updated_at, aliases
 `
 
 type CreateAccountParams struct {
@@ -46,7 +65,7 @@ type CreateAccountParams struct {
 	Name               string    `db:"name" json:"name"`
 	Bank               string    `db:"bank" json:"bank"`
 	AccountType        int16     `db:"account_type" json:"account_type"`
-	Alias              *string   `db:"alias" json:"alias"`
+	FriendlyName       *string   `db:"friendly_name" json:"friendly_name"`
 	AnchorBalanceCents int64     `db:"anchor_balance_cents" json:"anchor_balance_cents"`
 	AnchorCurrency     string    `db:"anchor_currency" json:"anchor_currency"`
 	MainCurrency       string    `db:"main_currency" json:"main_currency"`
@@ -59,7 +78,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		arg.Name,
 		arg.Bank,
 		arg.AccountType,
-		arg.Alias,
+		arg.FriendlyName,
 		arg.AnchorBalanceCents,
 		arg.AnchorCurrency,
 		arg.MainCurrency,
@@ -72,7 +91,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.Name,
 		&i.Bank,
 		&i.AccountType,
-		&i.Alias,
+		&i.FriendlyName,
 		&i.AnchorDate,
 		&i.AnchorBalanceCents,
 		&i.AnchorCurrency,
@@ -80,6 +99,7 @@ func (q *Queries) CreateAccount(ctx context.Context, arg CreateAccountParams) (A
 		&i.Colors,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Aliases,
 	)
 	return i, err
 }
@@ -105,9 +125,49 @@ func (q *Queries) DeleteAccount(ctx context.Context, arg DeleteAccountParams) (i
 	return result.RowsAffected(), nil
 }
 
+const findAccountByAlias = `-- name: FindAccountByAlias :one
+select a.id, a.owner_id, a.name, a.bank, a.account_type, a.friendly_name, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at, a.aliases
+from accounts a
+  left join account_users au on au.account_id = a.id and au.user_id = $1::uuid
+where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.aliases @> array[$2::text]
+limit 1
+`
+
+type FindAccountByAliasParams struct {
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	Alias  string    `db:"alias" json:"alias"`
+}
+
+type FindAccountByAliasRow struct {
+	Account Account `db:"account" json:"account"`
+}
+
+func (q *Queries) FindAccountByAlias(ctx context.Context, arg FindAccountByAliasParams) (FindAccountByAliasRow, error) {
+	row := q.db.QueryRow(ctx, findAccountByAlias, arg.UserID, arg.Alias)
+	var i FindAccountByAliasRow
+	err := row.Scan(
+		&i.Account.ID,
+		&i.Account.OwnerID,
+		&i.Account.Name,
+		&i.Account.Bank,
+		&i.Account.AccountType,
+		&i.Account.FriendlyName,
+		&i.Account.AnchorDate,
+		&i.Account.AnchorBalanceCents,
+		&i.Account.AnchorCurrency,
+		&i.Account.MainCurrency,
+		&i.Account.Colors,
+		&i.Account.CreatedAt,
+		&i.Account.UpdatedAt,
+		&i.Account.Aliases,
+	)
+	return i, err
+}
+
 const getAccount = `-- name: GetAccount :one
 select
-  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at,
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.friendly_name, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at, a.aliases,
   COALESCE(
     (select t.balance_after_cents
      from transactions t
@@ -156,7 +216,7 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 		&i.Account.Name,
 		&i.Account.Bank,
 		&i.Account.AccountType,
-		&i.Account.Alias,
+		&i.Account.FriendlyName,
 		&i.Account.AnchorDate,
 		&i.Account.AnchorBalanceCents,
 		&i.Account.AnchorCurrency,
@@ -164,6 +224,7 @@ func (q *Queries) GetAccount(ctx context.Context, arg GetAccountParams) (GetAcco
 		&i.Account.Colors,
 		&i.Account.CreatedAt,
 		&i.Account.UpdatedAt,
+		&i.Account.Aliases,
 		&i.BalanceCents,
 		&i.BalanceCurrency,
 	)
@@ -240,7 +301,7 @@ func (q *Queries) GetUserAccountsCount(ctx context.Context, userID uuid.UUID) (i
 
 const listAccounts = `-- name: ListAccounts :many
 select
-  a.id, a.owner_id, a.name, a.bank, a.account_type, a.alias, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at,
+  a.id, a.owner_id, a.name, a.bank, a.account_type, a.friendly_name, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at, a.aliases,
   COALESCE(
     (select t.balance_after_cents
      from transactions t
@@ -290,7 +351,7 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 			&i.Account.Name,
 			&i.Account.Bank,
 			&i.Account.AccountType,
-			&i.Account.Alias,
+			&i.Account.FriendlyName,
 			&i.Account.AnchorDate,
 			&i.Account.AnchorBalanceCents,
 			&i.Account.AnchorCurrency,
@@ -298,6 +359,7 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 			&i.Account.Colors,
 			&i.Account.CreatedAt,
 			&i.Account.UpdatedAt,
+			&i.Account.Aliases,
 			&i.BalanceCents,
 			&i.BalanceCurrency,
 		); err != nil {
@@ -309,6 +371,42 @@ func (q *Queries) ListAccounts(ctx context.Context, userID uuid.UUID) ([]ListAcc
 		return nil, err
 	}
 	return items, nil
+}
+
+const removeAccountAlias = `-- name: RemoveAccountAlias :exec
+update accounts
+set aliases = array_remove(aliases, $1::text)
+where id = $2::bigint
+  and owner_id = $3::uuid
+`
+
+type RemoveAccountAliasParams struct {
+	Alias  string    `db:"alias" json:"alias"`
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) RemoveAccountAlias(ctx context.Context, arg RemoveAccountAliasParams) error {
+	_, err := q.db.Exec(ctx, removeAccountAlias, arg.Alias, arg.ID, arg.UserID)
+	return err
+}
+
+const setAccountAliases = `-- name: SetAccountAliases :exec
+update accounts
+set aliases = $1::text[]
+where id = $2::bigint
+  and owner_id = $3::uuid
+`
+
+type SetAccountAliasesParams struct {
+	Aliases []string  `db:"aliases" json:"aliases"`
+	ID      int64     `db:"id" json:"id"`
+	UserID  uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) SetAccountAliases(ctx context.Context, arg SetAccountAliasesParams) error {
+	_, err := q.db.Exec(ctx, setAccountAliases, arg.Aliases, arg.ID, arg.UserID)
+	return err
 }
 
 const setAccountAnchor = `-- name: SetAccountAnchor :execrows
@@ -422,7 +520,7 @@ set
   name = coalesce($1::text, name),
   bank = coalesce($2::text, bank),
   account_type = coalesce($3::smallint, account_type),
-  alias = coalesce($4::text, alias),
+  friendly_name = coalesce($4::text, friendly_name),
   anchor_date = coalesce($5::date, anchor_date),
   anchor_balance_cents = coalesce($6::bigint, anchor_balance_cents),
   anchor_currency = coalesce($7::char(3), anchor_currency),
@@ -437,7 +535,7 @@ type UpdateAccountParams struct {
 	Name               *string    `db:"name" json:"name"`
 	Bank               *string    `db:"bank" json:"bank"`
 	AccountType        *int16     `db:"account_type" json:"account_type"`
-	Alias              *string    `db:"alias" json:"alias"`
+	FriendlyName       *string    `db:"friendly_name" json:"friendly_name"`
 	AnchorDate         *time.Time `db:"anchor_date" json:"anchor_date"`
 	AnchorBalanceCents *int64     `db:"anchor_balance_cents" json:"anchor_balance_cents"`
 	AnchorCurrency     *string    `db:"anchor_currency" json:"anchor_currency"`
@@ -452,7 +550,7 @@ func (q *Queries) UpdateAccount(ctx context.Context, arg UpdateAccountParams) er
 		arg.Name,
 		arg.Bank,
 		arg.AccountType,
-		arg.Alias,
+		arg.FriendlyName,
 		arg.AnchorDate,
 		arg.AnchorBalanceCents,
 		arg.AnchorCurrency,

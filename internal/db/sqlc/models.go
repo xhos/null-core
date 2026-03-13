@@ -17,7 +17,7 @@ type Account struct {
 	Name               string           `db:"name" json:"name"`
 	Bank               string           `db:"bank" json:"bank"`
 	AccountType        null.AccountType `db:"account_type" json:"account_type"`
-	Alias              *string          `db:"alias" json:"alias"`
+	FriendlyName       *string          `db:"friendly_name" json:"friendly_name"`
 	AnchorDate         time.Time        `db:"anchor_date" json:"anchor_date"`
 	AnchorBalanceCents int64            `db:"anchor_balance_cents" json:"anchor_balance_cents"`
 	AnchorCurrency     string           `db:"anchor_currency" json:"anchor_currency"`
@@ -25,6 +25,7 @@ type Account struct {
 	Colors             []string         `db:"colors" json:"colors"`
 	CreatedAt          time.Time        `db:"created_at" json:"created_at"`
 	UpdatedAt          time.Time        `db:"updated_at" json:"updated_at"`
+	Aliases            []string         `db:"aliases" json:"aliases"`
 }
 
 type AccountUser struct {

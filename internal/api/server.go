@@ -26,7 +26,6 @@ func NewServer(services *service.Services, logger *log.Logger) *Server {
 		"null.v1.CategoryService",
 		"null.v1.RuleService",
 		"null.v1.DashboardService",
-		"null.v1.BackupService",
 		"null.v1.ReceiptService",
 	)
 
@@ -75,7 +74,6 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 		"null.v1.CategoryService",
 		"null.v1.RuleService",
 		"null.v1.DashboardService",
-		"null.v1.BackupService",
 		"null.v1.ReceiptService",
 	)
 	reflectPath, reflectHandler := grpcreflect.NewHandlerV1(reflector)
@@ -105,9 +103,6 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	mux.Handle(path, handler)
 
 	path, handler = nullv1connect.NewDashboardServiceHandler(s, interceptors)
-	mux.Handle(path, handler)
-
-	path, handler = nullv1connect.NewBackupServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	path, handler = nullv1connect.NewReceiptServiceHandler(s, interceptors)

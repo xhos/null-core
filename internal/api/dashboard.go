@@ -281,11 +281,9 @@ func categoryKeyToString(id *int64) string {
 // sortCategoriesByCurrentSpending sorts categories by current period spending descending
 func sortCategoriesByCurrentSpending(categories []*pb.CategorySpendingItem) {
 	sort.Slice(categories, func(i, j int) bool {
-		iCents := categories[i].Spending.CurrentPeriod.Amount.Units*100 +
-			int64(categories[i].Spending.CurrentPeriod.Amount.Nanos/10000000)
-		jCents := categories[j].Spending.CurrentPeriod.Amount.Units*100 +
-			int64(categories[j].Spending.CurrentPeriod.Amount.Nanos/10000000)
-		return iCents > jCents
+		iAmount := categories[i].Spending.CurrentPeriod.Amount.GetAmount()
+		jAmount := categories[j].Spending.CurrentPeriod.Amount.GetAmount()
+		return iAmount > jAmount
 	})
 }
 

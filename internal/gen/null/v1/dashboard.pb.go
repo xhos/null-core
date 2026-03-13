@@ -8,7 +8,6 @@ package nullv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
-	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -26,8 +25,8 @@ const (
 type TrendPoint struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Date          *date.Date             `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"` // YYYY-MM-DD
-	Income        *money.Money           `protobuf:"bytes,2,opt,name=income,proto3" json:"income,omitempty"`
-	Expenses      *money.Money           `protobuf:"bytes,3,opt,name=expenses,proto3" json:"expenses,omitempty"`
+	Income        *Money                 `protobuf:"bytes,2,opt,name=income,proto3" json:"income,omitempty"`
+	Expenses      *Money                 `protobuf:"bytes,3,opt,name=expenses,proto3" json:"expenses,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,14 +68,14 @@ func (x *TrendPoint) GetDate() *date.Date {
 	return nil
 }
 
-func (x *TrendPoint) GetIncome() *money.Money {
+func (x *TrendPoint) GetIncome() *Money {
 	if x != nil {
 		return x.Income
 	}
 	return nil
 }
 
-func (x *TrendPoint) GetExpenses() *money.Money {
+func (x *TrendPoint) GetExpenses() *Money {
 	if x != nil {
 		return x.Expenses
 	}
@@ -86,9 +85,9 @@ func (x *TrendPoint) GetExpenses() *money.Money {
 type MonthlyComparison struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Month         string                 `protobuf:"bytes,1,opt,name=month,proto3" json:"month,omitempty"` // YYYY-MM
-	Income        *money.Money           `protobuf:"bytes,2,opt,name=income,proto3" json:"income,omitempty"`
-	Expenses      *money.Money           `protobuf:"bytes,3,opt,name=expenses,proto3" json:"expenses,omitempty"`
-	Net           *money.Money           `protobuf:"bytes,4,opt,name=net,proto3" json:"net,omitempty"`
+	Income        *Money                 `protobuf:"bytes,2,opt,name=income,proto3" json:"income,omitempty"`
+	Expenses      *Money                 `protobuf:"bytes,3,opt,name=expenses,proto3" json:"expenses,omitempty"`
+	Net           *Money                 `protobuf:"bytes,4,opt,name=net,proto3" json:"net,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -130,21 +129,21 @@ func (x *MonthlyComparison) GetMonth() string {
 	return ""
 }
 
-func (x *MonthlyComparison) GetIncome() *money.Money {
+func (x *MonthlyComparison) GetIncome() *Money {
 	if x != nil {
 		return x.Income
 	}
 	return nil
 }
 
-func (x *MonthlyComparison) GetExpenses() *money.Money {
+func (x *MonthlyComparison) GetExpenses() *Money {
 	if x != nil {
 		return x.Expenses
 	}
 	return nil
 }
 
-func (x *MonthlyComparison) GetNet() *money.Money {
+func (x *MonthlyComparison) GetNet() *Money {
 	if x != nil {
 		return x.Net
 	}
@@ -155,8 +154,8 @@ type DashboardSummary struct {
 	state                     protoimpl.MessageState `protogen:"open.v1"`
 	TotalAccounts             int64                  `protobuf:"varint,1,opt,name=total_accounts,json=totalAccounts,proto3" json:"total_accounts,omitempty"`
 	TotalTransactions         int64                  `protobuf:"varint,2,opt,name=total_transactions,json=totalTransactions,proto3" json:"total_transactions,omitempty"`
-	TotalIncome               *money.Money           `protobuf:"bytes,3,opt,name=total_income,json=totalIncome,proto3" json:"total_income,omitempty"`
-	TotalExpenses             *money.Money           `protobuf:"bytes,4,opt,name=total_expenses,json=totalExpenses,proto3" json:"total_expenses,omitempty"`
+	TotalIncome               *Money                 `protobuf:"bytes,3,opt,name=total_income,json=totalIncome,proto3" json:"total_income,omitempty"`
+	TotalExpenses             *Money                 `protobuf:"bytes,4,opt,name=total_expenses,json=totalExpenses,proto3" json:"total_expenses,omitempty"`
 	TransactionsLast_30Days   int64                  `protobuf:"varint,5,opt,name=transactions_last_30_days,json=transactionsLast30Days,proto3" json:"transactions_last_30_days,omitempty"`
 	UncategorizedTransactions int64                  `protobuf:"varint,6,opt,name=uncategorized_transactions,json=uncategorizedTransactions,proto3" json:"uncategorized_transactions,omitempty"`
 	unknownFields             protoimpl.UnknownFields
@@ -207,14 +206,14 @@ func (x *DashboardSummary) GetTotalTransactions() int64 {
 	return 0
 }
 
-func (x *DashboardSummary) GetTotalIncome() *money.Money {
+func (x *DashboardSummary) GetTotalIncome() *Money {
 	if x != nil {
 		return x.TotalIncome
 	}
 	return nil
 }
 
-func (x *DashboardSummary) GetTotalExpenses() *money.Money {
+func (x *DashboardSummary) GetTotalExpenses() *Money {
 	if x != nil {
 		return x.TotalExpenses
 	}
@@ -241,7 +240,7 @@ type TopCategory struct {
 	Label            string                 `protobuf:"bytes,2,opt,name=label,proto3" json:"label,omitempty"`
 	Color            string                 `protobuf:"bytes,3,opt,name=color,proto3" json:"color,omitempty"`
 	TransactionCount int64                  `protobuf:"varint,4,opt,name=transaction_count,json=transactionCount,proto3" json:"transaction_count,omitempty"`
-	TotalAmount      *money.Money           `protobuf:"bytes,5,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	TotalAmount      *Money                 `protobuf:"bytes,5,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -304,7 +303,7 @@ func (x *TopCategory) GetTransactionCount() int64 {
 	return 0
 }
 
-func (x *TopCategory) GetTotalAmount() *money.Money {
+func (x *TopCategory) GetTotalAmount() *Money {
 	if x != nil {
 		return x.TotalAmount
 	}
@@ -315,8 +314,8 @@ type TopMerchant struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
 	Merchant         string                 `protobuf:"bytes,1,opt,name=merchant,proto3" json:"merchant,omitempty"`
 	TransactionCount int64                  `protobuf:"varint,2,opt,name=transaction_count,json=transactionCount,proto3" json:"transaction_count,omitempty"`
-	TotalAmount      *money.Money           `protobuf:"bytes,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
-	AvgAmount        *money.Money           `protobuf:"bytes,4,opt,name=avg_amount,json=avgAmount,proto3" json:"avg_amount,omitempty"`
+	TotalAmount      *Money                 `protobuf:"bytes,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	AvgAmount        *Money                 `protobuf:"bytes,4,opt,name=avg_amount,json=avgAmount,proto3" json:"avg_amount,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -365,14 +364,14 @@ func (x *TopMerchant) GetTransactionCount() int64 {
 	return 0
 }
 
-func (x *TopMerchant) GetTotalAmount() *money.Money {
+func (x *TopMerchant) GetTotalAmount() *Money {
 	if x != nil {
 		return x.TotalAmount
 	}
 	return nil
 }
 
-func (x *TopMerchant) GetAvgAmount() *money.Money {
+func (x *TopMerchant) GetAvgAmount() *Money {
 	if x != nil {
 		return x.AvgAmount
 	}
@@ -441,7 +440,7 @@ func (x *PeriodInfo) GetLabel() string {
 
 type PeriodSpending struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	Amount           *money.Money           `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount           *Money                 `protobuf:"bytes,1,opt,name=amount,proto3" json:"amount,omitempty"`
 	TransactionCount int64                  `protobuf:"varint,2,opt,name=transaction_count,json=transactionCount,proto3" json:"transaction_count,omitempty"`
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
@@ -477,7 +476,7 @@ func (*PeriodSpending) Descriptor() ([]byte, []int) {
 	return file_null_v1_dashboard_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *PeriodSpending) GetAmount() *money.Money {
+func (x *PeriodSpending) GetAmount() *Money {
 	if x != nil {
 		return x.Amount
 	}
@@ -553,8 +552,8 @@ func (x *CategorySpendingComparison) GetPreviousPeriod() *PeriodSpending {
 
 type CategorySpendingTotals struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
-	CurrentPeriodTotal  *money.Money           `protobuf:"bytes,1,opt,name=current_period_total,json=currentPeriodTotal,proto3" json:"current_period_total,omitempty"`
-	PreviousPeriodTotal *money.Money           `protobuf:"bytes,2,opt,name=previous_period_total,json=previousPeriodTotal,proto3" json:"previous_period_total,omitempty"`
+	CurrentPeriodTotal  *Money                 `protobuf:"bytes,1,opt,name=current_period_total,json=currentPeriodTotal,proto3" json:"current_period_total,omitempty"`
+	PreviousPeriodTotal *Money                 `protobuf:"bytes,2,opt,name=previous_period_total,json=previousPeriodTotal,proto3" json:"previous_period_total,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -589,14 +588,14 @@ func (*CategorySpendingTotals) Descriptor() ([]byte, []int) {
 	return file_null_v1_dashboard_proto_rawDescGZIP(), []int{8}
 }
 
-func (x *CategorySpendingTotals) GetCurrentPeriodTotal() *money.Money {
+func (x *CategorySpendingTotals) GetCurrentPeriodTotal() *Money {
 	if x != nil {
 		return x.CurrentPeriodTotal
 	}
 	return nil
 }
 
-func (x *CategorySpendingTotals) GetPreviousPeriodTotal() *money.Money {
+func (x *CategorySpendingTotals) GetPreviousPeriodTotal() *Money {
 	if x != nil {
 		return x.PreviousPeriodTotal
 	}
@@ -606,7 +605,7 @@ func (x *CategorySpendingTotals) GetPreviousPeriodTotal() *money.Money {
 type NetWorthPoint struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Date          *date.Date             `protobuf:"bytes,1,opt,name=date,proto3" json:"date,omitempty"`
-	NetWorth      *money.Money           `protobuf:"bytes,2,opt,name=net_worth,json=netWorth,proto3" json:"net_worth,omitempty"`
+	NetWorth      *Money                 `protobuf:"bytes,2,opt,name=net_worth,json=netWorth,proto3" json:"net_worth,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -648,7 +647,7 @@ func (x *NetWorthPoint) GetDate() *date.Date {
 	return nil
 }
 
-func (x *NetWorthPoint) GetNetWorth() *money.Money {
+func (x *NetWorthPoint) GetNetWorth() *Money {
 	if x != nil {
 		return x.NetWorth
 	}
@@ -659,57 +658,57 @@ var File_null_v1_dashboard_proto protoreflect.FileDescriptor
 
 const file_null_v1_dashboard_proto_rawDesc = "" +
 	"\n" +
-	"\x17null/v1/dashboard.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x16google/type/date.proto\x1a\x17google/type/money.proto\"\x8f\x01\n" +
+	"\x17null/v1/dashboard.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x14null/v1/common.proto\x1a\x16google/type/date.proto\"\x87\x01\n" +
 	"\n" +
 	"TrendPoint\x12%\n" +
-	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12*\n" +
-	"\x06income\x18\x02 \x01(\v2\x12.google.type.MoneyR\x06income\x12.\n" +
-	"\bexpenses\x18\x03 \x01(\v2\x12.google.type.MoneyR\bexpenses\"\xab\x01\n" +
+	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12&\n" +
+	"\x06income\x18\x02 \x01(\v2\x0e.null.v1.MoneyR\x06income\x12*\n" +
+	"\bexpenses\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\bexpenses\"\x9f\x01\n" +
 	"\x11MonthlyComparison\x12\x14\n" +
-	"\x05month\x18\x01 \x01(\tR\x05month\x12*\n" +
-	"\x06income\x18\x02 \x01(\v2\x12.google.type.MoneyR\x06income\x12.\n" +
-	"\bexpenses\x18\x03 \x01(\v2\x12.google.type.MoneyR\bexpenses\x12$\n" +
-	"\x03net\x18\x04 \x01(\v2\x12.google.type.MoneyR\x03net\"\xd4\x02\n" +
+	"\x05month\x18\x01 \x01(\tR\x05month\x12&\n" +
+	"\x06income\x18\x02 \x01(\v2\x0e.null.v1.MoneyR\x06income\x12*\n" +
+	"\bexpenses\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\bexpenses\x12 \n" +
+	"\x03net\x18\x04 \x01(\v2\x0e.null.v1.MoneyR\x03net\"\xcc\x02\n" +
 	"\x10DashboardSummary\x12%\n" +
 	"\x0etotal_accounts\x18\x01 \x01(\x03R\rtotalAccounts\x12-\n" +
-	"\x12total_transactions\x18\x02 \x01(\x03R\x11totalTransactions\x125\n" +
-	"\ftotal_income\x18\x03 \x01(\v2\x12.google.type.MoneyR\vtotalIncome\x129\n" +
-	"\x0etotal_expenses\x18\x04 \x01(\v2\x12.google.type.MoneyR\rtotalExpenses\x129\n" +
+	"\x12total_transactions\x18\x02 \x01(\x03R\x11totalTransactions\x121\n" +
+	"\ftotal_income\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\vtotalIncome\x125\n" +
+	"\x0etotal_expenses\x18\x04 \x01(\v2\x0e.null.v1.MoneyR\rtotalExpenses\x129\n" +
 	"\x19transactions_last_30_days\x18\x05 \x01(\x03R\x16transactionsLast30Days\x12=\n" +
-	"\x1auncategorized_transactions\x18\x06 \x01(\x03R\x19uncategorizedTransactions\"\xb1\x01\n" +
+	"\x1auncategorized_transactions\x18\x06 \x01(\x03R\x19uncategorizedTransactions\"\xad\x01\n" +
 	"\vTopCategory\x12\x12\n" +
 	"\x04slug\x18\x01 \x01(\tR\x04slug\x12\x14\n" +
 	"\x05label\x18\x02 \x01(\tR\x05label\x12\x14\n" +
 	"\x05color\x18\x03 \x01(\tR\x05color\x12+\n" +
-	"\x11transaction_count\x18\x04 \x01(\x03R\x10transactionCount\x125\n" +
-	"\ftotal_amount\x18\x05 \x01(\v2\x12.google.type.MoneyR\vtotalAmount\"\xc0\x01\n" +
+	"\x11transaction_count\x18\x04 \x01(\x03R\x10transactionCount\x121\n" +
+	"\ftotal_amount\x18\x05 \x01(\v2\x0e.null.v1.MoneyR\vtotalAmount\"\xb8\x01\n" +
 	"\vTopMerchant\x12\x1a\n" +
 	"\bmerchant\x18\x01 \x01(\tR\bmerchant\x12+\n" +
-	"\x11transaction_count\x18\x02 \x01(\x03R\x10transactionCount\x125\n" +
-	"\ftotal_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\vtotalAmount\x121\n" +
+	"\x11transaction_count\x18\x02 \x01(\x03R\x10transactionCount\x121\n" +
+	"\ftotal_amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\vtotalAmount\x12-\n" +
 	"\n" +
-	"avg_amount\x18\x04 \x01(\v2\x12.google.type.MoneyR\tavgAmount\"\x82\x01\n" +
+	"avg_amount\x18\x04 \x01(\v2\x0e.null.v1.MoneyR\tavgAmount\"\x82\x01\n" +
 	"\n" +
 	"PeriodInfo\x120\n" +
 	"\n" +
 	"start_date\x18\x01 \x01(\v2\x11.google.type.DateR\tstartDate\x12,\n" +
 	"\bend_date\x18\x02 \x01(\v2\x11.google.type.DateR\aendDate\x12\x14\n" +
-	"\x05label\x18\x03 \x01(\tR\x05label\"i\n" +
-	"\x0ePeriodSpending\x12*\n" +
-	"\x06amount\x18\x01 \x01(\v2\x12.google.type.MoneyR\x06amount\x12+\n" +
+	"\x05label\x18\x03 \x01(\tR\x05label\"e\n" +
+	"\x0ePeriodSpending\x12&\n" +
+	"\x06amount\x18\x01 \x01(\v2\x0e.null.v1.MoneyR\x06amount\x12+\n" +
 	"\x11transaction_count\x18\x02 \x01(\x03R\x10transactionCount\"\xd4\x01\n" +
 	"\x1aCategorySpendingComparison\x12$\n" +
 	"\vcategory_id\x18\x01 \x01(\x03H\x00R\n" +
 	"categoryId\x88\x01\x01\x12>\n" +
 	"\x0ecurrent_period\x18\x02 \x01(\v2\x17.null.v1.PeriodSpendingR\rcurrentPeriod\x12@\n" +
 	"\x0fprevious_period\x18\x03 \x01(\v2\x17.null.v1.PeriodSpendingR\x0epreviousPeriodB\x0e\n" +
-	"\f_category_id\"\xa6\x01\n" +
-	"\x16CategorySpendingTotals\x12D\n" +
-	"\x14current_period_total\x18\x01 \x01(\v2\x12.google.type.MoneyR\x12currentPeriodTotal\x12F\n" +
-	"\x15previous_period_total\x18\x02 \x01(\v2\x12.google.type.MoneyR\x13previousPeriodTotal\"g\n" +
+	"\f_category_id\"\x9e\x01\n" +
+	"\x16CategorySpendingTotals\x12@\n" +
+	"\x14current_period_total\x18\x01 \x01(\v2\x0e.null.v1.MoneyR\x12currentPeriodTotal\x12B\n" +
+	"\x15previous_period_total\x18\x02 \x01(\v2\x0e.null.v1.MoneyR\x13previousPeriodTotal\"c\n" +
 	"\rNetWorthPoint\x12%\n" +
-	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12/\n" +
-	"\tnet_worth\x18\x02 \x01(\v2\x12.google.type.MoneyR\bnetWorthB\x83\x01\n" +
+	"\x04date\x18\x01 \x01(\v2\x11.google.type.DateR\x04date\x12+\n" +
+	"\tnet_worth\x18\x02 \x01(\v2\x0e.null.v1.MoneyR\bnetWorthB\x83\x01\n" +
 	"\vcom.null.v1B\x0eDashboardProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
@@ -737,29 +736,29 @@ var file_null_v1_dashboard_proto_goTypes = []any{
 	(*CategorySpendingTotals)(nil),     // 8: null.v1.CategorySpendingTotals
 	(*NetWorthPoint)(nil),              // 9: null.v1.NetWorthPoint
 	(*date.Date)(nil),                  // 10: google.type.Date
-	(*money.Money)(nil),                // 11: google.type.Money
+	(*Money)(nil),                      // 11: null.v1.Money
 }
 var file_null_v1_dashboard_proto_depIdxs = []int32{
 	10, // 0: null.v1.TrendPoint.date:type_name -> google.type.Date
-	11, // 1: null.v1.TrendPoint.income:type_name -> google.type.Money
-	11, // 2: null.v1.TrendPoint.expenses:type_name -> google.type.Money
-	11, // 3: null.v1.MonthlyComparison.income:type_name -> google.type.Money
-	11, // 4: null.v1.MonthlyComparison.expenses:type_name -> google.type.Money
-	11, // 5: null.v1.MonthlyComparison.net:type_name -> google.type.Money
-	11, // 6: null.v1.DashboardSummary.total_income:type_name -> google.type.Money
-	11, // 7: null.v1.DashboardSummary.total_expenses:type_name -> google.type.Money
-	11, // 8: null.v1.TopCategory.total_amount:type_name -> google.type.Money
-	11, // 9: null.v1.TopMerchant.total_amount:type_name -> google.type.Money
-	11, // 10: null.v1.TopMerchant.avg_amount:type_name -> google.type.Money
+	11, // 1: null.v1.TrendPoint.income:type_name -> null.v1.Money
+	11, // 2: null.v1.TrendPoint.expenses:type_name -> null.v1.Money
+	11, // 3: null.v1.MonthlyComparison.income:type_name -> null.v1.Money
+	11, // 4: null.v1.MonthlyComparison.expenses:type_name -> null.v1.Money
+	11, // 5: null.v1.MonthlyComparison.net:type_name -> null.v1.Money
+	11, // 6: null.v1.DashboardSummary.total_income:type_name -> null.v1.Money
+	11, // 7: null.v1.DashboardSummary.total_expenses:type_name -> null.v1.Money
+	11, // 8: null.v1.TopCategory.total_amount:type_name -> null.v1.Money
+	11, // 9: null.v1.TopMerchant.total_amount:type_name -> null.v1.Money
+	11, // 10: null.v1.TopMerchant.avg_amount:type_name -> null.v1.Money
 	10, // 11: null.v1.PeriodInfo.start_date:type_name -> google.type.Date
 	10, // 12: null.v1.PeriodInfo.end_date:type_name -> google.type.Date
-	11, // 13: null.v1.PeriodSpending.amount:type_name -> google.type.Money
+	11, // 13: null.v1.PeriodSpending.amount:type_name -> null.v1.Money
 	6,  // 14: null.v1.CategorySpendingComparison.current_period:type_name -> null.v1.PeriodSpending
 	6,  // 15: null.v1.CategorySpendingComparison.previous_period:type_name -> null.v1.PeriodSpending
-	11, // 16: null.v1.CategorySpendingTotals.current_period_total:type_name -> google.type.Money
-	11, // 17: null.v1.CategorySpendingTotals.previous_period_total:type_name -> google.type.Money
+	11, // 16: null.v1.CategorySpendingTotals.current_period_total:type_name -> null.v1.Money
+	11, // 17: null.v1.CategorySpendingTotals.previous_period_total:type_name -> null.v1.Money
 	10, // 18: null.v1.NetWorthPoint.date:type_name -> google.type.Date
-	11, // 19: null.v1.NetWorthPoint.net_worth:type_name -> google.type.Money
+	11, // 19: null.v1.NetWorthPoint.net_worth:type_name -> null.v1.Money
 	20, // [20:20] is the sub-list for method output_type
 	20, // [20:20] is the sub-list for method input_type
 	20, // [20:20] is the sub-list for extension type_name
@@ -773,6 +772,7 @@ func file_null_v1_dashboard_proto_init() {
 		return
 	}
 	file_null_v1_category_proto_init()
+	file_null_v1_common_proto_init()
 	file_null_v1_dashboard_proto_msgTypes[7].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{

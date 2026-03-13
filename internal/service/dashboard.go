@@ -9,7 +9,6 @@ import (
 	pb "null-core/internal/gen/null/v1"
 
 	"github.com/google/uuid"
-	"google.golang.org/genproto/googleapis/type/money"
 )
 
 // ----- types -------------------------------------------------------------------------------
@@ -62,9 +61,9 @@ type NetWorthHistoryParams struct {
 // ----- interface ---------------------------------------------------------------------------
 
 type DashboardService interface {
-	Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
-	Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error)
-	NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error)
+	Balance(ctx context.Context, userID uuid.UUID) (*pb.Money, error)
+	Debt(ctx context.Context, userID uuid.UUID) (*pb.Money, error)
+	NetBalance(ctx context.Context, userID uuid.UUID) (*pb.Money, error)
 	Trends(ctx context.Context, userID uuid.UUID, req *pb.GetSpendingTrendsRequest) ([]*pb.TrendPoint, error)
 	Summary(ctx context.Context, userID uuid.UUID, req *pb.GetDashboardSummaryRequest) (*pb.DashboardSummary, error)
 	MonthlyComparison(ctx context.Context, userID uuid.UUID, monthsBack int32) ([]*pb.MonthlyComparison, error)
@@ -87,7 +86,7 @@ func newDashSvc(queries *sqlc.Queries) DashboardService {
 
 // ----- methods -----------------------------------------------------------------------------
 
-func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*pb.Money, error) {
 	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Balance", err)
@@ -103,7 +102,7 @@ func (s *dashSvc) Balance(ctx context.Context, userID uuid.UUID) (*money.Money, 
 	return s.centsToMoney(ctx, userID, totalCents)
 }
 
-func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+func (s *dashSvc) Debt(ctx context.Context, userID uuid.UUID) (*pb.Money, error) {
 	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.Debt", err)
@@ -192,7 +191,7 @@ func (s *dashSvc) TopMerchants(ctx context.Context, userID uuid.UUID, req *pb.Ge
 	return result, nil
 }
 
-func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*money.Money, error) {
+func (s *dashSvc) NetBalance(ctx context.Context, userID uuid.UUID) (*pb.Money, error) {
 	balances, err := s.queries.GetAccountBalances(ctx, userID)
 	if err != nil {
 		return nil, wrapErr("DashboardService.NetBalance", err)
@@ -423,12 +422,11 @@ func (s *dashSvc) getUserLocation(ctx context.Context, userID uuid.UUID) *time.L
 	return loc
 }
 
-func (s *dashSvc) centsToMoney(ctx context.Context, userID uuid.UUID, cents int64) (*money.Money, error) {
+func (s *dashSvc) centsToMoney(ctx context.Context, userID uuid.UUID, cents int64) (*pb.Money, error) {
 	currency := s.getUserPrimaryCurrency(ctx, userID)
-	return &money.Money{
+	return &pb.Money{
+		Amount:       float64(cents) / 100,
 		CurrencyCode: currency,
-		Units:        cents / 100,
-		Nanos:        int32((cents % 100) * 10_000_000),
 	}, nil
 }
 

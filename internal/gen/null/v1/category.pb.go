@@ -8,7 +8,6 @@ package nullv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -87,7 +86,7 @@ type CategoryWithUsage struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Category      *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
 	UsageCount    int64                  `protobuf:"varint,2,opt,name=usage_count,json=usageCount,proto3" json:"usage_count,omitempty"`
-	TotalAmount   *money.Money           `protobuf:"bytes,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
+	TotalAmount   *Money                 `protobuf:"bytes,3,opt,name=total_amount,json=totalAmount,proto3" json:"total_amount,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -136,7 +135,7 @@ func (x *CategoryWithUsage) GetUsageCount() int64 {
 	return 0
 }
 
-func (x *CategoryWithUsage) GetTotalAmount() *money.Money {
+func (x *CategoryWithUsage) GetTotalAmount() *Money {
 	if x != nil {
 		return x.TotalAmount
 	}
@@ -147,7 +146,7 @@ type CategoryWithUserUsage struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	Category        *Category              `protobuf:"bytes,1,opt,name=category,proto3" json:"category,omitempty"`
 	UserUsageCount  int64                  `protobuf:"varint,2,opt,name=user_usage_count,json=userUsageCount,proto3" json:"user_usage_count,omitempty"`
-	UserTotalAmount *money.Money           `protobuf:"bytes,3,opt,name=user_total_amount,json=userTotalAmount,proto3" json:"user_total_amount,omitempty"`
+	UserTotalAmount *Money                 `protobuf:"bytes,3,opt,name=user_total_amount,json=userTotalAmount,proto3" json:"user_total_amount,omitempty"`
 	unknownFields   protoimpl.UnknownFields
 	sizeCache       protoimpl.SizeCache
 }
@@ -196,7 +195,7 @@ func (x *CategoryWithUserUsage) GetUserUsageCount() int64 {
 	return 0
 }
 
-func (x *CategoryWithUserUsage) GetUserTotalAmount() *money.Money {
+func (x *CategoryWithUserUsage) GetUserTotalAmount() *Money {
 	if x != nil {
 		return x.UserTotalAmount
 	}
@@ -207,20 +206,20 @@ var File_null_v1_category_proto protoreflect.FileDescriptor
 
 const file_null_v1_category_proto_rawDesc = "" +
 	"\n" +
-	"\x16null/v1/category.proto\x12\anull.v1\x1a\x17google/type/money.proto\x1a\x1bbuf/validate/validate.proto\"\x92\x01\n" +
+	"\x16null/v1/category.proto\x12\anull.v1\x1a\x14null/v1/common.proto\x1a\x1bbuf/validate/validate.proto\"\x92\x01\n" +
 	"\bCategory\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x121\n" +
 	"\x04slug\x18\x02 \x01(\tB\x1d\xbaH\x1ar\x18\x10\x01\x18d2\x12^[^.]+(\\.+[^.]+)*$R\x04slug\x12C\n" +
-	"\x05color\x18\x03 \x01(\tB-\xbaH*r(\x10\x04\x18\a2\"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$R\x05color\"\x9a\x01\n" +
+	"\x05color\x18\x03 \x01(\tB-\xbaH*r(\x10\x04\x18\a2\"^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$R\x05color\"\x96\x01\n" +
 	"\x11CategoryWithUsage\x12-\n" +
 	"\bcategory\x18\x01 \x01(\v2\x11.null.v1.CategoryR\bcategory\x12\x1f\n" +
 	"\vusage_count\x18\x02 \x01(\x03R\n" +
-	"usageCount\x125\n" +
-	"\ftotal_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\vtotalAmount\"\xb0\x01\n" +
+	"usageCount\x121\n" +
+	"\ftotal_amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\vtotalAmount\"\xac\x01\n" +
 	"\x15CategoryWithUserUsage\x12-\n" +
 	"\bcategory\x18\x01 \x01(\v2\x11.null.v1.CategoryR\bcategory\x12(\n" +
-	"\x10user_usage_count\x18\x02 \x01(\x03R\x0euserUsageCount\x12>\n" +
-	"\x11user_total_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\x0fuserTotalAmountB\x82\x01\n" +
+	"\x10user_usage_count\x18\x02 \x01(\x03R\x0euserUsageCount\x12:\n" +
+	"\x11user_total_amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\x0fuserTotalAmountB\x82\x01\n" +
 	"\vcom.null.v1B\rCategoryProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
@@ -240,13 +239,13 @@ var file_null_v1_category_proto_goTypes = []any{
 	(*Category)(nil),              // 0: null.v1.Category
 	(*CategoryWithUsage)(nil),     // 1: null.v1.CategoryWithUsage
 	(*CategoryWithUserUsage)(nil), // 2: null.v1.CategoryWithUserUsage
-	(*money.Money)(nil),           // 3: google.type.Money
+	(*Money)(nil),                 // 3: null.v1.Money
 }
 var file_null_v1_category_proto_depIdxs = []int32{
 	0, // 0: null.v1.CategoryWithUsage.category:type_name -> null.v1.Category
-	3, // 1: null.v1.CategoryWithUsage.total_amount:type_name -> google.type.Money
+	3, // 1: null.v1.CategoryWithUsage.total_amount:type_name -> null.v1.Money
 	0, // 2: null.v1.CategoryWithUserUsage.category:type_name -> null.v1.Category
-	3, // 3: null.v1.CategoryWithUserUsage.user_total_amount:type_name -> google.type.Money
+	3, // 3: null.v1.CategoryWithUserUsage.user_total_amount:type_name -> null.v1.Money
 	4, // [4:4] is the sub-list for method output_type
 	4, // [4:4] is the sub-list for method input_type
 	4, // [4:4] is the sub-list for extension type_name
@@ -259,6 +258,7 @@ func file_null_v1_category_proto_init() {
 	if File_null_v1_category_proto != nil {
 		return
 	}
+	file_null_v1_common_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{

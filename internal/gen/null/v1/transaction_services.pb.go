@@ -8,7 +8,6 @@ package nullv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
-	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -34,8 +33,8 @@ type ListTransactionsRequest struct {
 	StartDate        *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=start_date,json=startDate,proto3,oneof" json:"start_date,omitempty"`
 	EndDate          *timestamppb.Timestamp `protobuf:"bytes,6,opt,name=end_date,json=endDate,proto3,oneof" json:"end_date,omitempty"`
 	Cursor           *Cursor                `protobuf:"bytes,7,opt,name=cursor,proto3,oneof" json:"cursor,omitempty"`
-	AmountMin        *money.Money           `protobuf:"bytes,8,opt,name=amount_min,json=amountMin,proto3,oneof" json:"amount_min,omitempty"`
-	AmountMax        *money.Money           `protobuf:"bytes,9,opt,name=amount_max,json=amountMax,proto3,oneof" json:"amount_max,omitempty"`
+	AmountMin        *Money                 `protobuf:"bytes,8,opt,name=amount_min,json=amountMin,proto3,oneof" json:"amount_min,omitempty"`
+	AmountMax        *Money                 `protobuf:"bytes,9,opt,name=amount_max,json=amountMax,proto3,oneof" json:"amount_max,omitempty"`
 	Direction        *TransactionDirection  `protobuf:"varint,10,opt,name=direction,proto3,enum=null.v1.TransactionDirection,oneof" json:"direction,omitempty"`
 	AccountIds       []int64                `protobuf:"varint,11,rep,packed,name=account_ids,json=accountIds,proto3" json:"account_ids,omitempty"`
 	Categories       []string               `protobuf:"bytes,12,rep,name=categories,proto3" json:"categories,omitempty"`
@@ -128,14 +127,14 @@ func (x *ListTransactionsRequest) GetCursor() *Cursor {
 	return nil
 }
 
-func (x *ListTransactionsRequest) GetAmountMin() *money.Money {
+func (x *ListTransactionsRequest) GetAmountMin() *Money {
 	if x != nil {
 		return x.AmountMin
 	}
 	return nil
 }
 
-func (x *ListTransactionsRequest) GetAmountMax() *money.Money {
+func (x *ListTransactionsRequest) GetAmountMax() *Money {
 	if x != nil {
 		return x.AmountMax
 	}
@@ -365,13 +364,13 @@ type TransactionInput struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	AccountId     int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	TxDate        *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=tx_date,json=txDate,proto3" json:"tx_date,omitempty"`
-	TxAmount      *money.Money           `protobuf:"bytes,3,opt,name=tx_amount,json=txAmount,proto3" json:"tx_amount,omitempty"`
+	TxAmount      *Money                 `protobuf:"bytes,3,opt,name=tx_amount,json=txAmount,proto3" json:"tx_amount,omitempty"`
 	Direction     TransactionDirection   `protobuf:"varint,4,opt,name=direction,proto3,enum=null.v1.TransactionDirection" json:"direction,omitempty"`
 	Description   *string                `protobuf:"bytes,5,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	Merchant      *string                `protobuf:"bytes,6,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
 	UserNotes     *string                `protobuf:"bytes,7,opt,name=user_notes,json=userNotes,proto3,oneof" json:"user_notes,omitempty"`
 	CategoryId    *int64                 `protobuf:"varint,8,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
-	ForeignAmount *money.Money           `protobuf:"bytes,9,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
+	ForeignAmount *Money                 `protobuf:"bytes,9,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
 	ExchangeRate  *float64               `protobuf:"fixed64,10,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -421,7 +420,7 @@ func (x *TransactionInput) GetTxDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *TransactionInput) GetTxAmount() *money.Money {
+func (x *TransactionInput) GetTxAmount() *Money {
 	if x != nil {
 		return x.TxAmount
 	}
@@ -463,7 +462,7 @@ func (x *TransactionInput) GetCategoryId() int64 {
 	return 0
 }
 
-func (x *TransactionInput) GetForeignAmount() *money.Money {
+func (x *TransactionInput) GetForeignAmount() *Money {
 	if x != nil {
 		return x.ForeignAmount
 	}
@@ -587,13 +586,13 @@ type UpdateTransactionRequest struct {
 	Id            int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
 	UpdateMask    *fieldmaskpb.FieldMask `protobuf:"bytes,3,opt,name=update_mask,json=updateMask,proto3" json:"update_mask,omitempty"`
 	TxDate        *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=tx_date,json=txDate,proto3,oneof" json:"tx_date,omitempty"`
-	TxAmount      *money.Money           `protobuf:"bytes,5,opt,name=tx_amount,json=txAmount,proto3,oneof" json:"tx_amount,omitempty"`
+	TxAmount      *Money                 `protobuf:"bytes,5,opt,name=tx_amount,json=txAmount,proto3,oneof" json:"tx_amount,omitempty"`
 	Direction     *TransactionDirection  `protobuf:"varint,6,opt,name=direction,proto3,enum=null.v1.TransactionDirection,oneof" json:"direction,omitempty"`
 	Description   *string                `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	Merchant      *string                `protobuf:"bytes,8,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
 	UserNotes     *string                `protobuf:"bytes,9,opt,name=user_notes,json=userNotes,proto3,oneof" json:"user_notes,omitempty"`
 	CategoryId    *int64                 `protobuf:"varint,10,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
-	ForeignAmount *money.Money           `protobuf:"bytes,11,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
+	ForeignAmount *Money                 `protobuf:"bytes,11,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
 	ExchangeRate  *float64               `protobuf:"fixed64,12,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
 	AccountId     *int64                 `protobuf:"varint,13,opt,name=account_id,json=accountId,proto3,oneof" json:"account_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -658,7 +657,7 @@ func (x *UpdateTransactionRequest) GetTxDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *UpdateTransactionRequest) GetTxAmount() *money.Money {
+func (x *UpdateTransactionRequest) GetTxAmount() *Money {
 	if x != nil {
 		return x.TxAmount
 	}
@@ -700,7 +699,7 @@ func (x *UpdateTransactionRequest) GetCategoryId() int64 {
 	return 0
 }
 
-func (x *UpdateTransactionRequest) GetForeignAmount() *money.Money {
+func (x *UpdateTransactionRequest) GetForeignAmount() *Money {
 	if x != nil {
 		return x.ForeignAmount
 	}
@@ -961,7 +960,7 @@ var File_null_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
-	"\"null/v1/transaction_services.proto\x12\anull.v1\x1a\x14null/v1/common.proto\x1a\x13null/v1/enums.proto\x1a\x19null/v1/transaction.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x17google/type/money.proto\"\x88\t\n" +
+	"\"null/v1/transaction_services.proto\x12\anull.v1\x1a\x14null/v1/common.proto\x1a\x13null/v1/enums.proto\x1a\x19null/v1/transaction.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x80\t\n" +
 	"\x17ListTransactionsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12+\n" +
 	"\n" +
@@ -972,11 +971,11 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\n" +
 	"start_date\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampH\x03R\tstartDate\x88\x01\x01\x12:\n" +
 	"\bend_date\x18\x06 \x01(\v2\x1a.google.protobuf.TimestampH\x04R\aendDate\x88\x01\x01\x12,\n" +
-	"\x06cursor\x18\a \x01(\v2\x0f.null.v1.CursorH\x05R\x06cursor\x88\x01\x01\x126\n" +
+	"\x06cursor\x18\a \x01(\v2\x0f.null.v1.CursorH\x05R\x06cursor\x88\x01\x01\x122\n" +
 	"\n" +
-	"amount_min\x18\b \x01(\v2\x12.google.type.MoneyH\x06R\tamountMin\x88\x01\x01\x126\n" +
+	"amount_min\x18\b \x01(\v2\x0e.null.v1.MoneyH\x06R\tamountMin\x88\x01\x01\x122\n" +
 	"\n" +
-	"amount_max\x18\t \x01(\v2\x12.google.type.MoneyH\aR\tamountMax\x88\x01\x01\x12J\n" +
+	"amount_max\x18\t \x01(\v2\x0e.null.v1.MoneyH\aR\tamountMax\x88\x01\x01\x12J\n" +
 	"\tdirection\x18\n" +
 	" \x01(\x0e2\x1d.null.v1.TransactionDirectionB\b\xbaH\x05\x82\x01\x02\x10\x01H\bR\tdirection\x88\x01\x01\x12\x1f\n" +
 	"\vaccount_ids\x18\v \x03(\x03R\n" +
@@ -1018,20 +1017,20 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"P\n" +
 	"\x16GetTransactionResponse\x126\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\"\xba\x04\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\"\xb2\x04\n" +
 	"\x10TransactionInput\x12&\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x123\n" +
-	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
-	"\ttx_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12;\n" +
+	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12+\n" +
+	"\ttx_amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\btxAmount\x12;\n" +
 	"\tdirection\x18\x04 \x01(\x0e2\x1d.null.v1.TransactionDirectionR\tdirection\x12%\n" +
 	"\vdescription\x18\x05 \x01(\tH\x00R\vdescription\x88\x01\x01\x12\x1f\n" +
 	"\bmerchant\x18\x06 \x01(\tH\x01R\bmerchant\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"user_notes\x18\a \x01(\tH\x02R\tuserNotes\x88\x01\x01\x12$\n" +
 	"\vcategory_id\x18\b \x01(\x03H\x03R\n" +
-	"categoryId\x88\x01\x01\x12>\n" +
-	"\x0eforeign_amount\x18\t \x01(\v2\x12.google.type.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12(\n" +
+	"categoryId\x88\x01\x01\x12:\n" +
+	"\x0eforeign_amount\x18\t \x01(\v2\x0e.null.v1.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12(\n" +
 	"\rexchange_rate\x18\n" +
 	" \x01(\x01H\x05R\fexchangeRate\x88\x01\x01B\x0e\n" +
 	"\f_descriptionB\v\n" +
@@ -1045,14 +1044,14 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\ftransactions\x18\x02 \x03(\v2\x19.null.v1.TransactionInputB\b\xbaH\x05\x92\x01\x02\b\x01R\ftransactions\"z\n" +
 	"\x19CreateTransactionResponse\x128\n" +
 	"\ftransactions\x18\x01 \x03(\v2\x14.null.v1.TransactionR\ftransactions\x12#\n" +
-	"\rcreated_count\x18\x02 \x01(\x05R\fcreatedCount\"\x86\x06\n" +
+	"\rcreated_count\x18\x02 \x01(\x05R\fcreatedCount\"\xfe\x05\n" +
 	"\x18UpdateTransactionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
 	"\vupdate_mask\x18\x03 \x01(\v2\x1a.google.protobuf.FieldMaskR\n" +
 	"updateMask\x128\n" +
-	"\atx_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x06txDate\x88\x01\x01\x124\n" +
-	"\ttx_amount\x18\x05 \x01(\v2\x12.google.type.MoneyH\x01R\btxAmount\x88\x01\x01\x12@\n" +
+	"\atx_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\x06txDate\x88\x01\x01\x120\n" +
+	"\ttx_amount\x18\x05 \x01(\v2\x0e.null.v1.MoneyH\x01R\btxAmount\x88\x01\x01\x12@\n" +
 	"\tdirection\x18\x06 \x01(\x0e2\x1d.null.v1.TransactionDirectionH\x02R\tdirection\x88\x01\x01\x12%\n" +
 	"\vdescription\x18\a \x01(\tH\x03R\vdescription\x88\x01\x01\x12\x1f\n" +
 	"\bmerchant\x18\b \x01(\tH\x04R\bmerchant\x88\x01\x01\x12\"\n" +
@@ -1060,8 +1059,8 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"user_notes\x18\t \x01(\tH\x05R\tuserNotes\x88\x01\x01\x12$\n" +
 	"\vcategory_id\x18\n" +
 	" \x01(\x03H\x06R\n" +
-	"categoryId\x88\x01\x01\x12>\n" +
-	"\x0eforeign_amount\x18\v \x01(\v2\x12.google.type.MoneyH\aR\rforeignAmount\x88\x01\x01\x12(\n" +
+	"categoryId\x88\x01\x01\x12:\n" +
+	"\x0eforeign_amount\x18\v \x01(\v2\x0e.null.v1.MoneyH\aR\rforeignAmount\x88\x01\x01\x12(\n" +
 	"\rexchange_rate\x18\f \x01(\x01H\bR\fexchangeRate\x88\x01\x01\x12+\n" +
 	"\n" +
 	"account_id\x18\r \x01(\x03B\a\xbaH\x04\"\x02 \x00H\tR\taccountId\x88\x01\x01B\n" +
@@ -1129,7 +1128,7 @@ var file_null_v1_transaction_services_proto_goTypes = []any{
 	(*CategorizeTransactionsResponse)(nil), // 12: null.v1.CategorizeTransactionsResponse
 	(*timestamppb.Timestamp)(nil),          // 13: google.protobuf.Timestamp
 	(*Cursor)(nil),                         // 14: null.v1.Cursor
-	(*money.Money)(nil),                    // 15: google.type.Money
+	(*Money)(nil),                          // 15: null.v1.Money
 	(TransactionDirection)(0),              // 16: null.v1.TransactionDirection
 	(*TimeOfDay)(nil),                      // 17: null.v1.TimeOfDay
 	(*Transaction)(nil),                    // 18: null.v1.Transaction
@@ -1139,8 +1138,8 @@ var file_null_v1_transaction_services_proto_depIdxs = []int32{
 	13, // 0: null.v1.ListTransactionsRequest.start_date:type_name -> google.protobuf.Timestamp
 	13, // 1: null.v1.ListTransactionsRequest.end_date:type_name -> google.protobuf.Timestamp
 	14, // 2: null.v1.ListTransactionsRequest.cursor:type_name -> null.v1.Cursor
-	15, // 3: null.v1.ListTransactionsRequest.amount_min:type_name -> google.type.Money
-	15, // 4: null.v1.ListTransactionsRequest.amount_max:type_name -> google.type.Money
+	15, // 3: null.v1.ListTransactionsRequest.amount_min:type_name -> null.v1.Money
+	15, // 4: null.v1.ListTransactionsRequest.amount_max:type_name -> null.v1.Money
 	16, // 5: null.v1.ListTransactionsRequest.direction:type_name -> null.v1.TransactionDirection
 	17, // 6: null.v1.ListTransactionsRequest.time_of_day_start:type_name -> null.v1.TimeOfDay
 	17, // 7: null.v1.ListTransactionsRequest.time_of_day_end:type_name -> null.v1.TimeOfDay
@@ -1148,16 +1147,16 @@ var file_null_v1_transaction_services_proto_depIdxs = []int32{
 	14, // 9: null.v1.ListTransactionsResponse.next_cursor:type_name -> null.v1.Cursor
 	18, // 10: null.v1.GetTransactionResponse.transaction:type_name -> null.v1.Transaction
 	13, // 11: null.v1.TransactionInput.tx_date:type_name -> google.protobuf.Timestamp
-	15, // 12: null.v1.TransactionInput.tx_amount:type_name -> google.type.Money
+	15, // 12: null.v1.TransactionInput.tx_amount:type_name -> null.v1.Money
 	16, // 13: null.v1.TransactionInput.direction:type_name -> null.v1.TransactionDirection
-	15, // 14: null.v1.TransactionInput.foreign_amount:type_name -> google.type.Money
+	15, // 14: null.v1.TransactionInput.foreign_amount:type_name -> null.v1.Money
 	4,  // 15: null.v1.CreateTransactionRequest.transactions:type_name -> null.v1.TransactionInput
 	18, // 16: null.v1.CreateTransactionResponse.transactions:type_name -> null.v1.Transaction
 	19, // 17: null.v1.UpdateTransactionRequest.update_mask:type_name -> google.protobuf.FieldMask
 	13, // 18: null.v1.UpdateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
-	15, // 19: null.v1.UpdateTransactionRequest.tx_amount:type_name -> google.type.Money
+	15, // 19: null.v1.UpdateTransactionRequest.tx_amount:type_name -> null.v1.Money
 	16, // 20: null.v1.UpdateTransactionRequest.direction:type_name -> null.v1.TransactionDirection
-	15, // 21: null.v1.UpdateTransactionRequest.foreign_amount:type_name -> google.type.Money
+	15, // 21: null.v1.UpdateTransactionRequest.foreign_amount:type_name -> null.v1.Money
 	0,  // 22: null.v1.TransactionService.ListTransactions:input_type -> null.v1.ListTransactionsRequest
 	2,  // 23: null.v1.TransactionService.GetTransaction:input_type -> null.v1.GetTransactionRequest
 	5,  // 24: null.v1.TransactionService.CreateTransaction:input_type -> null.v1.CreateTransactionRequest

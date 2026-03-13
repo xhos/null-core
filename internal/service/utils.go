@@ -3,10 +3,12 @@ package service
 import (
 	"errors"
 	"fmt"
+	"math"
 	"time"
 
+	pb "null-core/internal/gen/null/v1"
+
 	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -48,18 +50,17 @@ func fromProtoTimestamp(ts *timestamppb.Timestamp) time.Time {
 	return ts.AsTime()
 }
 
-func moneyToCents(m *money.Money) int64 {
+func moneyToCents(m *pb.Money) int64 {
 	if m == nil {
 		return 0
 	}
-	return m.Units*100 + int64(m.Nanos)/10_000_000
+	return int64(math.Round(m.Amount * 100))
 }
 
-func centsToMoney(cents int64, currency string) *money.Money {
-	return &money.Money{
+func centsToMoney(cents int64, currency string) *pb.Money {
+	return &pb.Money{
+		Amount:       float64(cents) / 100,
 		CurrencyCode: currency,
-		Units:        cents / 100,
-		Nanos:        int32((cents % 100) * 10_000_000),
 	}
 }
 

@@ -6,12 +6,12 @@ import (
 	"time"
 
 	"null-core/internal/api/middleware"
+	pb "null-core/internal/gen/null/v1"
 	"null-core/internal/service"
 
 	"connectrpc.com/connect"
 	"github.com/google/uuid"
 	"google.golang.org/genproto/googleapis/type/date"
-	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -47,12 +47,10 @@ func dateToTime(d *date.Date) *time.Time {
 	return &t
 }
 
-// TODO: should be gone
-func centsToMoney(cents int64, currency string) *money.Money {
-	return &money.Money{
+func centsToMoney(cents int64, currency string) *pb.Money {
+	return &pb.Money{
+		Amount:       float64(cents) / 100,
 		CurrencyCode: currency,
-		Units:        cents / 100,
-		Nanos:        int32((cents % 100) * 10_000_000),
 	}
 }
 

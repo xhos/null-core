@@ -72,3 +72,56 @@ func (s *Server) ListAccounts(ctx context.Context, req *connect.Request[pb.ListA
 
 	return connect.NewResponse(&pb.ListAccountsResponse{Accounts: accounts}), nil
 }
+
+func (s *Server) AddAccountAlias(ctx context.Context, req *connect.Request[pb.AddAccountAliasRequest]) (*connect.Response[pb.AddAccountAliasResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.services.Accounts.AddAlias(ctx, userID, req.Msg.GetAccountId(), req.Msg.GetAlias()); err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.AddAccountAliasResponse{}), nil
+}
+
+func (s *Server) RemoveAccountAlias(ctx context.Context, req *connect.Request[pb.RemoveAccountAliasRequest]) (*connect.Response[pb.RemoveAccountAliasResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.services.Accounts.RemoveAlias(ctx, userID, req.Msg.GetAccountId(), req.Msg.GetAlias()); err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.RemoveAccountAliasResponse{}), nil
+}
+
+func (s *Server) SetAccountAliases(ctx context.Context, req *connect.Request[pb.SetAccountAliasesRequest]) (*connect.Response[pb.SetAccountAliasesResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := s.services.Accounts.SetAliases(ctx, userID, req.Msg.GetAccountId(), req.Msg.GetAliases()); err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.SetAccountAliasesResponse{}), nil
+}
+
+func (s *Server) FindAccountByAlias(ctx context.Context, req *connect.Request[pb.FindAccountByAliasRequest]) (*connect.Response[pb.FindAccountByAliasResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	account, err := s.services.Accounts.FindByAlias(ctx, userID, req.Msg.GetAlias())
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.FindAccountByAliasResponse{Account: account}), nil
+}

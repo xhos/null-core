@@ -48,6 +48,18 @@ const (
 	// AccountServiceDeleteAccountProcedure is the fully-qualified name of the AccountService's
 	// DeleteAccount RPC.
 	AccountServiceDeleteAccountProcedure = "/null.v1.AccountService/DeleteAccount"
+	// AccountServiceAddAccountAliasProcedure is the fully-qualified name of the AccountService's
+	// AddAccountAlias RPC.
+	AccountServiceAddAccountAliasProcedure = "/null.v1.AccountService/AddAccountAlias"
+	// AccountServiceRemoveAccountAliasProcedure is the fully-qualified name of the AccountService's
+	// RemoveAccountAlias RPC.
+	AccountServiceRemoveAccountAliasProcedure = "/null.v1.AccountService/RemoveAccountAlias"
+	// AccountServiceSetAccountAliasesProcedure is the fully-qualified name of the AccountService's
+	// SetAccountAliases RPC.
+	AccountServiceSetAccountAliasesProcedure = "/null.v1.AccountService/SetAccountAliases"
+	// AccountServiceFindAccountByAliasProcedure is the fully-qualified name of the AccountService's
+	// FindAccountByAlias RPC.
+	AccountServiceFindAccountByAliasProcedure = "/null.v1.AccountService/FindAccountByAlias"
 )
 
 // AccountServiceClient is a client for the null.v1.AccountService service.
@@ -57,6 +69,10 @@ type AccountServiceClient interface {
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAccountResponse], error)
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
+	AddAccountAlias(context.Context, *connect.Request[v1.AddAccountAliasRequest]) (*connect.Response[v1.AddAccountAliasResponse], error)
+	RemoveAccountAlias(context.Context, *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error)
+	SetAccountAliases(context.Context, *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error)
+	FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error)
 }
 
 // NewAccountServiceClient constructs a client for the null.v1.AccountService service. By default,
@@ -100,16 +116,44 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceMethods.ByName("DeleteAccount")),
 			connect.WithClientOptions(opts...),
 		),
+		addAccountAlias: connect.NewClient[v1.AddAccountAliasRequest, v1.AddAccountAliasResponse](
+			httpClient,
+			baseURL+AccountServiceAddAccountAliasProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("AddAccountAlias")),
+			connect.WithClientOptions(opts...),
+		),
+		removeAccountAlias: connect.NewClient[v1.RemoveAccountAliasRequest, v1.RemoveAccountAliasResponse](
+			httpClient,
+			baseURL+AccountServiceRemoveAccountAliasProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("RemoveAccountAlias")),
+			connect.WithClientOptions(opts...),
+		),
+		setAccountAliases: connect.NewClient[v1.SetAccountAliasesRequest, v1.SetAccountAliasesResponse](
+			httpClient,
+			baseURL+AccountServiceSetAccountAliasesProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("SetAccountAliases")),
+			connect.WithClientOptions(opts...),
+		),
+		findAccountByAlias: connect.NewClient[v1.FindAccountByAliasRequest, v1.FindAccountByAliasResponse](
+			httpClient,
+			baseURL+AccountServiceFindAccountByAliasProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("FindAccountByAlias")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // accountServiceClient implements AccountServiceClient.
 type accountServiceClient struct {
-	listAccounts  *connect.Client[v1.ListAccountsRequest, v1.ListAccountsResponse]
-	getAccount    *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
-	createAccount *connect.Client[v1.CreateAccountRequest, v1.CreateAccountResponse]
-	updateAccount *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
-	deleteAccount *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
+	listAccounts       *connect.Client[v1.ListAccountsRequest, v1.ListAccountsResponse]
+	getAccount         *connect.Client[v1.GetAccountRequest, v1.GetAccountResponse]
+	createAccount      *connect.Client[v1.CreateAccountRequest, v1.CreateAccountResponse]
+	updateAccount      *connect.Client[v1.UpdateAccountRequest, v1.UpdateAccountResponse]
+	deleteAccount      *connect.Client[v1.DeleteAccountRequest, v1.DeleteAccountResponse]
+	addAccountAlias    *connect.Client[v1.AddAccountAliasRequest, v1.AddAccountAliasResponse]
+	removeAccountAlias *connect.Client[v1.RemoveAccountAliasRequest, v1.RemoveAccountAliasResponse]
+	setAccountAliases  *connect.Client[v1.SetAccountAliasesRequest, v1.SetAccountAliasesResponse]
+	findAccountByAlias *connect.Client[v1.FindAccountByAliasRequest, v1.FindAccountByAliasResponse]
 }
 
 // ListAccounts calls null.v1.AccountService.ListAccounts.
@@ -137,6 +181,26 @@ func (c *accountServiceClient) DeleteAccount(ctx context.Context, req *connect.R
 	return c.deleteAccount.CallUnary(ctx, req)
 }
 
+// AddAccountAlias calls null.v1.AccountService.AddAccountAlias.
+func (c *accountServiceClient) AddAccountAlias(ctx context.Context, req *connect.Request[v1.AddAccountAliasRequest]) (*connect.Response[v1.AddAccountAliasResponse], error) {
+	return c.addAccountAlias.CallUnary(ctx, req)
+}
+
+// RemoveAccountAlias calls null.v1.AccountService.RemoveAccountAlias.
+func (c *accountServiceClient) RemoveAccountAlias(ctx context.Context, req *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error) {
+	return c.removeAccountAlias.CallUnary(ctx, req)
+}
+
+// SetAccountAliases calls null.v1.AccountService.SetAccountAliases.
+func (c *accountServiceClient) SetAccountAliases(ctx context.Context, req *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error) {
+	return c.setAccountAliases.CallUnary(ctx, req)
+}
+
+// FindAccountByAlias calls null.v1.AccountService.FindAccountByAlias.
+func (c *accountServiceClient) FindAccountByAlias(ctx context.Context, req *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error) {
+	return c.findAccountByAlias.CallUnary(ctx, req)
+}
+
 // AccountServiceHandler is an implementation of the null.v1.AccountService service.
 type AccountServiceHandler interface {
 	ListAccounts(context.Context, *connect.Request[v1.ListAccountsRequest]) (*connect.Response[v1.ListAccountsResponse], error)
@@ -144,6 +208,10 @@ type AccountServiceHandler interface {
 	CreateAccount(context.Context, *connect.Request[v1.CreateAccountRequest]) (*connect.Response[v1.CreateAccountResponse], error)
 	UpdateAccount(context.Context, *connect.Request[v1.UpdateAccountRequest]) (*connect.Response[v1.UpdateAccountResponse], error)
 	DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error)
+	AddAccountAlias(context.Context, *connect.Request[v1.AddAccountAliasRequest]) (*connect.Response[v1.AddAccountAliasResponse], error)
+	RemoveAccountAlias(context.Context, *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error)
+	SetAccountAliases(context.Context, *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error)
+	FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error)
 }
 
 // NewAccountServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -183,6 +251,30 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceMethods.ByName("DeleteAccount")),
 		connect.WithHandlerOptions(opts...),
 	)
+	accountServiceAddAccountAliasHandler := connect.NewUnaryHandler(
+		AccountServiceAddAccountAliasProcedure,
+		svc.AddAccountAlias,
+		connect.WithSchema(accountServiceMethods.ByName("AddAccountAlias")),
+		connect.WithHandlerOptions(opts...),
+	)
+	accountServiceRemoveAccountAliasHandler := connect.NewUnaryHandler(
+		AccountServiceRemoveAccountAliasProcedure,
+		svc.RemoveAccountAlias,
+		connect.WithSchema(accountServiceMethods.ByName("RemoveAccountAlias")),
+		connect.WithHandlerOptions(opts...),
+	)
+	accountServiceSetAccountAliasesHandler := connect.NewUnaryHandler(
+		AccountServiceSetAccountAliasesProcedure,
+		svc.SetAccountAliases,
+		connect.WithSchema(accountServiceMethods.ByName("SetAccountAliases")),
+		connect.WithHandlerOptions(opts...),
+	)
+	accountServiceFindAccountByAliasHandler := connect.NewUnaryHandler(
+		AccountServiceFindAccountByAliasProcedure,
+		svc.FindAccountByAlias,
+		connect.WithSchema(accountServiceMethods.ByName("FindAccountByAlias")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountServiceListAccountsProcedure:
@@ -195,6 +287,14 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 			accountServiceUpdateAccountHandler.ServeHTTP(w, r)
 		case AccountServiceDeleteAccountProcedure:
 			accountServiceDeleteAccountHandler.ServeHTTP(w, r)
+		case AccountServiceAddAccountAliasProcedure:
+			accountServiceAddAccountAliasHandler.ServeHTTP(w, r)
+		case AccountServiceRemoveAccountAliasProcedure:
+			accountServiceRemoveAccountAliasHandler.ServeHTTP(w, r)
+		case AccountServiceSetAccountAliasesProcedure:
+			accountServiceSetAccountAliasesHandler.ServeHTTP(w, r)
+		case AccountServiceFindAccountByAliasProcedure:
+			accountServiceFindAccountByAliasHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -222,4 +322,20 @@ func (UnimplementedAccountServiceHandler) UpdateAccount(context.Context, *connec
 
 func (UnimplementedAccountServiceHandler) DeleteAccount(context.Context, *connect.Request[v1.DeleteAccountRequest]) (*connect.Response[v1.DeleteAccountResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.DeleteAccount is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) AddAccountAlias(context.Context, *connect.Request[v1.AddAccountAliasRequest]) (*connect.Response[v1.AddAccountAliasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.AddAccountAlias is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) RemoveAccountAlias(context.Context, *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.RemoveAccountAlias is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) SetAccountAliases(context.Context, *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.SetAccountAliases is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.FindAccountByAlias is not implemented"))
 }

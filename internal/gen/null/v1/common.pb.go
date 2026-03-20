@@ -22,65 +22,6 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-// Money represents a monetary amount.
-//
-// JSON encoding: {"amount": 6.50, "currency_code": "USD"}
-//
-// Note: amount is stored as a double (decimal dollars/units), NOT cents.
-// This avoids the int64-as-string encoding of google.type.Money.
-// For $6.50 use amount=6.50, not amount=650.
-type Money struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Amount        float64                `protobuf:"fixed64,1,opt,name=amount,proto3" json:"amount,omitempty"`
-	CurrencyCode  string                 `protobuf:"bytes,2,opt,name=currency_code,json=currencyCode,proto3" json:"currency_code,omitempty"` // ISO 4217, e.g. "USD", "CAD", "EUR"
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
-}
-
-func (x *Money) Reset() {
-	*x = Money{}
-	mi := &file_null_v1_common_proto_msgTypes[0]
-	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-	ms.StoreMessageInfo(mi)
-}
-
-func (x *Money) String() string {
-	return protoimpl.X.MessageStringOf(x)
-}
-
-func (*Money) ProtoMessage() {}
-
-func (x *Money) ProtoReflect() protoreflect.Message {
-	mi := &file_null_v1_common_proto_msgTypes[0]
-	if x != nil {
-		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
-		if ms.LoadMessageInfo() == nil {
-			ms.StoreMessageInfo(mi)
-		}
-		return ms
-	}
-	return mi.MessageOf(x)
-}
-
-// Deprecated: Use Money.ProtoReflect.Descriptor instead.
-func (*Money) Descriptor() ([]byte, []int) {
-	return file_null_v1_common_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *Money) GetAmount() float64 {
-	if x != nil {
-		return x.Amount
-	}
-	return 0
-}
-
-func (x *Money) GetCurrencyCode() string {
-	if x != nil {
-		return x.CurrencyCode
-	}
-	return ""
-}
-
 type Location struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Latitude      float64                `protobuf:"fixed64,1,opt,name=latitude,proto3" json:"latitude,omitempty"`   // WGS84 decimal degrees
@@ -93,7 +34,7 @@ type Location struct {
 
 func (x *Location) Reset() {
 	*x = Location{}
-	mi := &file_null_v1_common_proto_msgTypes[1]
+	mi := &file_null_v1_common_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -105,7 +46,7 @@ func (x *Location) String() string {
 func (*Location) ProtoMessage() {}
 
 func (x *Location) ProtoReflect() protoreflect.Message {
-	mi := &file_null_v1_common_proto_msgTypes[1]
+	mi := &file_null_v1_common_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -118,7 +59,7 @@ func (x *Location) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Location.ProtoReflect.Descriptor instead.
 func (*Location) Descriptor() ([]byte, []int) {
-	return file_null_v1_common_proto_rawDescGZIP(), []int{1}
+	return file_null_v1_common_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Location) GetLatitude() float64 {
@@ -159,7 +100,7 @@ type Cursor struct {
 
 func (x *Cursor) Reset() {
 	*x = Cursor{}
-	mi := &file_null_v1_common_proto_msgTypes[2]
+	mi := &file_null_v1_common_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -171,7 +112,7 @@ func (x *Cursor) String() string {
 func (*Cursor) ProtoMessage() {}
 
 func (x *Cursor) ProtoReflect() protoreflect.Message {
-	mi := &file_null_v1_common_proto_msgTypes[2]
+	mi := &file_null_v1_common_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -184,7 +125,7 @@ func (x *Cursor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Cursor.ProtoReflect.Descriptor instead.
 func (*Cursor) Descriptor() ([]byte, []int) {
-	return file_null_v1_common_proto_rawDescGZIP(), []int{2}
+	return file_null_v1_common_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Cursor) GetDate() *timestamppb.Timestamp {
@@ -211,7 +152,7 @@ type TimeOfDay struct {
 
 func (x *TimeOfDay) Reset() {
 	*x = TimeOfDay{}
-	mi := &file_null_v1_common_proto_msgTypes[3]
+	mi := &file_null_v1_common_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -223,7 +164,7 @@ func (x *TimeOfDay) String() string {
 func (*TimeOfDay) ProtoMessage() {}
 
 func (x *TimeOfDay) ProtoReflect() protoreflect.Message {
-	mi := &file_null_v1_common_proto_msgTypes[3]
+	mi := &file_null_v1_common_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -236,7 +177,7 @@ func (x *TimeOfDay) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TimeOfDay.ProtoReflect.Descriptor instead.
 func (*TimeOfDay) Descriptor() ([]byte, []int) {
-	return file_null_v1_common_proto_rawDescGZIP(), []int{3}
+	return file_null_v1_common_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *TimeOfDay) GetHours() int32 {
@@ -257,10 +198,7 @@ var File_null_v1_common_proto protoreflect.FileDescriptor
 
 const file_null_v1_common_proto_rawDesc = "" +
 	"\n" +
-	"\x14null/v1/common.proto\x12\anull.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"D\n" +
-	"\x05Money\x12\x16\n" +
-	"\x06amount\x18\x01 \x01(\x01R\x06amount\x12#\n" +
-	"\rcurrency_code\x18\x02 \x01(\tR\fcurrencyCode\"\x81\x01\n" +
+	"\x14null/v1/common.proto\x12\anull.v1\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x01\n" +
 	"\bLocation\x12\x1a\n" +
 	"\blatitude\x18\x01 \x01(\x01R\blatitude\x12\x1c\n" +
 	"\tlongitude\x18\x02 \x01(\x01R\tlongitude\x12\x16\n" +
@@ -288,16 +226,15 @@ func file_null_v1_common_proto_rawDescGZIP() []byte {
 	return file_null_v1_common_proto_rawDescData
 }
 
-var file_null_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_null_v1_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
 var file_null_v1_common_proto_goTypes = []any{
-	(*Money)(nil),                 // 0: null.v1.Money
-	(*Location)(nil),              // 1: null.v1.Location
-	(*Cursor)(nil),                // 2: null.v1.Cursor
-	(*TimeOfDay)(nil),             // 3: null.v1.TimeOfDay
-	(*timestamppb.Timestamp)(nil), // 4: google.protobuf.Timestamp
+	(*Location)(nil),              // 0: null.v1.Location
+	(*Cursor)(nil),                // 1: null.v1.Cursor
+	(*TimeOfDay)(nil),             // 2: null.v1.TimeOfDay
+	(*timestamppb.Timestamp)(nil), // 3: google.protobuf.Timestamp
 }
 var file_null_v1_common_proto_depIdxs = []int32{
-	4, // 0: null.v1.Cursor.date:type_name -> google.protobuf.Timestamp
+	3, // 0: null.v1.Cursor.date:type_name -> google.protobuf.Timestamp
 	1, // [1:1] is the sub-list for method output_type
 	1, // [1:1] is the sub-list for method input_type
 	1, // [1:1] is the sub-list for extension type_name
@@ -310,15 +247,15 @@ func file_null_v1_common_proto_init() {
 	if File_null_v1_common_proto != nil {
 		return
 	}
+	file_null_v1_common_proto_msgTypes[0].OneofWrappers = []any{}
 	file_null_v1_common_proto_msgTypes[1].OneofWrappers = []any{}
-	file_null_v1_common_proto_msgTypes[2].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_null_v1_common_proto_rawDesc), len(file_null_v1_common_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   3,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

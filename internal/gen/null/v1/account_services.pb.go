@@ -8,6 +8,7 @@ package nullv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	fieldmaskpb "google.golang.org/protobuf/types/known/fieldmaskpb"
@@ -215,7 +216,7 @@ type CreateAccountRequest struct {
 	Bank          string                 `protobuf:"bytes,3,opt,name=bank,proto3" json:"bank,omitempty"`
 	Type          AccountType            `protobuf:"varint,4,opt,name=type,proto3,enum=null.v1.AccountType" json:"type,omitempty"`
 	FriendlyName  *string                `protobuf:"bytes,5,opt,name=friendly_name,json=friendlyName,proto3,oneof" json:"friendly_name,omitempty"`
-	AnchorBalance *Money                 `protobuf:"bytes,6,opt,name=anchor_balance,json=anchorBalance,proto3" json:"anchor_balance,omitempty"`
+	AnchorBalance *money.Money           `protobuf:"bytes,6,opt,name=anchor_balance,json=anchorBalance,proto3" json:"anchor_balance,omitempty"`
 	MainCurrency  string                 `protobuf:"bytes,7,opt,name=main_currency,json=mainCurrency,proto3" json:"main_currency,omitempty"`
 	Colors        []string               `protobuf:"bytes,8,rep,name=colors,proto3" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -287,7 +288,7 @@ func (x *CreateAccountRequest) GetFriendlyName() string {
 	return ""
 }
 
-func (x *CreateAccountRequest) GetAnchorBalance() *Money {
+func (x *CreateAccountRequest) GetAnchorBalance() *money.Money {
 	if x != nil {
 		return x.AnchorBalance
 	}
@@ -363,7 +364,7 @@ type UpdateAccountRequest struct {
 	AccountType   *AccountType           `protobuf:"varint,6,opt,name=account_type,json=accountType,proto3,enum=null.v1.AccountType,oneof" json:"account_type,omitempty"`
 	FriendlyName  *string                `protobuf:"bytes,7,opt,name=friendly_name,json=friendlyName,proto3,oneof" json:"friendly_name,omitempty"`
 	AnchorDate    *timestamppb.Timestamp `protobuf:"bytes,8,opt,name=anchor_date,json=anchorDate,proto3,oneof" json:"anchor_date,omitempty"`
-	AnchorBalance *Money                 `protobuf:"bytes,9,opt,name=anchor_balance,json=anchorBalance,proto3,oneof" json:"anchor_balance,omitempty"`
+	AnchorBalance *money.Money           `protobuf:"bytes,9,opt,name=anchor_balance,json=anchorBalance,proto3,oneof" json:"anchor_balance,omitempty"`
 	MainCurrency  *string                `protobuf:"bytes,10,opt,name=main_currency,json=mainCurrency,proto3,oneof" json:"main_currency,omitempty"`
 	Colors        []string               `protobuf:"bytes,11,rep,name=colors,proto3" json:"colors,omitempty"`
 	unknownFields protoimpl.UnknownFields
@@ -456,7 +457,7 @@ func (x *UpdateAccountRequest) GetAnchorDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *UpdateAccountRequest) GetAnchorBalance() *Money {
+func (x *UpdateAccountRequest) GetAnchorBalance() *money.Money {
 	if x != nil {
 		return x.AnchorBalance
 	}
@@ -965,7 +966,7 @@ var File_null_v1_account_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_account_services_proto_rawDesc = "" +
 	"\n" +
-	"\x1enull/v1/account_services.proto\x12\anull.v1\x1a\x15null/v1/account.proto\x1a\x14null/v1/common.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"8\n" +
+	"\x1enull/v1/account_services.proto\x12\anull.v1\x1a\x15null/v1/account.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a google/protobuf/field_mask.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"8\n" +
 	"\x13ListAccountsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"D\n" +
 	"\x14ListAccountsResponse\x12,\n" +
@@ -974,19 +975,19 @@ const file_null_v1_account_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"@\n" +
 	"\x12GetAccountResponse\x12*\n" +
-	"\aaccount\x18\x01 \x01(\v2\x10.null.v1.AccountR\aaccount\"\xbb\x02\n" +
+	"\aaccount\x18\x01 \x01(\v2\x10.null.v1.AccountR\aaccount\"\xbf\x02\n" +
 	"\x14CreateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12\x12\n" +
 	"\x04bank\x18\x03 \x01(\tR\x04bank\x12(\n" +
 	"\x04type\x18\x04 \x01(\x0e2\x14.null.v1.AccountTypeR\x04type\x12(\n" +
-	"\rfriendly_name\x18\x05 \x01(\tH\x00R\ffriendlyName\x88\x01\x01\x125\n" +
-	"\x0eanchor_balance\x18\x06 \x01(\v2\x0e.null.v1.MoneyR\ranchorBalance\x12#\n" +
+	"\rfriendly_name\x18\x05 \x01(\tH\x00R\ffriendlyName\x88\x01\x01\x129\n" +
+	"\x0eanchor_balance\x18\x06 \x01(\v2\x12.google.type.MoneyR\ranchorBalance\x12#\n" +
 	"\rmain_currency\x18\a \x01(\tR\fmainCurrency\x12\x16\n" +
 	"\x06colors\x18\b \x03(\tR\x06colorsB\x10\n" +
 	"\x0e_friendly_name\"C\n" +
 	"\x15CreateAccountResponse\x12*\n" +
-	"\aaccount\x18\x01 \x01(\v2\x10.null.v1.AccountR\aaccount\"\xd3\x04\n" +
+	"\aaccount\x18\x01 \x01(\v2\x10.null.v1.AccountR\aaccount\"\xd7\x04\n" +
 	"\x14UpdateAccountRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12;\n" +
@@ -997,8 +998,8 @@ const file_null_v1_account_services_proto_rawDesc = "" +
 	"\faccount_type\x18\x06 \x01(\x0e2\x14.null.v1.AccountTypeH\x02R\vaccountType\x88\x01\x01\x12(\n" +
 	"\rfriendly_name\x18\a \x01(\tH\x03R\ffriendlyName\x88\x01\x01\x12@\n" +
 	"\vanchor_date\x18\b \x01(\v2\x1a.google.protobuf.TimestampH\x04R\n" +
-	"anchorDate\x88\x01\x01\x12:\n" +
-	"\x0eanchor_balance\x18\t \x01(\v2\x0e.null.v1.MoneyH\x05R\ranchorBalance\x88\x01\x01\x12(\n" +
+	"anchorDate\x88\x01\x01\x12>\n" +
+	"\x0eanchor_balance\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\ranchorBalance\x88\x01\x01\x12(\n" +
 	"\rmain_currency\x18\n" +
 	" \x01(\tH\x06R\fmainCurrency\x88\x01\x01\x12\x16\n" +
 	"\x06colors\x18\v \x03(\tR\x06colorsB\a\n" +
@@ -1081,7 +1082,7 @@ var file_null_v1_account_services_proto_goTypes = []any{
 	(*FindAccountByAliasResponse)(nil), // 17: null.v1.FindAccountByAliasResponse
 	(*Account)(nil),                    // 18: null.v1.Account
 	(AccountType)(0),                   // 19: null.v1.AccountType
-	(*Money)(nil),                      // 20: null.v1.Money
+	(*money.Money)(nil),                // 20: google.type.Money
 	(*fieldmaskpb.FieldMask)(nil),      // 21: google.protobuf.FieldMask
 	(*timestamppb.Timestamp)(nil),      // 22: google.protobuf.Timestamp
 }
@@ -1089,12 +1090,12 @@ var file_null_v1_account_services_proto_depIdxs = []int32{
 	18, // 0: null.v1.ListAccountsResponse.accounts:type_name -> null.v1.Account
 	18, // 1: null.v1.GetAccountResponse.account:type_name -> null.v1.Account
 	19, // 2: null.v1.CreateAccountRequest.type:type_name -> null.v1.AccountType
-	20, // 3: null.v1.CreateAccountRequest.anchor_balance:type_name -> null.v1.Money
+	20, // 3: null.v1.CreateAccountRequest.anchor_balance:type_name -> google.type.Money
 	18, // 4: null.v1.CreateAccountResponse.account:type_name -> null.v1.Account
 	21, // 5: null.v1.UpdateAccountRequest.update_mask:type_name -> google.protobuf.FieldMask
 	19, // 6: null.v1.UpdateAccountRequest.account_type:type_name -> null.v1.AccountType
 	22, // 7: null.v1.UpdateAccountRequest.anchor_date:type_name -> google.protobuf.Timestamp
-	20, // 8: null.v1.UpdateAccountRequest.anchor_balance:type_name -> null.v1.Money
+	20, // 8: null.v1.UpdateAccountRequest.anchor_balance:type_name -> google.type.Money
 	18, // 9: null.v1.FindAccountByAliasResponse.account:type_name -> null.v1.Account
 	0,  // 10: null.v1.AccountService.ListAccounts:input_type -> null.v1.ListAccountsRequest
 	2,  // 11: null.v1.AccountService.GetAccount:input_type -> null.v1.GetAccountRequest
@@ -1127,7 +1128,6 @@ func file_null_v1_account_services_proto_init() {
 		return
 	}
 	file_null_v1_account_proto_init()
-	file_null_v1_common_proto_init()
 	file_null_v1_enums_proto_init()
 	file_null_v1_account_services_proto_msgTypes[4].OneofWrappers = []any{}
 	file_null_v1_account_services_proto_msgTypes[6].OneofWrappers = []any{}

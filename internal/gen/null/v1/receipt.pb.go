@@ -8,6 +8,7 @@ package nullv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
+	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -85,7 +86,7 @@ type ReceiptItem struct {
 	RawName       string                 `protobuf:"bytes,3,opt,name=raw_name,json=rawName,proto3" json:"raw_name,omitempty"`
 	Name          *string                `protobuf:"bytes,4,opt,name=name,proto3,oneof" json:"name,omitempty"`
 	Quantity      float64                `protobuf:"fixed64,5,opt,name=quantity,proto3" json:"quantity,omitempty"`
-	UnitPrice     *Money                 `protobuf:"bytes,6,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
+	UnitPrice     *money.Money           `protobuf:"bytes,6,opt,name=unit_price,json=unitPrice,proto3" json:"unit_price,omitempty"`
 	SortOrder     int32                  `protobuf:"varint,7,opt,name=sort_order,json=sortOrder,proto3" json:"sort_order,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -156,7 +157,7 @@ func (x *ReceiptItem) GetQuantity() float64 {
 	return 0
 }
 
-func (x *ReceiptItem) GetUnitPrice() *Money {
+func (x *ReceiptItem) GetUnitPrice() *money.Money {
 	if x != nil {
 		return x.UnitPrice
 	}
@@ -179,16 +180,16 @@ type Receipt struct {
 	Merchant            *string                `protobuf:"bytes,5,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
 	ReceiptDate         *date.Date             `protobuf:"bytes,6,opt,name=receipt_date,json=receiptDate,proto3,oneof" json:"receipt_date,omitempty"`
 	Currency            *string                `protobuf:"bytes,7,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
-	Subtotal            *Money                 `protobuf:"bytes,8,opt,name=subtotal,proto3,oneof" json:"subtotal,omitempty"`
-	Tax                 *Money                 `protobuf:"bytes,9,opt,name=tax,proto3,oneof" json:"tax,omitempty"`
-	Total               *Money                 `protobuf:"bytes,10,opt,name=total,proto3,oneof" json:"total,omitempty"`
+	Subtotal            *money.Money           `protobuf:"bytes,8,opt,name=subtotal,proto3,oneof" json:"subtotal,omitempty"`
+	Tax                 *money.Money           `protobuf:"bytes,9,opt,name=tax,proto3,oneof" json:"tax,omitempty"`
+	Total               *money.Money           `protobuf:"bytes,10,opt,name=total,proto3,oneof" json:"total,omitempty"`
 	Confidence          *float32               `protobuf:"fixed32,11,opt,name=confidence,proto3,oneof" json:"confidence,omitempty"`
 	Status              ReceiptStatus          `protobuf:"varint,12,opt,name=status,proto3,enum=null.v1.ReceiptStatus" json:"status,omitempty"`
 	Items               []*ReceiptItem         `protobuf:"bytes,13,rep,name=items,proto3" json:"items,omitempty"`
 	CreatedAt           *timestamppb.Timestamp `protobuf:"bytes,14,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt           *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	TransactionMerchant *string                `protobuf:"bytes,16,opt,name=transaction_merchant,json=transactionMerchant,proto3,oneof" json:"transaction_merchant,omitempty"`
-	TransactionAmount   *Money                 `protobuf:"bytes,17,opt,name=transaction_amount,json=transactionAmount,proto3,oneof" json:"transaction_amount,omitempty"`
+	TransactionAmount   *money.Money           `protobuf:"bytes,17,opt,name=transaction_amount,json=transactionAmount,proto3,oneof" json:"transaction_amount,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -272,21 +273,21 @@ func (x *Receipt) GetCurrency() string {
 	return ""
 }
 
-func (x *Receipt) GetSubtotal() *Money {
+func (x *Receipt) GetSubtotal() *money.Money {
 	if x != nil {
 		return x.Subtotal
 	}
 	return nil
 }
 
-func (x *Receipt) GetTax() *Money {
+func (x *Receipt) GetTax() *money.Money {
 	if x != nil {
 		return x.Tax
 	}
 	return nil
 }
 
-func (x *Receipt) GetTotal() *Money {
+func (x *Receipt) GetTotal() *money.Money {
 	if x != nil {
 		return x.Total
 	}
@@ -335,7 +336,7 @@ func (x *Receipt) GetTransactionMerchant() string {
 	return ""
 }
 
-func (x *Receipt) GetTransactionAmount() *Money {
+func (x *Receipt) GetTransactionAmount() *money.Money {
 	if x != nil {
 		return x.TransactionAmount
 	}
@@ -346,7 +347,7 @@ type ReceiptLinkCandidate struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	TransactionId   int64                  `protobuf:"varint,1,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
 	Merchant        string                 `protobuf:"bytes,2,opt,name=merchant,proto3" json:"merchant,omitempty"`
-	Amount          *Money                 `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
+	Amount          *money.Money           `protobuf:"bytes,3,opt,name=amount,proto3" json:"amount,omitempty"`
 	TxDate          *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=tx_date,json=txDate,proto3" json:"tx_date,omitempty"`
 	AccountId       int64                  `protobuf:"varint,5,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	AccountName     string                 `protobuf:"bytes,6,opt,name=account_name,json=accountName,proto3" json:"account_name,omitempty"`
@@ -400,7 +401,7 @@ func (x *ReceiptLinkCandidate) GetMerchant() string {
 	return ""
 }
 
-func (x *ReceiptLinkCandidate) GetAmount() *Money {
+func (x *ReceiptLinkCandidate) GetAmount() *money.Money {
 	if x != nil {
 		return x.Amount
 	}
@@ -446,19 +447,19 @@ var File_null_v1_receipt_proto protoreflect.FileDescriptor
 
 const file_null_v1_receipt_proto_rawDesc = "" +
 	"\n" +
-	"\x15null/v1/receipt.proto\x12\anull.v1\x1a\x14null/v1/common.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\"\xe3\x01\n" +
+	"\x15null/v1/receipt.proto\x12\anull.v1\x1a\x17google/type/money.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a\x16google/type/date.proto\"\xe7\x01\n" +
 	"\vReceiptItem\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1d\n" +
 	"\n" +
 	"receipt_id\x18\x02 \x01(\x03R\treceiptId\x12\x19\n" +
 	"\braw_name\x18\x03 \x01(\tR\arawName\x12\x17\n" +
 	"\x04name\x18\x04 \x01(\tH\x00R\x04name\x88\x01\x01\x12\x1a\n" +
-	"\bquantity\x18\x05 \x01(\x01R\bquantity\x12-\n" +
+	"\bquantity\x18\x05 \x01(\x01R\bquantity\x121\n" +
 	"\n" +
-	"unit_price\x18\x06 \x01(\v2\x0e.null.v1.MoneyR\tunitPrice\x12\x1d\n" +
+	"unit_price\x18\x06 \x01(\v2\x12.google.type.MoneyR\tunitPrice\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\a \x01(\x05R\tsortOrderB\a\n" +
-	"\x05_name\"\x8c\a\n" +
+	"\x05_name\"\x9c\a\n" +
 	"\aReceipt\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12*\n" +
@@ -467,11 +468,11 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"image_path\x18\x04 \x01(\tR\timagePath\x12\x1f\n" +
 	"\bmerchant\x18\x05 \x01(\tH\x01R\bmerchant\x88\x01\x01\x129\n" +
 	"\freceipt_date\x18\x06 \x01(\v2\x11.google.type.DateH\x02R\vreceiptDate\x88\x01\x01\x12\x1f\n" +
-	"\bcurrency\x18\a \x01(\tH\x03R\bcurrency\x88\x01\x01\x12/\n" +
-	"\bsubtotal\x18\b \x01(\v2\x0e.null.v1.MoneyH\x04R\bsubtotal\x88\x01\x01\x12%\n" +
-	"\x03tax\x18\t \x01(\v2\x0e.null.v1.MoneyH\x05R\x03tax\x88\x01\x01\x12)\n" +
+	"\bcurrency\x18\a \x01(\tH\x03R\bcurrency\x88\x01\x01\x123\n" +
+	"\bsubtotal\x18\b \x01(\v2\x12.google.type.MoneyH\x04R\bsubtotal\x88\x01\x01\x12)\n" +
+	"\x03tax\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\x03tax\x88\x01\x01\x12-\n" +
 	"\x05total\x18\n" +
-	" \x01(\v2\x0e.null.v1.MoneyH\x06R\x05total\x88\x01\x01\x12#\n" +
+	" \x01(\v2\x12.google.type.MoneyH\x06R\x05total\x88\x01\x01\x12#\n" +
 	"\n" +
 	"confidence\x18\v \x01(\x02H\aR\n" +
 	"confidence\x88\x01\x01\x12.\n" +
@@ -481,8 +482,8 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
-	"\x14transaction_merchant\x18\x10 \x01(\tH\bR\x13transactionMerchant\x88\x01\x01\x12B\n" +
-	"\x12transaction_amount\x18\x11 \x01(\v2\x0e.null.v1.MoneyH\tR\x11transactionAmount\x88\x01\x01B\x11\n" +
+	"\x14transaction_merchant\x18\x10 \x01(\tH\bR\x13transactionMerchant\x88\x01\x01\x12F\n" +
+	"\x12transaction_amount\x18\x11 \x01(\v2\x12.google.type.MoneyH\tR\x11transactionAmount\x88\x01\x01B\x11\n" +
 	"\x0f_transaction_idB\v\n" +
 	"\t_merchantB\x0f\n" +
 	"\r_receipt_dateB\v\n" +
@@ -492,11 +493,11 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"\x06_totalB\r\n" +
 	"\v_confidenceB\x17\n" +
 	"\x15_transaction_merchantB\x15\n" +
-	"\x13_transaction_amount\"\xca\x02\n" +
+	"\x13_transaction_amount\"\xce\x02\n" +
 	"\x14ReceiptLinkCandidate\x12%\n" +
 	"\x0etransaction_id\x18\x01 \x01(\x03R\rtransactionId\x12\x1a\n" +
-	"\bmerchant\x18\x02 \x01(\tR\bmerchant\x12&\n" +
-	"\x06amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\x06amount\x123\n" +
+	"\bmerchant\x18\x02 \x01(\tR\bmerchant\x12*\n" +
+	"\x06amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\x06amount\x123\n" +
 	"\atx_date\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x05 \x01(\x03R\taccountId\x12!\n" +
@@ -530,22 +531,22 @@ var file_null_v1_receipt_proto_goTypes = []any{
 	(*ReceiptItem)(nil),           // 1: null.v1.ReceiptItem
 	(*Receipt)(nil),               // 2: null.v1.Receipt
 	(*ReceiptLinkCandidate)(nil),  // 3: null.v1.ReceiptLinkCandidate
-	(*Money)(nil),                 // 4: null.v1.Money
+	(*money.Money)(nil),           // 4: google.type.Money
 	(*date.Date)(nil),             // 5: google.type.Date
 	(*timestamppb.Timestamp)(nil), // 6: google.protobuf.Timestamp
 }
 var file_null_v1_receipt_proto_depIdxs = []int32{
-	4,  // 0: null.v1.ReceiptItem.unit_price:type_name -> null.v1.Money
+	4,  // 0: null.v1.ReceiptItem.unit_price:type_name -> google.type.Money
 	5,  // 1: null.v1.Receipt.receipt_date:type_name -> google.type.Date
-	4,  // 2: null.v1.Receipt.subtotal:type_name -> null.v1.Money
-	4,  // 3: null.v1.Receipt.tax:type_name -> null.v1.Money
-	4,  // 4: null.v1.Receipt.total:type_name -> null.v1.Money
+	4,  // 2: null.v1.Receipt.subtotal:type_name -> google.type.Money
+	4,  // 3: null.v1.Receipt.tax:type_name -> google.type.Money
+	4,  // 4: null.v1.Receipt.total:type_name -> google.type.Money
 	0,  // 5: null.v1.Receipt.status:type_name -> null.v1.ReceiptStatus
 	1,  // 6: null.v1.Receipt.items:type_name -> null.v1.ReceiptItem
 	6,  // 7: null.v1.Receipt.created_at:type_name -> google.protobuf.Timestamp
 	6,  // 8: null.v1.Receipt.updated_at:type_name -> google.protobuf.Timestamp
-	4,  // 9: null.v1.Receipt.transaction_amount:type_name -> null.v1.Money
-	4,  // 10: null.v1.ReceiptLinkCandidate.amount:type_name -> null.v1.Money
+	4,  // 9: null.v1.Receipt.transaction_amount:type_name -> google.type.Money
+	4,  // 10: null.v1.ReceiptLinkCandidate.amount:type_name -> google.type.Money
 	6,  // 11: null.v1.ReceiptLinkCandidate.tx_date:type_name -> google.protobuf.Timestamp
 	12, // [12:12] is the sub-list for method output_type
 	12, // [12:12] is the sub-list for method input_type
@@ -559,7 +560,6 @@ func file_null_v1_receipt_proto_init() {
 	if File_null_v1_receipt_proto != nil {
 		return
 	}
-	file_null_v1_common_proto_init()
 	file_null_v1_receipt_proto_msgTypes[0].OneofWrappers = []any{}
 	file_null_v1_receipt_proto_msgTypes[1].OneofWrappers = []any{}
 	type x struct{}

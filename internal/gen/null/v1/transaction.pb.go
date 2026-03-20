@@ -8,6 +8,7 @@ package nullv1
 
 import (
 	_ "buf.build/gen/go/bufbuild/protovalidate/protocolbuffers/go/buf/validate"
+	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	timestamppb "google.golang.org/protobuf/types/known/timestamppb"
@@ -27,7 +28,7 @@ type Transaction struct {
 	state     protoimpl.MessageState `protogen:"open.v1"`
 	Id        int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	TxDate    *timestamppb.Timestamp `protobuf:"bytes,2,opt,name=tx_date,json=txDate,proto3" json:"tx_date,omitempty"`
-	TxAmount  *Money                 `protobuf:"bytes,3,opt,name=tx_amount,json=txAmount,proto3" json:"tx_amount,omitempty"`
+	TxAmount  *money.Money           `protobuf:"bytes,3,opt,name=tx_amount,json=txAmount,proto3" json:"tx_amount,omitempty"`
 	Direction TransactionDirection   `protobuf:"varint,4,opt,name=direction,proto3,enum=null.v1.TransactionDirection" json:"direction,omitempty"`
 	AccountId int64                  `protobuf:"varint,5,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	// metadata
@@ -41,9 +42,9 @@ type Transaction struct {
 	MerchantManuallySet bool    `protobuf:"varint,11,opt,name=merchant_manually_set,json=merchantManuallySet,proto3" json:"merchant_manually_set,omitempty"`
 	UserNotes           *string `protobuf:"bytes,12,opt,name=user_notes,json=userNotes,proto3,oneof" json:"user_notes,omitempty"`
 	// balance after this tx
-	BalanceAfter *Money `protobuf:"bytes,13,opt,name=balance_after,json=balanceAfter,proto3,oneof" json:"balance_after,omitempty"`
+	BalanceAfter *money.Money `protobuf:"bytes,13,opt,name=balance_after,json=balanceAfter,proto3,oneof" json:"balance_after,omitempty"`
 	// FX details
-	ForeignAmount *Money                 `protobuf:"bytes,14,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
+	ForeignAmount *money.Money           `protobuf:"bytes,14,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
 	ExchangeRate  *float64               `protobuf:"fixed64,15,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
@@ -98,7 +99,7 @@ func (x *Transaction) GetTxDate() *timestamppb.Timestamp {
 	return nil
 }
 
-func (x *Transaction) GetTxAmount() *Money {
+func (x *Transaction) GetTxAmount() *money.Money {
 	if x != nil {
 		return x.TxAmount
 	}
@@ -168,14 +169,14 @@ func (x *Transaction) GetUserNotes() string {
 	return ""
 }
 
-func (x *Transaction) GetBalanceAfter() *Money {
+func (x *Transaction) GetBalanceAfter() *money.Money {
 	if x != nil {
 		return x.BalanceAfter
 	}
 	return nil
 }
 
-func (x *Transaction) GetForeignAmount() *Money {
+func (x *Transaction) GetForeignAmount() *money.Money {
 	if x != nil {
 		return x.ForeignAmount
 	}
@@ -333,11 +334,11 @@ var File_null_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x14null/v1/common.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xc5\b\n" +
+	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd1\b\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
-	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12+\n" +
-	"\ttx_amount\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\btxAmount\x12;\n" +
+	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
+	"\ttx_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12;\n" +
 	"\tdirection\x18\x04 \x01(\x0e2\x1d.null.v1.TransactionDirectionR\tdirection\x12\x1d\n" +
 	"\n" +
 	"account_id\x18\x05 \x01(\x03R\taccountId\x12\x1e\n" +
@@ -350,9 +351,9 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	" \x01(\tB\b\xbaH\x05r\x03\x18\xc8\x01H\x03R\bmerchant\x88\x01\x01\x122\n" +
 	"\x15merchant_manually_set\x18\v \x01(\bR\x13merchantManuallySet\x12,\n" +
 	"\n" +
-	"user_notes\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x04R\tuserNotes\x88\x01\x01\x128\n" +
-	"\rbalance_after\x18\r \x01(\v2\x0e.null.v1.MoneyH\x05R\fbalanceAfter\x88\x01\x01\x12:\n" +
-	"\x0eforeign_amount\x18\x0e \x01(\v2\x0e.null.v1.MoneyH\x06R\rforeignAmount\x88\x01\x01\x12A\n" +
+	"user_notes\x18\f \x01(\tB\b\xbaH\x05r\x03\x18\xe8\aH\x04R\tuserNotes\x88\x01\x01\x12<\n" +
+	"\rbalance_after\x18\r \x01(\v2\x12.google.type.MoneyH\x05R\fbalanceAfter\x88\x01\x01\x12>\n" +
+	"\x0eforeign_amount\x18\x0e \x01(\v2\x12.google.type.MoneyH\x06R\rforeignAmount\x88\x01\x01\x12A\n" +
 	"\rexchange_rate\x18\x0f \x01(\x01B\x17\xbaH\x14\x12\x12\x11\x00\x00\x00\x00\x00@\x8f@!\x00\x00\x00\x00\x00\x00\x00\x00H\aR\fexchangeRate\x88\x01\x01\x129\n" +
 	"\n" +
 	"created_at\x18\x10 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
@@ -398,16 +399,16 @@ var file_null_v1_transaction_proto_goTypes = []any{
 	(*TransactionWithScore)(nil),      // 1: null.v1.TransactionWithScore
 	(*TransactionCountByAccount)(nil), // 2: null.v1.TransactionCountByAccount
 	(*timestamppb.Timestamp)(nil),     // 3: google.protobuf.Timestamp
-	(*Money)(nil),                     // 4: null.v1.Money
+	(*money.Money)(nil),               // 4: google.type.Money
 	(TransactionDirection)(0),         // 5: null.v1.TransactionDirection
 	(*Category)(nil),                  // 6: null.v1.Category
 }
 var file_null_v1_transaction_proto_depIdxs = []int32{
 	3, // 0: null.v1.Transaction.tx_date:type_name -> google.protobuf.Timestamp
-	4, // 1: null.v1.Transaction.tx_amount:type_name -> null.v1.Money
+	4, // 1: null.v1.Transaction.tx_amount:type_name -> google.type.Money
 	5, // 2: null.v1.Transaction.direction:type_name -> null.v1.TransactionDirection
-	4, // 3: null.v1.Transaction.balance_after:type_name -> null.v1.Money
-	4, // 4: null.v1.Transaction.foreign_amount:type_name -> null.v1.Money
+	4, // 3: null.v1.Transaction.balance_after:type_name -> google.type.Money
+	4, // 4: null.v1.Transaction.foreign_amount:type_name -> google.type.Money
 	3, // 5: null.v1.Transaction.created_at:type_name -> google.protobuf.Timestamp
 	3, // 6: null.v1.Transaction.updated_at:type_name -> google.protobuf.Timestamp
 	6, // 7: null.v1.Transaction.category:type_name -> null.v1.Category
@@ -425,7 +426,6 @@ func file_null_v1_transaction_proto_init() {
 		return
 	}
 	file_null_v1_category_proto_init()
-	file_null_v1_common_proto_init()
 	file_null_v1_enums_proto_init()
 	file_null_v1_transaction_proto_msgTypes[0].OneofWrappers = []any{}
 	type x struct{}

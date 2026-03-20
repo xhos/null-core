@@ -25,6 +25,7 @@ import (
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 	"golang.org/x/net/http2"
+	"google.golang.org/genproto/googleapis/type/money"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -572,9 +573,10 @@ func receiptItemToPb(item *sqlc.ReceiptItem) *pb.ReceiptItem {
 		RawName:   item.RawName,
 		Name:      item.Name,
 		Quantity:  item.Quantity,
-		UnitPrice: &pb.Money{
-			Amount:       float64(item.UnitPriceCents) / 100,
+		UnitPrice: &money.Money{
 			CurrencyCode: item.UnitCurrency,
+			Units:        item.UnitPriceCents / 100,
+			Nanos:        int32((item.UnitPriceCents % 100) * 10_000_000),
 		},
 		SortOrder: item.SortOrder,
 	}

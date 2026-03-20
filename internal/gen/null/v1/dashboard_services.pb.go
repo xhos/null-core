@@ -8,6 +8,7 @@ package nullv1
 
 import (
 	date "google.golang.org/genproto/googleapis/type/date"
+	money "google.golang.org/genproto/googleapis/type/money"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -620,9 +621,9 @@ func (x *GetFinancialSummaryRequest) GetUserId() string {
 
 type GetFinancialSummaryResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	TotalBalance  *Money                 `protobuf:"bytes,1,opt,name=total_balance,json=totalBalance,proto3" json:"total_balance,omitempty"`
-	TotalDebt     *Money                 `protobuf:"bytes,2,opt,name=total_debt,json=totalDebt,proto3" json:"total_debt,omitempty"`
-	NetBalance    *Money                 `protobuf:"bytes,3,opt,name=net_balance,json=netBalance,proto3" json:"net_balance,omitempty"`
+	TotalBalance  *money.Money           `protobuf:"bytes,1,opt,name=total_balance,json=totalBalance,proto3" json:"total_balance,omitempty"`
+	TotalDebt     *money.Money           `protobuf:"bytes,2,opt,name=total_debt,json=totalDebt,proto3" json:"total_debt,omitempty"`
+	NetBalance    *money.Money           `protobuf:"bytes,3,opt,name=net_balance,json=netBalance,proto3" json:"net_balance,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -657,21 +658,21 @@ func (*GetFinancialSummaryResponse) Descriptor() ([]byte, []int) {
 	return file_null_v1_dashboard_services_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *GetFinancialSummaryResponse) GetTotalBalance() *Money {
+func (x *GetFinancialSummaryResponse) GetTotalBalance() *money.Money {
 	if x != nil {
 		return x.TotalBalance
 	}
 	return nil
 }
 
-func (x *GetFinancialSummaryResponse) GetTotalDebt() *Money {
+func (x *GetFinancialSummaryResponse) GetTotalDebt() *money.Money {
 	if x != nil {
 		return x.TotalDebt
 	}
 	return nil
 }
 
-func (x *GetFinancialSummaryResponse) GetNetBalance() *Money {
+func (x *GetFinancialSummaryResponse) GetNetBalance() *money.Money {
 	if x != nil {
 		return x.NetBalance
 	}
@@ -990,7 +991,7 @@ var File_null_v1_dashboard_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_dashboard_services_proto_rawDesc = "" +
 	"\n" +
-	" null/v1/dashboard_services.proto\x12\anull.v1\x1a\x15null/v1/account.proto\x1a\x16null/v1/category.proto\x1a\x14null/v1/common.proto\x1a\x17null/v1/dashboard.proto\x1a\x13null/v1/enums.proto\x1a\x16google/type/date.proto\"\xbb\x01\n" +
+	" null/v1/dashboard_services.proto\x12\anull.v1\x1a\x15null/v1/account.proto\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x17null/v1/dashboard.proto\x1a\x13null/v1/enums.proto\x1a\x16google/type/date.proto\"\xbb\x01\n" +
 	"\x1aGetDashboardSummaryRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x125\n" +
 	"\n" +
@@ -1047,12 +1048,12 @@ const file_null_v1_dashboard_services_proto_rawDesc = "" +
 	"\x19GetSpendingTrendsResponse\x12+\n" +
 	"\x06trends\x18\x01 \x03(\v2\x13.null.v1.TrendPointR\x06trends\"5\n" +
 	"\x1aGetFinancialSummaryRequest\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xb2\x01\n" +
-	"\x1bGetFinancialSummaryResponse\x123\n" +
-	"\rtotal_balance\x18\x01 \x01(\v2\x0e.null.v1.MoneyR\ftotalBalance\x12-\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\"\xbe\x01\n" +
+	"\x1bGetFinancialSummaryResponse\x127\n" +
+	"\rtotal_balance\x18\x01 \x01(\v2\x12.google.type.MoneyR\ftotalBalance\x121\n" +
 	"\n" +
-	"total_debt\x18\x02 \x01(\v2\x0e.null.v1.MoneyR\ttotalDebt\x12/\n" +
-	"\vnet_balance\x18\x03 \x01(\v2\x0e.null.v1.MoneyR\n" +
+	"total_debt\x18\x02 \x01(\v2\x12.google.type.MoneyR\ttotalDebt\x123\n" +
+	"\vnet_balance\x18\x03 \x01(\v2\x12.google.type.MoneyR\n" +
 	"netBalance\"\xa3\x02\n" +
 	"$GetCategorySpendingComparisonRequest\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x124\n" +
@@ -1132,7 +1133,7 @@ var file_null_v1_dashboard_services_proto_goTypes = []any{
 	(*TopCategory)(nil),                           // 20: null.v1.TopCategory
 	(*TopMerchant)(nil),                           // 21: null.v1.TopMerchant
 	(*TrendPoint)(nil),                            // 22: null.v1.TrendPoint
-	(*Money)(nil),                                 // 23: null.v1.Money
+	(*money.Money)(nil),                           // 23: google.type.Money
 	(PeriodType)(0),                               // 24: null.v1.PeriodType
 	(*Category)(nil),                              // 25: null.v1.Category
 	(*CategorySpendingComparison)(nil),            // 26: null.v1.CategorySpendingComparison
@@ -1155,9 +1156,9 @@ var file_null_v1_dashboard_services_proto_depIdxs = []int32{
 	17, // 10: null.v1.GetSpendingTrendsRequest.start_date:type_name -> google.type.Date
 	17, // 11: null.v1.GetSpendingTrendsRequest.end_date:type_name -> google.type.Date
 	22, // 12: null.v1.GetSpendingTrendsResponse.trends:type_name -> null.v1.TrendPoint
-	23, // 13: null.v1.GetFinancialSummaryResponse.total_balance:type_name -> null.v1.Money
-	23, // 14: null.v1.GetFinancialSummaryResponse.total_debt:type_name -> null.v1.Money
-	23, // 15: null.v1.GetFinancialSummaryResponse.net_balance:type_name -> null.v1.Money
+	23, // 13: null.v1.GetFinancialSummaryResponse.total_balance:type_name -> google.type.Money
+	23, // 14: null.v1.GetFinancialSummaryResponse.total_debt:type_name -> google.type.Money
+	23, // 15: null.v1.GetFinancialSummaryResponse.net_balance:type_name -> google.type.Money
 	24, // 16: null.v1.GetCategorySpendingComparisonRequest.period_type:type_name -> null.v1.PeriodType
 	17, // 17: null.v1.GetCategorySpendingComparisonRequest.custom_start_date:type_name -> google.type.Date
 	17, // 18: null.v1.GetCategorySpendingComparisonRequest.custom_end_date:type_name -> google.type.Date
@@ -1202,7 +1203,6 @@ func file_null_v1_dashboard_services_proto_init() {
 	}
 	file_null_v1_account_proto_init()
 	file_null_v1_category_proto_init()
-	file_null_v1_common_proto_init()
 	file_null_v1_dashboard_proto_init()
 	file_null_v1_enums_proto_init()
 	file_null_v1_dashboard_services_proto_msgTypes[0].OneofWrappers = []any{}

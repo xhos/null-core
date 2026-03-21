@@ -47,7 +47,7 @@ func (s *Server) GetReceipt(ctx context.Context, req *connect.Request[pb.GetRece
 		return nil, err
 	}
 
-	receipt, linkCandidates, err := s.services.Receipts.Get(ctx, userID, req.Msg.GetId())
+	receipt, linkCandidates, imageData, err := s.services.Receipts.Get(ctx, userID, req.Msg.GetId())
 	if err != nil {
 		return nil, wrapErr(err)
 	}
@@ -55,6 +55,7 @@ func (s *Server) GetReceipt(ctx context.Context, req *connect.Request[pb.GetRece
 	return connect.NewResponse(&pb.GetReceiptResponse{
 		Receipt:        receipt,
 		LinkCandidates: linkCandidates,
+		ImageData:      imageData,
 	}), nil
 }
 

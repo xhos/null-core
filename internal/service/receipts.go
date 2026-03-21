@@ -33,7 +33,7 @@ import (
 
 type ReceiptService interface {
 	Upload(ctx context.Context, userID uuid.UUID, imageData []byte, contentType string) (*pb.Receipt, error)
-	Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, error)
+	Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, []byte, error)
 	List(ctx context.Context, userID uuid.UUID, req *pb.ListReceiptsRequest) ([]*pb.Receipt, int64, error)
 	Update(ctx context.Context, userID uuid.UUID, id int64, req *pb.UpdateReceiptRequest) (*pb.Receipt, error)
 	Delete(ctx context.Context, userID uuid.UUID, id int64) error
@@ -185,24 +185,29 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 	return s.receiptToPb(&row, nil), nil
 }
 
-func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, error) {
+func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, []byte, error) {
 	row, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{
 		ID:     id,
 		UserID: userID,
 	})
 	if err != nil {
-		return nil, nil, wrapErr("ReceiptService.Get", err)
+		return nil, nil, nil, wrapErr("ReceiptService.Get", err)
 	}
 
 	items, err := s.queries.ListReceiptItems(ctx, row.ID)
 	if err != nil {
-		return nil, nil, wrapErr("ReceiptService.Get.Items", err)
+		return nil, nil, nil, wrapErr("ReceiptService.Get.Items", err)
 	}
 
 	receipt := s.receiptToPb(&row, items)
 
+	imageData, err := os.ReadFile(filepath.Join(s.dataDir, row.ImagePath))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("ReceiptService.Get: read image: %w", err)
+	}
+
 	// link_candidates is out of scope — return empty
-	return receipt, nil, nil
+	return receipt, nil, imageData, nil
 }
 
 func (s *rcptSvc) List(ctx context.Context, userID uuid.UUID, req *pb.ListReceiptsRequest) ([]*pb.Receipt, int64, error) {

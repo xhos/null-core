@@ -327,6 +327,7 @@ type GetReceiptResponse struct {
 	state          protoimpl.MessageState  `protogen:"open.v1"`
 	Receipt        *Receipt                `protobuf:"bytes,1,opt,name=receipt,proto3" json:"receipt,omitempty"`
 	LinkCandidates []*ReceiptLinkCandidate `protobuf:"bytes,2,rep,name=link_candidates,json=linkCandidates,proto3" json:"link_candidates,omitempty"`
+	ImageData      []byte                  `protobuf:"bytes,3,opt,name=image_data,json=imageData,proto3" json:"image_data,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -371,6 +372,13 @@ func (x *GetReceiptResponse) GetReceipt() *Receipt {
 func (x *GetReceiptResponse) GetLinkCandidates() []*ReceiptLinkCandidate {
 	if x != nil {
 		return x.LinkCandidates
+	}
+	return nil
+}
+
+func (x *GetReceiptResponse) GetImageData() []byte {
+	if x != nil {
+		return x.ImageData
 	}
 	return nil
 }
@@ -688,10 +696,12 @@ const file_null_v1_receipt_services_proto_rawDesc = "" +
 	"totalCount\"O\n" +
 	"\x11GetReceiptRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
-	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"\x88\x01\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"\xa7\x01\n" +
 	"\x12GetReceiptResponse\x12*\n" +
 	"\areceipt\x18\x01 \x01(\v2\x10.null.v1.ReceiptR\areceipt\x12F\n" +
-	"\x0flink_candidates\x18\x02 \x03(\v2\x1d.null.v1.ReceiptLinkCandidateR\x0elinkCandidates\"\xc2\x01\n" +
+	"\x0flink_candidates\x18\x02 \x03(\v2\x1d.null.v1.ReceiptLinkCandidateR\x0elinkCandidates\x12\x1d\n" +
+	"\n" +
+	"image_data\x18\x03 \x01(\fR\timageData\"\xc2\x01\n" +
 	"\x14UpdateReceiptRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12*\n" +

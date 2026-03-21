@@ -13,6 +13,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.13
 	github.com/pressly/goose/v3 v3.26.0
 	github.com/rs/cors v1.11.1
+	golang.org/x/image v0.35.0
 	golang.org/x/net v0.49.0
 	google.golang.org/genproto v0.0.0-20260202165425-ce8ad4cf556b
 	google.golang.org/grpc v1.78.0
@@ -54,7 +55,6 @@ require (
 	go.uber.org/multierr v1.11.0 // indirect
 	golang.org/x/crypto v0.47.0 // indirect
 	golang.org/x/exp v0.0.0-20260112195511-716be5621a96 // indirect
-	golang.org/x/image v0.35.0 // indirect
 	golang.org/x/sync v0.19.0 // indirect
 	golang.org/x/sys v0.40.0 // indirect
 	golang.org/x/text v0.33.0 // indirect

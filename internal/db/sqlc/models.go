@@ -58,6 +58,7 @@ type Receipt struct {
 	Status        null.ReceiptStatus `db:"status" json:"status"`
 	CreatedAt     time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
+	ImageHash     *string            `db:"image_hash" json:"image_hash"`
 }
 
 type ReceiptItem struct {

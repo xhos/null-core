@@ -3,7 +3,9 @@ package service
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"crypto/tls"
+	"encoding/hex"
 	"fmt"
 	"image"
 	"image/jpeg"
@@ -161,6 +163,16 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 	imageData, contentType = resizeImage(imageData, contentType)
 	ext = contentTypeToExt[contentType]
 
+	sum := sha256.Sum256(imageData)
+	imageHash := hex.EncodeToString(sum[:])
+
+	if existing, err := s.queries.GetReceiptByImageHash(ctx, sqlc.GetReceiptByImageHashParams{
+		UserID:    userID,
+		ImageHash: imageHash,
+	}); err == nil {
+		return nil, fmt.Errorf("ReceiptService.Upload: receipt already uploaded (id %d): %w", existing.ID, ErrValidation)
+	}
+
 	relPath := filepath.Join("receipts", userID.String(), uuid.New().String()+"."+ext)
 	absPath := filepath.Join(s.dataDir, relPath)
 
@@ -174,6 +186,7 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 	row, err := s.queries.CreateReceipt(ctx, sqlc.CreateReceiptParams{
 		UserID:    userID,
 		ImagePath: relPath,
+		ImageHash: imageHash,
 		Status:    int16(pb.ReceiptStatus_RECEIPT_STATUS_PENDING),
 	})
 	if err != nil {
@@ -489,7 +502,7 @@ func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
 
 	s.log.Info("receipt parsed successfully", "id", receipt.ID, "merchant", parsed.GetMerchant(), "items", len(parsed.Items))
 
-	// attempt auto-link: exactly one exact-amount match → link automatically
+	// attempt auto-link: exactly one exact-amount match then link automatically
 	if parsed.Total != nil && parsed.Currency != nil {
 		totalCents := dollarsToCents(*parsed.Total)
 		candidates, err := s.queries.FindReceiptLinkCandidates(ctx, sqlc.FindReceiptLinkCandidatesParams{

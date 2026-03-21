@@ -2,14 +2,22 @@
 INSERT INTO receipts (
   user_id,
   image_path,
+  image_hash,
   status
 )
 VALUES (
   sqlc.arg(user_id)::uuid,
   sqlc.arg(image_path)::text,
+  sqlc.arg(image_hash)::text,
   sqlc.arg(status)::smallint
 )
 RETURNING *;
+
+-- name: GetReceiptByImageHash :one
+SELECT *
+FROM receipts
+WHERE user_id = sqlc.arg(user_id)::uuid
+  AND image_hash = sqlc.arg(image_hash)::text;
 
 -- name: GetReceipt :one
 SELECT *

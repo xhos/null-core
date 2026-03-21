@@ -488,6 +488,45 @@ func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
 	}
 
 	s.log.Info("receipt parsed successfully", "id", receipt.ID, "merchant", parsed.GetMerchant(), "items", len(parsed.Items))
+
+	// attempt auto-link: exactly one exact-amount match → link automatically
+	if parsed.Total != nil && parsed.Currency != nil {
+		totalCents := dollarsToCents(*parsed.Total)
+		candidates, err := s.queries.FindReceiptLinkCandidates(ctx, sqlc.FindReceiptLinkCandidatesParams{
+			UserID:      receipt.UserID,
+			AmountCents: totalCents,
+			Currency:    *parsed.Currency,
+			ReceiptDate: updateParams.ReceiptDate,
+		})
+		if err != nil {
+			s.log.Warn("auto-link candidate query failed", "receipt_id", receipt.ID, "error", err)
+			return
+		}
+
+		exactMatches := 0
+		var match sqlc.FindReceiptLinkCandidatesRow
+		for _, c := range candidates {
+			if c.TxAmountCents == totalCents {
+				exactMatches++
+				match = c
+			}
+		}
+
+		if exactMatches == 1 {
+			linkedStatus := int16(pb.ReceiptStatus_RECEIPT_STATUS_LINKED)
+			_, err := s.queries.UpdateReceipt(ctx, sqlc.UpdateReceiptParams{
+				ID:            receipt.ID,
+				UserID:        receipt.UserID,
+				TransactionID: &match.ID,
+				Status:        &linkedStatus,
+			})
+			if err != nil {
+				s.log.Warn("auto-link failed", "receipt_id", receipt.ID, "transaction_id", match.ID, "error", err)
+			} else {
+				s.log.Info("receipt auto-linked", "receipt_id", receipt.ID, "transaction_id", match.ID)
+			}
+		}
+	}
 }
 
 func (s *rcptSvc) setReceiptFailed(ctx context.Context, receipt sqlc.Receipt) {

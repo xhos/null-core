@@ -182,6 +182,14 @@ where (a.owner_id = @user_id::uuid or au.user_id is not null)
   and a.aliases @> array[@alias::text]
 limit 1;
 
+-- name: FindAccountByName :one
+select sqlc.embed(a)
+from accounts a
+  left join account_users au on au.account_id = a.id and au.user_id = @user_id::uuid
+where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.name = @name::text
+limit 1;
+
 -- name: SyncAccountBalances :exec
 with anchor_transactions as (
   select

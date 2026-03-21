@@ -51,7 +51,6 @@ func (s *acctSvc) Create(ctx context.Context, req *pb.CreateAccountRequest) (*pb
 
 	mainCurrency := req.GetMainCurrency()
 
-	// TODO: change default colors
 	colors := req.GetColors()
 	if len(colors) == 0 {
 		colors = []string{"#1f2937", "#3b82f6", "#10b981"}
@@ -175,13 +174,8 @@ func (s *acctSvc) AddAlias(ctx context.Context, userID uuid.UUID, accountID int6
 		return wrapErr("AccountService.AddAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
 	}
 
-	existing, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
-		UserID: userID,
-		Alias:  alias,
-	})
-	if err == nil && existing.Account.ID != accountID {
-		return wrapErr("AccountService.AddAlias",
-			fmt.Errorf("%w: alias %q is already assigned to account %d", ErrValidation, alias, existing.Account.ID))
+	if err := s.checkAliasConflict(ctx, userID, accountID, alias); err != nil {
+		return wrapErr("AccountService.AddAlias", err)
 	}
 
 	if err := s.queries.AddAccountAlias(ctx, sqlc.AddAccountAliasParams{
@@ -226,13 +220,8 @@ func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID in
 	}
 
 	for _, a := range cleaned {
-		existing, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
-			UserID: userID,
-			Alias:  a,
-		})
-		if err == nil && existing.Account.ID != accountID {
-			return wrapErr("AccountService.SetAliases",
-				fmt.Errorf("%w: alias %q is already assigned to account %d", ErrValidation, a, existing.Account.ID))
+		if err := s.checkAliasConflict(ctx, userID, accountID, a); err != nil {
+			return wrapErr("AccountService.SetAliases", err)
 		}
 	}
 
@@ -261,6 +250,24 @@ func (s *acctSvc) FindByAlias(ctx context.Context, userID uuid.UUID, alias strin
 	}
 
 	return accountRowToPb(row.Account, row.Account.AnchorBalanceCents, row.Account.AnchorCurrency), nil
+}
+
+func (s *acctSvc) checkAliasConflict(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
+	if existing, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
+		UserID: userID,
+		Alias:  alias,
+	}); err == nil && existing.Account.ID != accountID {
+		return fmt.Errorf("%w: alias %q is already used by account %d", ErrValidation, alias, existing.Account.ID)
+	}
+
+	if existing, err := s.queries.FindAccountByName(ctx, sqlc.FindAccountByNameParams{
+		UserID: userID,
+		Name:   alias,
+	}); err == nil && existing.Account.ID != accountID {
+		return fmt.Errorf("%w: alias %q conflicts with account name %d", ErrValidation, alias, existing.Account.ID)
+	}
+
+	return nil
 }
 
 // ----- conversion helpers -----------------------------------------------------------------------

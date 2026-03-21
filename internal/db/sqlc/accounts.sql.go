@@ -165,6 +165,46 @@ func (q *Queries) FindAccountByAlias(ctx context.Context, arg FindAccountByAlias
 	return i, err
 }
 
+const findAccountByName = `-- name: FindAccountByName :one
+select a.id, a.owner_id, a.name, a.bank, a.account_type, a.friendly_name, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at, a.aliases
+from accounts a
+  left join account_users au on au.account_id = a.id and au.user_id = $1::uuid
+where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.name = $2::text
+limit 1
+`
+
+type FindAccountByNameParams struct {
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+	Name   string    `db:"name" json:"name"`
+}
+
+type FindAccountByNameRow struct {
+	Account Account `db:"account" json:"account"`
+}
+
+func (q *Queries) FindAccountByName(ctx context.Context, arg FindAccountByNameParams) (FindAccountByNameRow, error) {
+	row := q.db.QueryRow(ctx, findAccountByName, arg.UserID, arg.Name)
+	var i FindAccountByNameRow
+	err := row.Scan(
+		&i.Account.ID,
+		&i.Account.OwnerID,
+		&i.Account.Name,
+		&i.Account.Bank,
+		&i.Account.AccountType,
+		&i.Account.FriendlyName,
+		&i.Account.AnchorDate,
+		&i.Account.AnchorBalanceCents,
+		&i.Account.AnchorCurrency,
+		&i.Account.MainCurrency,
+		&i.Account.Colors,
+		&i.Account.CreatedAt,
+		&i.Account.UpdatedAt,
+		&i.Account.Aliases,
+	)
+	return i, err
+}
+
 const getAccount = `-- name: GetAccount :one
 select
   a.id, a.owner_id, a.name, a.bank, a.account_type, a.friendly_name, a.anchor_date, a.anchor_balance_cents, a.anchor_currency, a.main_currency, a.colors, a.created_at, a.updated_at, a.aliases,

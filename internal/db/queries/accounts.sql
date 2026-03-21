@@ -190,6 +190,11 @@ where (a.owner_id = @user_id::uuid or au.user_id is not null)
   and a.name = @name::text
 limit 1;
 
+-- name: MoveAccountTransactions :execrows
+update transactions
+set account_id = @primary_id::bigint
+where account_id = @secondary_id::bigint;
+
 -- name: SyncAccountBalances :exec
 with anchor_transactions as (
   select

@@ -26,6 +26,8 @@ type AccountService interface {
 	RemoveAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error
 	SetAliases(ctx context.Context, userID uuid.UUID, accountID int64, aliases []string) error
 	FindByAlias(ctx context.Context, userID uuid.UUID, alias string) (*pb.Account, error)
+
+	MergeAccounts(ctx context.Context, userID uuid.UUID, primaryID, secondaryID int64) (*pb.Account, int64, error)
 }
 
 type acctSvc struct {
@@ -268,6 +270,74 @@ func (s *acctSvc) checkAliasConflict(ctx context.Context, userID uuid.UUID, acco
 	}
 
 	return nil
+}
+
+func (s *acctSvc) MergeAccounts(ctx context.Context, userID uuid.UUID, primaryID, secondaryID int64) (*pb.Account, int64, error) {
+	if primaryID == secondaryID {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("%w: primary and secondary accounts must be different", ErrValidation))
+	}
+
+	primary, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{UserID: userID, ID: primaryID})
+	if err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("primary account: %w", err))
+	}
+
+	secondary, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{UserID: userID, ID: secondaryID})
+	if err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("secondary account: %w", err))
+	}
+
+	moved, err := s.queries.MoveAccountTransactions(ctx, sqlc.MoveAccountTransactionsParams{
+		PrimaryID:   primaryID,
+		SecondaryID: secondaryID,
+	})
+	if err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("moving transactions: %w", err))
+	}
+
+	// Build merged alias list: existing primary aliases + secondary name + secondary aliases
+	seen := make(map[string]struct{})
+	merged := make([]string, 0)
+	for _, a := range primary.Account.Aliases {
+		if _, ok := seen[a]; !ok {
+			seen[a] = struct{}{}
+			merged = append(merged, a)
+		}
+	}
+	for _, candidate := range append([]string{secondary.Account.Name}, secondary.Account.Aliases...) {
+		candidate = strings.TrimSpace(candidate)
+		if candidate == "" {
+			continue
+		}
+		if _, ok := seen[candidate]; !ok {
+			seen[candidate] = struct{}{}
+			merged = append(merged, candidate)
+		}
+	}
+
+	// Set aliases directly, bypassing conflict checks (secondary is about to be deleted)
+	if err := s.queries.SetAccountAliases(ctx, sqlc.SetAccountAliasesParams{
+		ID:      primaryID,
+		UserID:  userID,
+		Aliases: merged,
+	}); err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("updating aliases: %w", err))
+	}
+
+	if err := s.queries.SyncAccountBalances(ctx, primaryID); err != nil {
+		s.log.Warn("failed to sync balances after merge", "account_id", primaryID, "error", err)
+	}
+
+	if _, err := s.queries.DeleteAccount(ctx, sqlc.DeleteAccountParams{UserID: userID, ID: secondaryID}); err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("deleting secondary: %w", err))
+	}
+
+	result, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{UserID: userID, ID: primaryID})
+	if err != nil {
+		return nil, 0, wrapErr("AccountService.MergeAccounts", err)
+	}
+
+	return accountRowToPb(result.Account, result.BalanceCents, result.BalanceCurrency), moved, nil
 }
 
 // ----- conversion helpers -----------------------------------------------------------------------

@@ -125,3 +125,17 @@ func (s *Server) FindAccountByAlias(ctx context.Context, req *connect.Request[pb
 
 	return connect.NewResponse(&pb.FindAccountByAliasResponse{Account: account}), nil
 }
+
+func (s *Server) MergeAccounts(ctx context.Context, req *connect.Request[pb.MergeAccountsRequest]) (*connect.Response[pb.MergeAccountsResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	account, moved, err := s.services.Accounts.MergeAccounts(ctx, userID, req.Msg.GetPrimaryAccountId(), req.Msg.GetSecondaryAccountId())
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.MergeAccountsResponse{Account: account, TransactionsMoved: moved}), nil
+}

@@ -60,6 +60,9 @@ const (
 	// AccountServiceFindAccountByAliasProcedure is the fully-qualified name of the AccountService's
 	// FindAccountByAlias RPC.
 	AccountServiceFindAccountByAliasProcedure = "/null.v1.AccountService/FindAccountByAlias"
+	// AccountServiceMergeAccountsProcedure is the fully-qualified name of the AccountService's
+	// MergeAccounts RPC.
+	AccountServiceMergeAccountsProcedure = "/null.v1.AccountService/MergeAccounts"
 )
 
 // AccountServiceClient is a client for the null.v1.AccountService service.
@@ -73,6 +76,7 @@ type AccountServiceClient interface {
 	RemoveAccountAlias(context.Context, *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error)
 	SetAccountAliases(context.Context, *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error)
 	FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error)
+	MergeAccounts(context.Context, *connect.Request[v1.MergeAccountsRequest]) (*connect.Response[v1.MergeAccountsResponse], error)
 }
 
 // NewAccountServiceClient constructs a client for the null.v1.AccountService service. By default,
@@ -140,6 +144,12 @@ func NewAccountServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(accountServiceMethods.ByName("FindAccountByAlias")),
 			connect.WithClientOptions(opts...),
 		),
+		mergeAccounts: connect.NewClient[v1.MergeAccountsRequest, v1.MergeAccountsResponse](
+			httpClient,
+			baseURL+AccountServiceMergeAccountsProcedure,
+			connect.WithSchema(accountServiceMethods.ByName("MergeAccounts")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -154,6 +164,7 @@ type accountServiceClient struct {
 	removeAccountAlias *connect.Client[v1.RemoveAccountAliasRequest, v1.RemoveAccountAliasResponse]
 	setAccountAliases  *connect.Client[v1.SetAccountAliasesRequest, v1.SetAccountAliasesResponse]
 	findAccountByAlias *connect.Client[v1.FindAccountByAliasRequest, v1.FindAccountByAliasResponse]
+	mergeAccounts      *connect.Client[v1.MergeAccountsRequest, v1.MergeAccountsResponse]
 }
 
 // ListAccounts calls null.v1.AccountService.ListAccounts.
@@ -201,6 +212,11 @@ func (c *accountServiceClient) FindAccountByAlias(ctx context.Context, req *conn
 	return c.findAccountByAlias.CallUnary(ctx, req)
 }
 
+// MergeAccounts calls null.v1.AccountService.MergeAccounts.
+func (c *accountServiceClient) MergeAccounts(ctx context.Context, req *connect.Request[v1.MergeAccountsRequest]) (*connect.Response[v1.MergeAccountsResponse], error) {
+	return c.mergeAccounts.CallUnary(ctx, req)
+}
+
 // AccountServiceHandler is an implementation of the null.v1.AccountService service.
 type AccountServiceHandler interface {
 	ListAccounts(context.Context, *connect.Request[v1.ListAccountsRequest]) (*connect.Response[v1.ListAccountsResponse], error)
@@ -212,6 +228,7 @@ type AccountServiceHandler interface {
 	RemoveAccountAlias(context.Context, *connect.Request[v1.RemoveAccountAliasRequest]) (*connect.Response[v1.RemoveAccountAliasResponse], error)
 	SetAccountAliases(context.Context, *connect.Request[v1.SetAccountAliasesRequest]) (*connect.Response[v1.SetAccountAliasesResponse], error)
 	FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error)
+	MergeAccounts(context.Context, *connect.Request[v1.MergeAccountsRequest]) (*connect.Response[v1.MergeAccountsResponse], error)
 }
 
 // NewAccountServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -275,6 +292,12 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 		connect.WithSchema(accountServiceMethods.ByName("FindAccountByAlias")),
 		connect.WithHandlerOptions(opts...),
 	)
+	accountServiceMergeAccountsHandler := connect.NewUnaryHandler(
+		AccountServiceMergeAccountsProcedure,
+		svc.MergeAccounts,
+		connect.WithSchema(accountServiceMethods.ByName("MergeAccounts")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.AccountService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case AccountServiceListAccountsProcedure:
@@ -295,6 +318,8 @@ func NewAccountServiceHandler(svc AccountServiceHandler, opts ...connect.Handler
 			accountServiceSetAccountAliasesHandler.ServeHTTP(w, r)
 		case AccountServiceFindAccountByAliasProcedure:
 			accountServiceFindAccountByAliasHandler.ServeHTTP(w, r)
+		case AccountServiceMergeAccountsProcedure:
+			accountServiceMergeAccountsHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -338,4 +363,8 @@ func (UnimplementedAccountServiceHandler) SetAccountAliases(context.Context, *co
 
 func (UnimplementedAccountServiceHandler) FindAccountByAlias(context.Context, *connect.Request[v1.FindAccountByAliasRequest]) (*connect.Response[v1.FindAccountByAliasResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.FindAccountByAlias is not implemented"))
+}
+
+func (UnimplementedAccountServiceHandler) MergeAccounts(context.Context, *connect.Request[v1.MergeAccountsRequest]) (*connect.Response[v1.MergeAccountsResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.AccountService.MergeAccounts is not implemented"))
 }

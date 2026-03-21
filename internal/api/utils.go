@@ -21,10 +21,13 @@ func wrapErr(err error) error {
 		return nil
 	}
 
-	if err == service.ErrValidation {
+	if errors.Is(err, service.ErrDuplicate) {
+		return status.Error(codes.AlreadyExists, err.Error())
+	}
+	if errors.Is(err, service.ErrValidation) {
 		return status.Error(codes.InvalidArgument, err.Error())
 	}
-	if err == service.ErrUnimplemented {
+	if errors.Is(err, service.ErrUnimplemented) {
 		return status.Error(codes.Unimplemented, err.Error())
 	}
 

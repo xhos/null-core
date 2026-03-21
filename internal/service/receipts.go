@@ -170,7 +170,7 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		UserID:    userID,
 		ImageHash: imageHash,
 	}); err == nil {
-		return nil, fmt.Errorf("ReceiptService.Upload: receipt already uploaded (id %d): %w", existing.ID, ErrValidation)
+		return nil, fmt.Errorf("ReceiptService.Upload: receipt already uploaded (id %d): %w", existing.ID, ErrDuplicate)
 	}
 
 	relPath := filepath.Join("receipts", userID.String(), uuid.New().String()+"."+ext)

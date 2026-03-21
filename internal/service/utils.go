@@ -13,12 +13,14 @@ import (
 var (
 	ErrValidation    = errors.New("validation failed")
 	ErrUnimplemented = errors.New("unimplemented")
+	ErrDuplicate     = errors.New("duplicate")
 )
 
 func wrapErr(op string, err error) error {
 	knownErrors := []error{
 		ErrValidation,
 		ErrUnimplemented,
+		ErrDuplicate,
 	}
 
 	for _, knownErr := range knownErrors {

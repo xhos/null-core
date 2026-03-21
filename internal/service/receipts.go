@@ -206,8 +206,25 @@ func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Rece
 		return nil, nil, nil, fmt.Errorf("ReceiptService.Get: read image: %w", err)
 	}
 
-	// link_candidates is out of scope — return empty
-	return receipt, nil, imageData, nil
+	var candidates []*pb.ReceiptLinkCandidate
+	if row.Status == pb.ReceiptStatus_RECEIPT_STATUS_PARSED && row.TransactionID == nil && row.TotalCents != nil && row.Currency != nil {
+		rows, err := s.queries.FindReceiptLinkCandidates(ctx, sqlc.FindReceiptLinkCandidatesParams{
+			UserID:      userID,
+			AmountCents: *row.TotalCents,
+			Currency:    *row.Currency,
+			ReceiptDate: row.ReceiptDate,
+		})
+		if err != nil {
+			s.log.Warn("failed to find link candidates", "receipt_id", id, "error", err)
+		} else {
+			candidates = make([]*pb.ReceiptLinkCandidate, len(rows))
+			for i, r := range rows {
+				candidates[i] = linkCandidateToPb(r, *row.TotalCents)
+			}
+		}
+	}
+
+	return receipt, candidates, imageData, nil
 }
 
 func (s *rcptSvc) List(ctx context.Context, userID uuid.UUID, req *pb.ListReceiptsRequest) ([]*pb.Receipt, int64, error) {
@@ -268,6 +285,8 @@ func (s *rcptSvc) Update(ctx context.Context, userID uuid.UUID, id int64, req *p
 
 	if req.TransactionId != nil {
 		params.TransactionID = req.TransactionId
+		linkedStatus := int16(pb.ReceiptStatus_RECEIPT_STATUS_LINKED)
+		params.Status = &linkedStatus
 	}
 
 	row, err := s.queries.UpdateReceipt(ctx, params)
@@ -569,6 +588,26 @@ func (s *rcptSvc) listRowToPb(r *sqlc.ListReceiptsRow, items []sqlc.ReceiptItem)
 	}
 
 	return proto
+}
+
+func linkCandidateToPb(r sqlc.FindReceiptLinkCandidatesRow, receiptTotalCents int64) *pb.ReceiptLinkCandidate {
+	c := &pb.ReceiptLinkCandidate{
+		TransactionId:   r.ID,
+		AccountId:       r.AccountID,
+		AccountName:     r.AccountDisplayName,
+		Amount:          centsToMoney(r.TxAmountCents, r.TxCurrency),
+		TxDate:          timestamppb.New(r.TxDate),
+		AmountDiffCents: r.TxAmountCents - receiptTotalCents,
+	}
+	if r.Merchant != nil {
+		c.Merchant = *r.Merchant
+	}
+	if days, ok := r.DateDiffDays.(int32); ok {
+		c.DateDiffDays = days
+	} else if days, ok := r.DateDiffDays.(int64); ok {
+		c.DateDiffDays = int32(days)
+	}
+	return c
 }
 
 func receiptItemToPb(item *sqlc.ReceiptItem) *pb.ReceiptItem {

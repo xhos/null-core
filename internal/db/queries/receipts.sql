@@ -101,3 +101,37 @@ ORDER BY sort_order ASC, id ASC;
 -- name: DeleteReceiptItemsByReceipt :exec
 DELETE FROM receipt_items
 WHERE receipt_id = sqlc.arg(receipt_id)::bigint;
+
+-- name: FindReceiptLinkCandidates :many
+SELECT
+  t.id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount_cents,
+  t.tx_currency,
+  t.merchant,
+  COALESCE(a.friendly_name, a.name) AS account_display_name,
+  CASE
+    WHEN sqlc.narg('receipt_date')::date IS NOT NULL
+    THEN ABS(t.tx_date::date - sqlc.narg('receipt_date')::date)
+    ELSE NULL
+  END AS date_diff_days
+FROM transactions t
+JOIN accounts a ON t.account_id = a.id
+LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = sqlc.arg(user_id)::uuid
+WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
+  AND t.tx_amount_cents BETWEEN sqlc.arg(amount_cents)::bigint - 50 AND sqlc.arg(amount_cents)::bigint + 50
+  AND t.tx_currency = sqlc.arg(currency)::char(3)
+  AND t.tx_direction = 2::smallint
+  AND NOT EXISTS (
+    SELECT 1 FROM receipts r
+    WHERE r.transaction_id = t.id
+  )
+ORDER BY
+  CASE
+    WHEN sqlc.narg('receipt_date')::date IS NOT NULL
+    THEN ABS(t.tx_date::date - sqlc.narg('receipt_date')::date)
+    ELSE 0
+  END ASC,
+  t.tx_date DESC
+LIMIT 10;

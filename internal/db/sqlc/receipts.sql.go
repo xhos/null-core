@@ -139,6 +139,93 @@ func (q *Queries) DeleteReceiptItemsByReceipt(ctx context.Context, receiptID int
 	return err
 }
 
+const findReceiptLinkCandidates = `-- name: FindReceiptLinkCandidates :many
+SELECT
+  t.id,
+  t.account_id,
+  t.tx_date,
+  t.tx_amount_cents,
+  t.tx_currency,
+  t.merchant,
+  COALESCE(a.friendly_name, a.name) AS account_display_name,
+  CASE
+    WHEN $1::date IS NOT NULL
+    THEN ABS(t.tx_date::date - $1::date)
+    ELSE NULL
+  END AS date_diff_days
+FROM transactions t
+JOIN accounts a ON t.account_id = a.id
+LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = $2::uuid
+WHERE (a.owner_id = $2::uuid OR au.user_id IS NOT NULL)
+  AND t.tx_amount_cents BETWEEN $3::bigint - 50 AND $3::bigint + 50
+  AND t.tx_currency = $4::char(3)
+  AND t.tx_direction = 2::smallint
+  AND NOT EXISTS (
+    SELECT 1 FROM receipts r
+    WHERE r.transaction_id = t.id
+  )
+ORDER BY
+  CASE
+    WHEN $1::date IS NOT NULL
+    THEN ABS(t.tx_date::date - $1::date)
+    ELSE 0
+  END ASC,
+  t.tx_date DESC
+LIMIT 10
+`
+
+type FindReceiptLinkCandidatesParams struct {
+	ReceiptDate *time.Time `db:"receipt_date" json:"receipt_date"`
+	UserID      uuid.UUID  `db:"user_id" json:"user_id"`
+	AmountCents int64      `db:"amount_cents" json:"amount_cents"`
+	Currency    string     `db:"currency" json:"currency"`
+}
+
+type FindReceiptLinkCandidatesRow struct {
+	ID                 int64       `db:"id" json:"id"`
+	AccountID          int64       `db:"account_id" json:"account_id"`
+	TxDate             time.Time   `db:"tx_date" json:"tx_date"`
+	TxAmountCents      int64       `db:"tx_amount_cents" json:"tx_amount_cents"`
+	TxCurrency         string      `db:"tx_currency" json:"tx_currency"`
+	Merchant           *string     `db:"merchant" json:"merchant"`
+	AccountDisplayName string      `db:"account_display_name" json:"account_display_name"`
+	DateDiffDays       interface{} `db:"date_diff_days" json:"date_diff_days"`
+}
+
+func (q *Queries) FindReceiptLinkCandidates(ctx context.Context, arg FindReceiptLinkCandidatesParams) ([]FindReceiptLinkCandidatesRow, error) {
+	rows, err := q.db.Query(ctx, findReceiptLinkCandidates,
+		arg.ReceiptDate,
+		arg.UserID,
+		arg.AmountCents,
+		arg.Currency,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []FindReceiptLinkCandidatesRow
+	for rows.Next() {
+		var i FindReceiptLinkCandidatesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.AccountID,
+			&i.TxDate,
+			&i.TxAmountCents,
+			&i.TxCurrency,
+			&i.Merchant,
+			&i.AccountDisplayName,
+			&i.DateDiffDays,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getPendingReceipts = `-- name: GetPendingReceipts :many
 SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at
 FROM receipts

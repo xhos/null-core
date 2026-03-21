@@ -184,12 +184,14 @@ func (s *acctSvc) AddAlias(ctx context.Context, userID uuid.UUID, accountID int6
 			fmt.Errorf("%w: alias %q is already assigned to account %d", ErrValidation, alias, existing.Account.ID))
 	}
 
-	return wrapErr("AccountService.AddAlias",
-		s.queries.AddAccountAlias(ctx, sqlc.AddAccountAliasParams{
-			ID:    accountID,
-			UserID: userID,
-			Alias:  alias,
-		}))
+	if err := s.queries.AddAccountAlias(ctx, sqlc.AddAccountAliasParams{
+		ID:     accountID,
+		UserID: userID,
+		Alias:  alias,
+	}); err != nil {
+		return wrapErr("AccountService.AddAlias", err)
+	}
+	return nil
 }
 
 func (s *acctSvc) RemoveAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
@@ -198,12 +200,14 @@ func (s *acctSvc) RemoveAlias(ctx context.Context, userID uuid.UUID, accountID i
 		return wrapErr("AccountService.RemoveAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
 	}
 
-	return wrapErr("AccountService.RemoveAlias",
-		s.queries.RemoveAccountAlias(ctx, sqlc.RemoveAccountAliasParams{
-			ID:    accountID,
-			UserID: userID,
-			Alias:  alias,
-		}))
+	if err := s.queries.RemoveAccountAlias(ctx, sqlc.RemoveAccountAliasParams{
+		ID:     accountID,
+		UserID: userID,
+		Alias:  alias,
+	}); err != nil {
+		return wrapErr("AccountService.RemoveAlias", err)
+	}
+	return nil
 }
 
 func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID int64, aliases []string) error {
@@ -232,12 +236,14 @@ func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID in
 		}
 	}
 
-	return wrapErr("AccountService.SetAliases",
-		s.queries.SetAccountAliases(ctx, sqlc.SetAccountAliasesParams{
-			ID:      accountID,
-			UserID:  userID,
-			Aliases: cleaned,
-		}))
+	if err := s.queries.SetAccountAliases(ctx, sqlc.SetAccountAliasesParams{
+		ID:      accountID,
+		UserID:  userID,
+		Aliases: cleaned,
+	}); err != nil {
+		return wrapErr("AccountService.SetAliases", err)
+	}
+	return nil
 }
 
 func (s *acctSvc) FindByAlias(ctx context.Context, userID uuid.UUID, alias string) (*pb.Account, error) {

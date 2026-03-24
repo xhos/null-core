@@ -3,12 +3,14 @@ INSERT INTO receipts (
   user_id,
   image_path,
   image_hash,
+  image_taken_at,
   status
 )
 VALUES (
   sqlc.arg(user_id)::uuid,
   sqlc.arg(image_path)::text,
   sqlc.arg(image_hash)::text,
+  sqlc.narg('image_taken_at')::timestamptz,
   sqlc.arg(status)::smallint
 )
 RETURNING *;
@@ -79,6 +81,16 @@ WHERE status = 1
 ORDER BY created_at ASC
 LIMIT 20;
 
+-- name: GetParsedUnlinkedReceipts :many
+SELECT *
+FROM receipts
+WHERE status = 2
+  AND transaction_id IS NULL
+  AND total_cents IS NOT NULL
+  AND currency IS NOT NULL
+ORDER BY created_at ASC
+LIMIT 20;
+
 -- name: CreateReceiptItem :one
 INSERT INTO receipt_items (
   receipt_id,
@@ -120,15 +132,15 @@ SELECT
   t.merchant,
   COALESCE(a.friendly_name, a.name) AS account_display_name,
   CASE
-    WHEN sqlc.narg('receipt_date')::date IS NOT NULL
-    THEN ABS(t.tx_date::date - sqlc.narg('receipt_date')::date)
+    WHEN sqlc.narg('best_date')::date IS NOT NULL
+    THEN ABS(t.tx_date::date - sqlc.narg('best_date')::date)
     ELSE NULL
   END AS date_diff_days
 FROM transactions t
 JOIN accounts a ON t.account_id = a.id
 LEFT JOIN account_users au ON a.id = au.account_id AND au.user_id = sqlc.arg(user_id)::uuid
 WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
-  AND t.tx_amount_cents BETWEEN sqlc.arg(amount_cents)::bigint - 50 AND sqlc.arg(amount_cents)::bigint + 50
+  AND t.tx_amount_cents BETWEEN sqlc.arg(amount_cents)::bigint - 5 AND sqlc.arg(amount_cents)::bigint + 5
   AND t.tx_currency = sqlc.arg(currency)::char(3)
   AND t.tx_direction = 2::smallint
   AND NOT EXISTS (
@@ -136,9 +148,10 @@ WHERE (a.owner_id = sqlc.arg(user_id)::uuid OR au.user_id IS NOT NULL)
     WHERE r.transaction_id = t.id
   )
 ORDER BY
+  CASE WHEN t.tx_amount_cents = sqlc.arg(amount_cents)::bigint THEN 0 ELSE 1 END ASC,
   CASE
-    WHEN sqlc.narg('receipt_date')::date IS NOT NULL
-    THEN ABS(t.tx_date::date - sqlc.narg('receipt_date')::date)
+    WHEN sqlc.narg('best_date')::date IS NOT NULL
+    THEN ABS(t.tx_date::date - sqlc.narg('best_date')::date)
     ELSE 0
   END ASC,
   t.tx_date DESC

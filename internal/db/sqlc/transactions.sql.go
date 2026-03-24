@@ -662,7 +662,8 @@ func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]
 
 const listTransactions = `-- name: ListTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at,
+  COALESCE((SELECT r.id FROM receipts r WHERE r.transaction_id = t.id LIMIT 1), 0)::bigint as receipt_id
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -764,7 +765,12 @@ type ListTransactionsParams struct {
 	Limit          *int32      `db:"limit" json:"limit"`
 }
 
-func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]Transaction, error) {
+type ListTransactionsRow struct {
+	Transaction Transaction `db:"transaction" json:"transaction"`
+	ReceiptID   int64       `db:"receipt_id" json:"receipt_id"`
+}
+
+func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsParams) ([]ListTransactionsRow, error) {
 	rows, err := q.db.Query(ctx, listTransactions,
 		arg.UserID,
 		arg.CursorDate,
@@ -788,31 +794,32 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Transaction
+	var items []ListTransactionsRow
 	for rows.Next() {
-		var i Transaction
+		var i ListTransactionsRow
 		if err := rows.Scan(
-			&i.ID,
-			&i.AccountID,
-			&i.EmailID,
-			&i.TxDate,
-			&i.TxAmountCents,
-			&i.TxCurrency,
-			&i.TxDirection,
-			&i.TxDesc,
-			&i.BalanceAfterCents,
-			&i.BalanceCurrency,
-			&i.Merchant,
-			&i.CategoryID,
-			&i.CategoryManuallySet,
-			&i.MerchantManuallySet,
-			&i.Suggestions,
-			&i.UserNotes,
-			&i.ForeignAmountCents,
-			&i.ForeignCurrency,
-			&i.ExchangeRate,
-			&i.CreatedAt,
-			&i.UpdatedAt,
+			&i.Transaction.ID,
+			&i.Transaction.AccountID,
+			&i.Transaction.EmailID,
+			&i.Transaction.TxDate,
+			&i.Transaction.TxAmountCents,
+			&i.Transaction.TxCurrency,
+			&i.Transaction.TxDirection,
+			&i.Transaction.TxDesc,
+			&i.Transaction.BalanceAfterCents,
+			&i.Transaction.BalanceCurrency,
+			&i.Transaction.Merchant,
+			&i.Transaction.CategoryID,
+			&i.Transaction.CategoryManuallySet,
+			&i.Transaction.MerchantManuallySet,
+			&i.Transaction.Suggestions,
+			&i.Transaction.UserNotes,
+			&i.Transaction.ForeignAmountCents,
+			&i.Transaction.ForeignCurrency,
+			&i.Transaction.ExchangeRate,
+			&i.Transaction.CreatedAt,
+			&i.Transaction.UpdatedAt,
+			&i.ReceiptID,
 		); err != nil {
 			return nil, err
 		}

@@ -210,7 +210,10 @@ func (s *txnSvc) List(ctx context.Context, userID uuid.UUID, req *pb.ListTransac
 	// convert to proto
 	result := make([]*pb.Transaction, len(rows))
 	for i := range rows {
-		result[i] = txToPb(&rows[i])
+		result[i] = txToPb(&rows[i].Transaction)
+		if rows[i].ReceiptID != 0 {
+			result[i].ReceiptId = &rows[i].ReceiptID
+		}
 	}
 
 	// build next cursor

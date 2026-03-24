@@ -354,6 +354,7 @@ func accountRowToPb(a sqlc.Account, balanceCents int64, balanceCurrency string) 
 		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
 		MainCurrency:  a.MainCurrency,
 		Colors:        a.Colors,
+		Aliases:       a.Aliases,
 		CreatedAt:     timestamppb.New(a.CreatedAt),
 		UpdatedAt:     timestamppb.New(a.UpdatedAt),
 		Balance:       centsToMoney(balanceCents, balanceCurrency),

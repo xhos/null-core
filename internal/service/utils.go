@@ -16,6 +16,20 @@ var (
 	ErrDuplicate     = errors.New("duplicate")
 )
 
+// DuplicateReceiptError is returned when an uploaded receipt image matches one already stored.
+// The ExistingID field lets the API layer return the conflicting receipt's ID to the client.
+type DuplicateReceiptError struct {
+	ExistingID int64
+}
+
+func (e *DuplicateReceiptError) Error() string {
+	return fmt.Sprintf("receipt already uploaded (id %d): %v", e.ExistingID, ErrDuplicate)
+}
+
+func (e *DuplicateReceiptError) Unwrap() error {
+	return ErrDuplicate
+}
+
 func wrapErr(op string, err error) error {
 	knownErrors := []error{
 		ErrValidation,

@@ -24,6 +24,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
+	"github.com/rwcarlsen/goexif/exif"
 	"golang.org/x/image/draw"
 	_ "golang.org/x/image/webp"
 	"golang.org/x/net/http2"
@@ -105,6 +106,14 @@ func extToContentType(ext string) string {
 
 const maxImageDim = 1920
 
+// autoLinkAmountTolerance is the max cents difference between receipt total and
+// transaction amount that still qualifies for automatic linking (covers rounding).
+const autoLinkAmountTolerance = 0
+
+// autoLinkDateWindow is the max time between the best date signal and the
+// transaction date for automatic linking.
+const autoLinkDateWindow = 7 * 24 * time.Hour
+
 // resizeImage downscales an image so its longest side is at most maxImageDim.
 // Supported inputs: JPEG, PNG, WebP (via registered decoder).
 // Output is always JPEG. Returns original bytes unchanged for HEIC or on error.
@@ -160,6 +169,9 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		return nil, fmt.Errorf("ReceiptService.Upload: unsupported content type %q: %w", contentType, ErrValidation)
 	}
 
+	// extract EXIF date before resize (resize strips metadata)
+	imageTakenAt := extractEXIFDate(imageData)
+
 	imageData, contentType = resizeImage(imageData, contentType)
 	ext = contentTypeToExt[contentType]
 
@@ -170,7 +182,7 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		UserID:    userID,
 		ImageHash: imageHash,
 	}); err == nil {
-		return nil, fmt.Errorf("ReceiptService.Upload: receipt already uploaded (id %d): %w", existing.ID, ErrDuplicate)
+		return nil, &DuplicateReceiptError{ExistingID: existing.ID}
 	}
 
 	relPath := filepath.Join("receipts", userID.String(), uuid.New().String()+"."+ext)
@@ -184,10 +196,11 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 	}
 
 	row, err := s.queries.CreateReceipt(ctx, sqlc.CreateReceiptParams{
-		UserID:    userID,
-		ImagePath: relPath,
-		ImageHash: imageHash,
-		Status:    int16(pb.ReceiptStatus_RECEIPT_STATUS_PENDING),
+		UserID:       userID,
+		ImagePath:    relPath,
+		ImageHash:    imageHash,
+		ImageTakenAt: imageTakenAt,
+		Status:       int16(pb.ReceiptStatus_RECEIPT_STATUS_PENDING),
 	})
 	if err != nil {
 		// clean up file on DB error
@@ -225,7 +238,7 @@ func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Rece
 			UserID:      userID,
 			AmountCents: *row.TotalCents,
 			Currency:    *row.Currency,
-			ReceiptDate: row.ReceiptDate,
+			BestDate:    receiptBestDate(row.ImageTakenAt, row.ReceiptDate, &row.CreatedAt),
 		})
 		if err != nil {
 			s.log.Warn("failed to find link candidates", "receipt_id", id, "error", err)
@@ -384,6 +397,7 @@ func (s *rcptSvc) StartWorker(ctx context.Context) {
 			return
 		case <-ticker.C:
 			s.processPendingReceipts(ctx)
+			s.retryUnlinkedReceipts(ctx)
 		}
 	}
 }
@@ -397,6 +411,62 @@ func (s *rcptSvc) processPendingReceipts(ctx context.Context) {
 
 	for _, receipt := range pending {
 		s.processOneReceipt(ctx, receipt)
+	}
+}
+
+func (s *rcptSvc) retryUnlinkedReceipts(ctx context.Context) {
+	receipts, err := s.queries.GetParsedUnlinkedReceipts(ctx)
+	if err != nil {
+		s.log.Error("failed to query unlinked receipts", "error", err)
+		return
+	}
+
+	for _, receipt := range receipts {
+		bestDate := receiptBestDate(receipt.ImageTakenAt, receipt.ReceiptDate, &receipt.CreatedAt)
+		candidates, err := s.queries.FindReceiptLinkCandidates(ctx, sqlc.FindReceiptLinkCandidatesParams{
+			UserID:      receipt.UserID,
+			AmountCents: *receipt.TotalCents,
+			Currency:    *receipt.Currency,
+			BestDate:    bestDate,
+		})
+		if err != nil {
+			s.log.Warn("failed to find link candidates for unlinked receipt", "receipt_id", receipt.ID, "error", err)
+			continue
+		}
+
+		exactMatches := 0
+		var match sqlc.FindReceiptLinkCandidatesRow
+		for _, c := range candidates {
+			if c.TxAmountCents != *receipt.TotalCents {
+				continue
+			}
+			if bestDate != nil {
+				diff := c.TxDate.Sub(*bestDate)
+				if diff < 0 {
+					diff = -diff
+				}
+				if diff > 7*24*time.Hour {
+					continue
+				}
+			}
+			exactMatches++
+			match = c
+		}
+
+		if exactMatches == 1 {
+			linkedStatus := int16(pb.ReceiptStatus_RECEIPT_STATUS_LINKED)
+			_, err := s.queries.UpdateReceipt(ctx, sqlc.UpdateReceiptParams{
+				ID:            receipt.ID,
+				UserID:        receipt.UserID,
+				TransactionID: &match.ID,
+				Status:        &linkedStatus,
+			})
+			if err != nil {
+				s.log.Warn("auto-link retry failed", "receipt_id", receipt.ID, "transaction_id", match.ID, "error", err)
+			} else {
+				s.log.Info("receipt auto-linked on retry", "receipt_id", receipt.ID, "transaction_id", match.ID)
+			}
+		}
 	}
 }
 
@@ -502,14 +572,15 @@ func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
 
 	s.log.Info("receipt parsed successfully", "id", receipt.ID, "merchant", parsed.GetMerchant(), "items", len(parsed.Items))
 
-	// attempt auto-link: exactly one exact-amount match then link automatically
+	// attempt auto-link: exactly one exact-amount match within 7 days of best date
 	if parsed.Total != nil && parsed.Currency != nil {
 		totalCents := dollarsToCents(*parsed.Total)
+		bestDate := receiptBestDate(receipt.ImageTakenAt, updateParams.ReceiptDate, &receipt.CreatedAt)
 		candidates, err := s.queries.FindReceiptLinkCandidates(ctx, sqlc.FindReceiptLinkCandidatesParams{
 			UserID:      receipt.UserID,
 			AmountCents: totalCents,
 			Currency:    *parsed.Currency,
-			ReceiptDate: updateParams.ReceiptDate,
+			BestDate:    bestDate,
 		})
 		if err != nil {
 			s.log.Warn("auto-link candidate query failed", "receipt_id", receipt.ID, "error", err)
@@ -519,10 +590,14 @@ func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
 		exactMatches := 0
 		var match sqlc.FindReceiptLinkCandidatesRow
 		for _, c := range candidates {
-			if c.TxAmountCents == totalCents {
-				exactMatches++
-				match = c
+			if absDiff(c.TxAmountCents, totalCents) > autoLinkAmountTolerance {
+				continue
 			}
+			if bestDate != nil && absDuration(c.TxDate.Sub(*bestDate)) > autoLinkDateWindow {
+				continue
+			}
+			exactMatches++
+			match = c
 		}
 
 		if exactMatches == 1 {
@@ -554,6 +629,47 @@ func (s *rcptSvc) setReceiptFailed(ctx context.Context, receipt sqlc.Receipt) {
 	}
 }
 
+// ----- date helpers ------------------------------------------------------------------------
+
+// extractEXIFDate pulls DateTimeOriginal from JPEG/TIFF EXIF data.
+// Returns nil if not found or unparseable.
+func extractEXIFDate(imageData []byte) *time.Time {
+	x, err := exif.Decode(bytes.NewReader(imageData))
+	if err != nil {
+		return nil
+	}
+	t, err := x.DateTime()
+	if err != nil {
+		return nil
+	}
+	return &t
+}
+
+func absDiff(a, b int64) int64 {
+	if a > b {
+		return a - b
+	}
+	return b - a
+}
+
+func absDuration(d time.Duration) time.Duration {
+	if d < 0 {
+		return -d
+	}
+	return d
+}
+
+// receiptBestDate picks the most reliable date signal: EXIF > OCR date > created_at.
+func receiptBestDate(imageTakenAt *time.Time, receiptDate *time.Time, createdAt *time.Time) *time.Time {
+	if imageTakenAt != nil {
+		return imageTakenAt
+	}
+	if receiptDate != nil {
+		return receiptDate
+	}
+	return createdAt
+}
+
 // ----- conversion helpers ------------------------------------------------------------------
 
 func dollarsToCents(dollars float64) int64 {
@@ -576,6 +692,13 @@ func (s *rcptSvc) receiptToPb(r *sqlc.Receipt, items []sqlc.ReceiptItem) *pb.Rec
 
 	if r.ReceiptDate != nil {
 		proto.ReceiptDate = timeToDate(*r.ReceiptDate)
+	}
+	if r.ImageTakenAt != nil {
+		proto.ImageTakenAt = timestamppb.New(*r.ImageTakenAt)
+	}
+	bestDate := receiptBestDate(r.ImageTakenAt, r.ReceiptDate, &r.CreatedAt)
+	if bestDate != nil {
+		proto.BestDate = timeToDate(*bestDate)
 	}
 
 	currency := "CAD"
@@ -617,6 +740,13 @@ func (s *rcptSvc) listRowToPb(r *sqlc.ListReceiptsRow, items []sqlc.ReceiptItem)
 
 	if r.ReceiptDate != nil {
 		proto.ReceiptDate = timeToDate(*r.ReceiptDate)
+	}
+	if r.ImageTakenAt != nil {
+		proto.ImageTakenAt = timestamppb.New(*r.ImageTakenAt)
+	}
+	bestDate := receiptBestDate(r.ImageTakenAt, r.ReceiptDate, &r.CreatedAt)
+	if bestDate != nil {
+		proto.BestDate = timeToDate(*bestDate)
 	}
 
 	currency := "CAD"

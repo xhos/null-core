@@ -190,6 +190,8 @@ type Receipt struct {
 	UpdatedAt           *timestamppb.Timestamp `protobuf:"bytes,15,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	TransactionMerchant *string                `protobuf:"bytes,16,opt,name=transaction_merchant,json=transactionMerchant,proto3,oneof" json:"transaction_merchant,omitempty"`
 	TransactionAmount   *money.Money           `protobuf:"bytes,17,opt,name=transaction_amount,json=transactionAmount,proto3,oneof" json:"transaction_amount,omitempty"`
+	ImageTakenAt        *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=image_taken_at,json=imageTakenAt,proto3,oneof" json:"image_taken_at,omitempty"`
+	BestDate            *date.Date             `protobuf:"bytes,19,opt,name=best_date,json=bestDate,proto3,oneof" json:"best_date,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -343,6 +345,20 @@ func (x *Receipt) GetTransactionAmount() *money.Money {
 	return nil
 }
 
+func (x *Receipt) GetImageTakenAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.ImageTakenAt
+	}
+	return nil
+}
+
+func (x *Receipt) GetBestDate() *date.Date {
+	if x != nil {
+		return x.BestDate
+	}
+	return nil
+}
+
 type ReceiptLinkCandidate struct {
 	state           protoimpl.MessageState `protogen:"open.v1"`
 	TransactionId   int64                  `protobuf:"varint,1,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
@@ -459,7 +475,7 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"unit_price\x18\x06 \x01(\v2\x12.google.type.MoneyR\tunitPrice\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\a \x01(\x05R\tsortOrderB\a\n" +
-	"\x05_name\"\x9c\a\n" +
+	"\x05_name\"\xb9\b\n" +
 	"\aReceipt\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12*\n" +
@@ -483,7 +499,10 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
 	"\x14transaction_merchant\x18\x10 \x01(\tH\bR\x13transactionMerchant\x88\x01\x01\x12F\n" +
-	"\x12transaction_amount\x18\x11 \x01(\v2\x12.google.type.MoneyH\tR\x11transactionAmount\x88\x01\x01B\x11\n" +
+	"\x12transaction_amount\x18\x11 \x01(\v2\x12.google.type.MoneyH\tR\x11transactionAmount\x88\x01\x01\x12E\n" +
+	"\x0eimage_taken_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampH\n" +
+	"R\fimageTakenAt\x88\x01\x01\x123\n" +
+	"\tbest_date\x18\x13 \x01(\v2\x11.google.type.DateH\vR\bbestDate\x88\x01\x01B\x11\n" +
 	"\x0f_transaction_idB\v\n" +
 	"\t_merchantB\x0f\n" +
 	"\r_receipt_dateB\v\n" +
@@ -493,7 +512,10 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"\x06_totalB\r\n" +
 	"\v_confidenceB\x17\n" +
 	"\x15_transaction_merchantB\x15\n" +
-	"\x13_transaction_amount\"\xce\x02\n" +
+	"\x13_transaction_amountB\x11\n" +
+	"\x0f_image_taken_atB\f\n" +
+	"\n" +
+	"_best_date\"\xce\x02\n" +
 	"\x14ReceiptLinkCandidate\x12%\n" +
 	"\x0etransaction_id\x18\x01 \x01(\x03R\rtransactionId\x12\x1a\n" +
 	"\bmerchant\x18\x02 \x01(\tR\bmerchant\x12*\n" +
@@ -546,13 +568,15 @@ var file_null_v1_receipt_proto_depIdxs = []int32{
 	6,  // 7: null.v1.Receipt.created_at:type_name -> google.protobuf.Timestamp
 	6,  // 8: null.v1.Receipt.updated_at:type_name -> google.protobuf.Timestamp
 	4,  // 9: null.v1.Receipt.transaction_amount:type_name -> google.type.Money
-	4,  // 10: null.v1.ReceiptLinkCandidate.amount:type_name -> google.type.Money
-	6,  // 11: null.v1.ReceiptLinkCandidate.tx_date:type_name -> google.protobuf.Timestamp
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	6,  // 10: null.v1.Receipt.image_taken_at:type_name -> google.protobuf.Timestamp
+	5,  // 11: null.v1.Receipt.best_date:type_name -> google.type.Date
+	4,  // 12: null.v1.ReceiptLinkCandidate.amount:type_name -> google.type.Money
+	6,  // 13: null.v1.ReceiptLinkCandidate.tx_date:type_name -> google.protobuf.Timestamp
+	14, // [14:14] is the sub-list for method output_type
+	14, // [14:14] is the sub-list for method input_type
+	14, // [14:14] is the sub-list for extension type_name
+	14, // [14:14] is the sub-list for extension extendee
+	0,  // [0:14] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_receipt_proto_init() }

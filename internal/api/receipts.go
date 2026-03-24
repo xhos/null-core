@@ -2,8 +2,10 @@ package api
 
 import (
 	"context"
+	"errors"
 
 	pb "null-core/internal/gen/null/v1"
+	"null-core/internal/service"
 
 	"connectrpc.com/connect"
 )
@@ -16,6 +18,14 @@ func (s *Server) UploadReceipt(ctx context.Context, req *connect.Request[pb.Uplo
 
 	receipt, err := s.services.Receipts.Upload(ctx, userID, req.Msg.GetImageData(), req.Msg.GetContentType())
 	if err != nil {
+		var dupErr *service.DuplicateReceiptError
+		if errors.As(err, &dupErr) {
+			connectErr := connect.NewError(connect.CodeAlreadyExists, errors.New("This receipt has already been uploaded."))
+			if detail, detailErr := connect.NewErrorDetail(&pb.Receipt{Id: dupErr.ExistingID}); detailErr == nil {
+				connectErr.AddDetail(detail)
+			}
+			return nil, connectErr
+		}
 		return nil, wrapErr(err)
 	}
 

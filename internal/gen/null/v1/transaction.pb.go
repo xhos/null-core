@@ -51,6 +51,7 @@ type Transaction struct {
 	// additional fields for API responses
 	Category      *Category `protobuf:"bytes,18,opt,name=category,proto3,oneof" json:"category,omitempty"`
 	AccountName   *string   `protobuf:"bytes,19,opt,name=account_name,json=accountName,proto3,oneof" json:"account_name,omitempty"`
+	ReceiptId     *int64    `protobuf:"varint,20,opt,name=receipt_id,json=receiptId,proto3,oneof" json:"receipt_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -218,6 +219,13 @@ func (x *Transaction) GetAccountName() string {
 	return ""
 }
 
+func (x *Transaction) GetReceiptId() int64 {
+	if x != nil && x.ReceiptId != nil {
+		return *x.ReceiptId
+	}
+	return 0
+}
+
 type TransactionWithScore struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Transaction   *Transaction           `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
@@ -334,7 +342,7 @@ var File_null_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xd1\b\n" +
+	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x84\t\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
 	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
@@ -360,7 +368,10 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
 	"updated_at\x18\x11 \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x122\n" +
 	"\bcategory\x18\x12 \x01(\v2\x11.null.v1.CategoryH\bR\bcategory\x88\x01\x01\x12&\n" +
-	"\faccount_name\x18\x13 \x01(\tH\tR\vaccountName\x88\x01\x01B\v\n" +
+	"\faccount_name\x18\x13 \x01(\tH\tR\vaccountName\x88\x01\x01\x12\"\n" +
+	"\n" +
+	"receipt_id\x18\x14 \x01(\x03H\n" +
+	"R\treceiptId\x88\x01\x01B\v\n" +
 	"\t_email_idB\x0e\n" +
 	"\f_descriptionB\x0e\n" +
 	"\f_category_idB\v\n" +
@@ -370,7 +381,8 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\x0f_foreign_amountB\x10\n" +
 	"\x0e_exchange_rateB\v\n" +
 	"\t_categoryB\x0f\n" +
-	"\r_account_name\"u\n" +
+	"\r_account_nameB\r\n" +
+	"\v_receipt_id\"u\n" +
 	"\x14TransactionWithScore\x126\n" +
 	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\x12%\n" +
 	"\x0emerchant_score\x18\x02 \x01(\x01R\rmerchantScore\"\x8a\x01\n" +

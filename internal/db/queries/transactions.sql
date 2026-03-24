@@ -1,6 +1,7 @@
 -- name: ListTransactions :many
 select
-  t.*
+  sqlc.embed(t),
+  COALESCE((SELECT r.id FROM receipts r WHERE r.transaction_id = t.id LIMIT 1), 0)::bigint as receipt_id
 from
   transactions t
   join accounts a on t.account_id = a.id

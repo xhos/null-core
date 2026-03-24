@@ -59,6 +59,7 @@ type Receipt struct {
 	CreatedAt     time.Time          `db:"created_at" json:"created_at"`
 	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
 	ImageHash     *string            `db:"image_hash" json:"image_hash"`
+	ImageTakenAt  *time.Time         `db:"image_taken_at" json:"image_taken_at"`
 }
 
 type ReceiptItem struct {

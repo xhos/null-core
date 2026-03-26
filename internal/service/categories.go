@@ -2,10 +2,6 @@ package service
 
 import (
 	"context"
-	"crypto/rand"
-	"database/sql"
-	"errors"
-	"strings"
 
 	"null-core/internal/db/sqlc"
 	pb "null-core/internal/gen/null/v1"
@@ -79,15 +75,12 @@ func (s *catSvc) GetBySlug(ctx context.Context, userID uuid.UUID, slug string) (
 
 func (s *catSvc) Update(ctx context.Context, userID uuid.UUID, categoryID int64, slug, color *string) error {
 	if slug != nil {
-		oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{
-			ID:     categoryID,
-			UserID: userID,
-		})
+		oldCategory, err := s.queries.GetCategory(ctx, sqlc.GetCategoryParams{ID: categoryID, UserID: userID})
 		if err != nil {
 			return wrapErr("CategoryService.Update", err)
 		}
 
-		slugIsChanging := oldCategory.Slug != *slug
+		slugIsChanging := shouldUpdateCategoryHierarchy(oldCategory.Slug, slug)
 		if slugIsChanging {
 			if err := s.ensureParentCategories(ctx, userID, *slug); err != nil {
 				return wrapErr("CategoryService.Update", err)
@@ -104,12 +97,7 @@ func (s *catSvc) Update(ctx context.Context, userID uuid.UUID, categoryID int64,
 		}
 	}
 
-	err := s.queries.UpdateCategory(ctx, sqlc.UpdateCategoryParams{
-		ID:     categoryID,
-		UserID: userID,
-		Slug:   slug,
-		Color:  color,
-	})
+	err := s.queries.UpdateCategory(ctx, buildUpdateCategoryParams(userID, categoryID, slug, color))
 	if err != nil {
 		return wrapErr("CategoryService.Update", err)
 	}
@@ -149,66 +137,4 @@ func (s *catSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Category, er
 	}
 
 	return result, nil
-}
-
-// ----- conversion helpers ------------------------------------------------------------------
-
-func categoryToPb(c *sqlc.Category) *pb.Category {
-	return &pb.Category{
-		Id:    c.ID,
-		Slug:  c.Slug,
-		Color: c.Color,
-	}
-}
-
-// ----- internal helpers --------------------------------------------------------------------
-
-func (s *catSvc) ensureParentCategories(ctx context.Context, userID uuid.UUID, slug string) error {
-	parts := strings.Split(slug, ".")
-	if len(parts) <= 1 {
-		return nil
-	}
-
-	// for "food.groceries.organic", create "food" then "food.groceries"
-	for i := 1; i < len(parts); i++ {
-		parentSlug := strings.Join(parts[:i], ".")
-
-		_, err := s.queries.GetCategoryBySlug(ctx, sqlc.GetCategoryBySlugParams{
-			Slug:   parentSlug,
-			UserID: userID,
-		})
-		if err == nil {
-			continue
-		}
-		if !errors.Is(err, sql.ErrNoRows) {
-			return err
-		}
-
-		color := generateNiceHexColor()
-		_, err = s.queries.CreateCategoryIfNotExists(ctx, sqlc.CreateCategoryIfNotExistsParams{
-			UserID: userID,
-			Slug:   parentSlug,
-			Color:  color,
-		})
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func generateNiceHexColor() string {
-	niceHexChars := "56789ab"
-	color := "#"
-
-	randomBytes := make([]byte, 6)
-	rand.Read(randomBytes)
-
-	for i := range 6 {
-		charIndex := int(randomBytes[i]) % 7
-		color += string(niceHexChars[charIndex])
-	}
-
-	return color
 }

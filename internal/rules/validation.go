@@ -1,11 +1,15 @@
 package rules
 
 import (
+	_ "embed"
 	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
 )
+
+//go:embed rule.schema.json
+var ruleSchemaJSON []byte
 
 // ValidationError represents a structured validation error
 type ValidationError struct {
@@ -369,52 +373,10 @@ func NormalizeAndValidateRule(jsonData []byte) (*RuleConditions, error) {
 
 // GetValidationSchema returns a JSON schema description for frontend validation
 func GetValidationSchema() map[string]interface{} {
-	return map[string]interface{}{
-		"type":     "object",
-		"required": []string{"logic", "conditions"},
-		"properties": map[string]interface{}{
-			"logic": map[string]interface{}{
-				"type": "string",
-				"enum": []string{"AND", "OR"},
-			},
-			"conditions": map[string]interface{}{
-				"type":     "array",
-				"minItems": 1,
-				"items": map[string]interface{}{
-					"type":     "object",
-					"required": []string{"field", "operator"},
-					"properties": map[string]interface{}{
-						"field": map[string]interface{}{
-							"type": "string",
-							"enum": append(GetStringFields(), GetNumericFields()...),
-						},
-						"operator": map[string]interface{}{
-							"type": "string",
-							"enum": append(GetStringOperators(), GetNumericOperators()...),
-						},
-						"value": map[string]interface{}{
-							"type": []string{"string", "number"},
-						},
-						"values": map[string]interface{}{
-							"type": "array",
-							"items": map[string]interface{}{
-								"type": "string",
-							},
-						},
-						"min_value": map[string]interface{}{
-							"type":    "number",
-							"minimum": 0,
-						},
-						"max_value": map[string]interface{}{
-							"type":    "number",
-							"minimum": 0,
-						},
-						"case_sensitive": map[string]interface{}{
-							"type": "boolean",
-						},
-					},
-				},
-			},
-		},
+	var schema map[string]interface{}
+	if err := json.Unmarshal(ruleSchemaJSON, &schema); err != nil {
+		return map[string]interface{}{}
 	}
+
+	return schema
 }

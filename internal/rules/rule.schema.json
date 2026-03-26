@@ -1,0 +1,254 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://null-core/internal/rules/rule.schema.json",
+  "title": "Transaction Rule Conditions",
+  "type": "object",
+  "required": ["logic", "conditions"],
+  "properties": {
+    "logic": {
+      "type": "string",
+      "pattern": "^[Aa][Nn][Dd]$|^[Oo][Rr]$"
+    },
+    "conditions": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "$ref": "#/$defs/condition"
+      }
+    }
+  },
+  "$defs": {
+    "condition": {
+      "type": "object",
+      "required": ["field", "operator"],
+      "properties": {
+        "field": {
+          "type": "string",
+          "enum": [
+            "merchant",
+            "tx_desc",
+            "tx_direction",
+            "account_type",
+            "account_name",
+            "bank",
+            "currency",
+            "amount"
+          ]
+        },
+        "operator": {
+          "type": "string",
+          "enum": [
+            "equals",
+            "contains",
+            "starts_with",
+            "ends_with",
+            "contains_any",
+            "not_equals",
+            "not_contains",
+            "regex",
+            "greater_than",
+            "less_than",
+            "between"
+          ]
+        },
+        "value": {
+          "type": ["string", "number"]
+        },
+        "values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string"
+          }
+        },
+        "min_value": {
+          "type": "number"
+        },
+        "max_value": {
+          "type": "number"
+        },
+        "currency": {
+          "description": "Not supported. Use field=currency instead."
+        },
+        "case_sensitive": {
+          "type": "boolean"
+        }
+      },
+      "allOf": [
+        {
+          "not": {
+            "required": ["currency"]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "operator": {
+                "const": "contains_any"
+              }
+            },
+            "required": ["operator"]
+          },
+          "then": {
+            "required": ["values"],
+            "not": {
+              "required": ["value"]
+            }
+          },
+          "else": {
+            "if": {
+              "properties": {
+                "operator": {
+                  "const": "between"
+                }
+              },
+              "required": ["operator"]
+            },
+            "then": {
+              "required": ["min_value", "max_value"],
+              "not": {
+                "required": ["value"]
+              },
+              "properties": {
+                "min_value": {
+                  "type": "number"
+                },
+                "max_value": {
+                  "type": "number"
+                }
+              }
+            },
+            "else": {
+              "required": ["value"],
+              "not": {
+                "required": ["values"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "enum": [
+                  "merchant",
+                  "tx_desc",
+                  "account_type",
+                  "account_name",
+                  "bank",
+                  "currency"
+                ]
+              }
+            },
+            "required": ["field"]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": [
+                  "equals",
+                  "contains",
+                  "starts_with",
+                  "ends_with",
+                  "contains_any",
+                  "not_equals",
+                  "not_contains",
+                  "regex"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "enum": ["amount", "tx_direction"]
+              }
+            },
+            "required": ["field"]
+          },
+          "then": {
+            "properties": {
+              "operator": {
+                "enum": ["equals", "not_equals", "greater_than", "less_than", "between"]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "enum": ["amount", "tx_direction"]
+              }
+            },
+            "required": ["field", "case_sensitive"]
+          },
+          "then": {
+            "not": {
+              "required": ["case_sensitive"]
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "amount"
+              }
+            },
+            "required": ["field"]
+          },
+          "then": {
+            "properties": {
+              "min_value": {
+                "minimum": 0
+              },
+              "max_value": {
+                "minimum": 0
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "field": {
+                "const": "tx_direction"
+              }
+            },
+            "required": ["field"]
+          },
+          "then": {
+            "properties": {
+              "value": {
+                "oneOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 2
+                  },
+                  {
+                    "type": "string",
+                    "pattern": "^(0|1|2)$"
+                  }
+                ]
+              },
+              "min_value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              },
+              "max_value": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 2
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

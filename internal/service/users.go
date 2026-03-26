@@ -2,14 +2,11 @@ package service
 
 import (
 	"context"
-	"fmt"
-	"strings"
 
 	"null-core/internal/db/sqlc"
 	pb "null-core/internal/gen/null/v1"
 
 	"github.com/charmbracelet/log"
-	"github.com/google/uuid"
 )
 
 // ----- interface ---------------------------------------------------------------------------
@@ -40,7 +37,7 @@ func (s *userSvc) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Us
 		return nil, wrapErr("UserService.Create", err)
 	}
 
-	params.Email = strings.ToLower(params.Email)
+	params.Email = normalizeEmail(params.Email)
 
 	user, err := s.queries.CreateUser(ctx, params)
 	if err != nil {
@@ -51,9 +48,9 @@ func (s *userSvc) Create(ctx context.Context, req *pb.CreateUserRequest) (*pb.Us
 }
 
 func (s *userSvc) EnsureExists(ctx context.Context, id, email, name string) error {
-	userID, err := uuid.Parse(id)
+	userID, err := parseUserID(id)
 	if err != nil {
-		return wrapErr("UserService.EnsureExists", fmt.Errorf("invalid user_id: %w", err))
+		return wrapErr("UserService.EnsureExists", err)
 	}
 
 	var displayName *string
@@ -63,7 +60,7 @@ func (s *userSvc) EnsureExists(ctx context.Context, id, email, name string) erro
 
 	_, err = s.queries.UpsertUser(ctx, sqlc.UpsertUserParams{
 		ID:          userID,
-		Email:       strings.ToLower(email),
+		Email:       normalizeEmail(email),
 		DisplayName: displayName,
 	})
 	if err != nil {
@@ -74,9 +71,9 @@ func (s *userSvc) EnsureExists(ctx context.Context, id, email, name string) erro
 }
 
 func (s *userSvc) Get(ctx context.Context, id string) (*pb.User, error) {
-	userID, err := uuid.Parse(id)
+	userID, err := parseUserID(id)
 	if err != nil {
-		return nil, wrapErr("UserService.Get", fmt.Errorf("invalid user_id: %w", err))
+		return nil, wrapErr("UserService.Get", err)
 	}
 
 	user, err := s.queries.GetUser(ctx, userID)
@@ -94,8 +91,7 @@ func (s *userSvc) Update(ctx context.Context, req *pb.UpdateUserRequest) error {
 	}
 
 	if params.Email != nil {
-		normalized := strings.ToLower(*params.Email)
-		params.Email = &normalized
+		params.Email = normalizeOptionalEmail(params.Email)
 	}
 
 	err = s.queries.UpdateUser(ctx, params)
@@ -107,9 +103,9 @@ func (s *userSvc) Update(ctx context.Context, req *pb.UpdateUserRequest) error {
 }
 
 func (s *userSvc) Delete(ctx context.Context, id string) error {
-	userID, err := uuid.Parse(id)
+	userID, err := parseUserID(id)
 	if err != nil {
-		return wrapErr("UserService.Delete", fmt.Errorf("invalid user_id: %w", err))
+		return wrapErr("UserService.Delete", err)
 	}
 
 	rowsAffected, err := s.queries.DeleteUserWithCascade(ctx, userID)
@@ -135,52 +131,4 @@ func (s *userSvc) List(ctx context.Context) ([]*pb.User, error) {
 	}
 
 	return pbUsers, nil
-}
-
-// ----- param builders ----------------------------------------------------------------------
-
-func buildCreateUserParams(req *pb.CreateUserRequest) (sqlc.CreateUserParams, error) {
-	userID, err := uuid.Parse(req.GetId())
-	if err != nil {
-		return sqlc.CreateUserParams{}, fmt.Errorf("invalid user_id: %w", err)
-	}
-
-	return sqlc.CreateUserParams{
-		ID:          userID,
-		Email:       req.GetEmail(),
-		DisplayName: req.DisplayName,
-	}, nil
-}
-
-func buildUpdateUserParams(req *pb.UpdateUserRequest) (sqlc.UpdateUserParams, error) {
-	userID, err := uuid.Parse(req.GetId())
-	if err != nil {
-		return sqlc.UpdateUserParams{}, fmt.Errorf("invalid user_id: %w", err)
-	}
-
-	return sqlc.UpdateUserParams{
-		ID:              userID,
-		Email:           req.Email,
-		DisplayName:     req.DisplayName,
-		PrimaryCurrency: req.PrimaryCurrency,
-		Timezone:        req.Timezone,
-	}, nil
-}
-
-// ----- conversion helpers ------------------------------------------------------------------
-
-func userToPb(u *sqlc.User) *pb.User {
-	if u == nil {
-		return nil
-	}
-
-	return &pb.User{
-		Id:              u.ID.String(),
-		Email:           u.Email,
-		DisplayName:     u.DisplayName,
-		PrimaryCurrency: u.PrimaryCurrency,
-		Timezone:        u.Timezone,
-		CreatedAt:       toProtoTimestamp(&u.CreatedAt),
-		UpdatedAt:       toProtoTimestamp(&u.UpdatedAt),
-	}
 }

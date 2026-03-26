@@ -77,18 +77,17 @@ func TestDayBoundariesAndFormatRange(t *testing.T) {
 }
 
 func TestCalculatePeriods_CustomValidationAndRange(t *testing.T) {
-	svc := &dashSvc{}
 	loc := time.UTC
 	now := time.Date(2026, 3, 25, 10, 0, 0, 0, time.UTC)
 
-	_, err := svc.calculatePeriods(CategorySpendingParams{PeriodType: PeriodCustom}, now, loc, nil)
+	_, err := calculatePeriods(CategorySpendingParams{PeriodType: PeriodCustom}, now, loc, nil)
 	if err == nil {
 		t.Fatalf("expected error when custom dates are missing")
 	}
 
 	start := time.Date(2026, 3, 20, 0, 0, 0, 0, time.UTC)
 	end := time.Date(2026, 3, 10, 0, 0, 0, 0, time.UTC)
-	_, err = svc.calculatePeriods(CategorySpendingParams{
+	_, err = calculatePeriods(CategorySpendingParams{
 		PeriodType:  PeriodCustom,
 		CustomStart: &start,
 		CustomEnd:   &end,
@@ -98,7 +97,7 @@ func TestCalculatePeriods_CustomValidationAndRange(t *testing.T) {
 	}
 
 	validEnd := time.Date(2026, 3, 25, 0, 0, 0, 0, time.UTC)
-	periods, err := svc.calculatePeriods(CategorySpendingParams{
+	periods, err := calculatePeriods(CategorySpendingParams{
 		PeriodType:  PeriodCustom,
 		CustomStart: &start,
 		CustomEnd:   &validEnd,

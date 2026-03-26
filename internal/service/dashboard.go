@@ -257,7 +257,7 @@ func (s *dashSvc) GetCategorySpendingComparison(
 		}
 	}
 
-	periods, err := s.calculatePeriods(params, now, loc, earliestTxDate)
+	periods, err := calculatePeriods(params, now, loc, earliestTxDate)
 	if err != nil {
 		return nil, err
 	}

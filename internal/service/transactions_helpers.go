@@ -205,7 +205,7 @@ func toPgTimeOfDay(tod *pb.TimeOfDay) pgtype.Time {
 	return pgtype.Time{Microseconds: microseconds, Valid: true}
 }
 
-func txToPb(tx *sqlc.Transaction) *pb.Transaction {
+func transactionToPb(tx *sqlc.Transaction) *pb.Transaction {
 	proto := &pb.Transaction{
 		Id:                  tx.ID,
 		TxDate:              timestamppb.New(tx.TxDate),
@@ -236,7 +236,7 @@ func txToPb(tx *sqlc.Transaction) *pb.Transaction {
 	return proto
 }
 
-func (s *txnSvc) validateCreateParams(params sqlc.CreateTransactionParams) error {
+func validateCreateParams(params sqlc.CreateTransactionParams) error {
 	if params.AccountID <= 0 {
 		return fmt.Errorf("account_id must be greater than zero: %w", ErrValidation)
 	}

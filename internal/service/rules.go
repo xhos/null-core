@@ -105,7 +105,7 @@ func (s *catRuleSvc) ApplyToTransaction(ctx context.Context, userID uuid.UUID, t
 		return nil, wrapErr("RuleService.ApplyToTransaction", err)
 	}
 
-	return s.evaluateRulesForTransaction(activeRules, tx, account), nil
+	return evaluateRulesForTransaction(activeRules, tx, account), nil
 }
 
 func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, transactionIDs []int64) (int, error) {
@@ -140,7 +140,7 @@ func (s *catRuleSvc) ApplyToExisting(ctx context.Context, userID uuid.UUID, tran
 			continue
 		}
 
-		ruleResult := s.evaluateRulesForTransaction(activeRules, &tx, &account)
+		ruleResult := evaluateRulesForTransaction(activeRules, &tx, &account)
 
 		noMatch := ruleResult.CategoryID == nil && ruleResult.Merchant == nil
 		if noMatch {

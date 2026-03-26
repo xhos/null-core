@@ -190,7 +190,7 @@ func dollarsToCents(dollars float64) int64 {
 	return int64(math.Round(dollars * 100))
 }
 
-func (s *rcptSvc) receiptToPb(r *sqlc.Receipt, items []sqlc.ReceiptItem) *pb.Receipt {
+func receiptToPb(r *sqlc.Receipt, items []sqlc.ReceiptItem) *pb.Receipt {
 	proto := &pb.Receipt{
 		Id:            r.ID,
 		UserId:        r.UserID.String(),
@@ -234,7 +234,7 @@ func (s *rcptSvc) receiptToPb(r *sqlc.Receipt, items []sqlc.ReceiptItem) *pb.Rec
 	return proto
 }
 
-func (s *rcptSvc) listRowToPb(r *sqlc.ListReceiptsRow, items []sqlc.ReceiptItem) *pb.Receipt {
+func receiptListRowToPb(r *sqlc.ListReceiptsRow, items []sqlc.ReceiptItem) *pb.Receipt {
 	proto := &pb.Receipt{
 		Id:            r.ID,
 		UserId:        r.UserID.String(),

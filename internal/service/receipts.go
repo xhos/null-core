@@ -115,7 +115,7 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		return nil, wrapErr("ReceiptService.Upload", err)
 	}
 
-	return s.receiptToPb(&row, nil), nil
+	return receiptToPb(&row, nil), nil
 }
 
 func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, []byte, error) {
@@ -132,7 +132,7 @@ func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Rece
 		return nil, nil, nil, wrapErr("ReceiptService.Get.Items", err)
 	}
 
-	receipt := s.receiptToPb(&row, items)
+	receipt := receiptToPb(&row, items)
 
 	imageData, err := os.ReadFile(filepath.Join(s.dataDir, row.ImagePath))
 	if err != nil {
@@ -180,7 +180,7 @@ func (s *rcptSvc) List(ctx context.Context, userID uuid.UUID, req *pb.ListReceip
 			return nil, 0, wrapErr("ReceiptService.List.Items", err)
 		}
 
-		receipts[i] = s.listRowToPb(&rows[i], items)
+		receipts[i] = receiptListRowToPb(&rows[i], items)
 	}
 
 	return receipts, totalCount, nil
@@ -221,7 +221,7 @@ func (s *rcptSvc) Update(ctx context.Context, userID uuid.UUID, id int64, req *p
 		return nil, wrapErr("ReceiptService.Update.ListItems", err)
 	}
 
-	return s.receiptToPb(&row, items), nil
+	return receiptToPb(&row, items), nil
 }
 
 func (s *rcptSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) error {

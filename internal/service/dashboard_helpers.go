@@ -18,7 +18,7 @@ type periodBounds struct {
 	currentLabel, previousLabel string
 }
 
-func (s *dashSvc) calculatePeriods(params CategorySpendingParams, now time.Time, loc *time.Location, earliestTxDate *time.Time) (*periodBounds, error) {
+func calculatePeriods(params CategorySpendingParams, now time.Time, loc *time.Location, earliestTxDate *time.Time) (*periodBounds, error) {
 	p := &periodBounds{}
 
 	switch params.PeriodType {

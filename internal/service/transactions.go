@@ -57,7 +57,7 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, req *pb.CreateTra
 	}
 
 	for i, params := range paramsList {
-		if err := s.validateCreateParams(params); err != nil {
+		if err := validateCreateParams(params); err != nil {
 			return nil, fmt.Errorf("TransactionService.Create: transaction %d invalid: %w", i, err)
 		}
 	}
@@ -98,7 +98,7 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, req *pb.CreateTra
 
 	result := make([]*pb.Transaction, len(created))
 	for i := range created {
-		result[i] = txToPb(&created[i])
+		result[i] = transactionToPb(&created[i])
 	}
 
 	return result, nil
@@ -110,7 +110,7 @@ func (s *txnSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Trans
 		return nil, wrapErr("TransactionService.Get", err)
 	}
 
-	return txToPb(&row), nil
+	return transactionToPb(&row), nil
 }
 
 func (s *txnSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateTransactionRequest) error {
@@ -185,7 +185,7 @@ func (s *txnSvc) List(ctx context.Context, userID uuid.UUID, req *pb.ListTransac
 
 	result := make([]*pb.Transaction, len(rows))
 	for i := range rows {
-		result[i] = txToPb(&rows[i].Transaction)
+		result[i] = transactionToPb(&rows[i].Transaction)
 		if rows[i].ReceiptID != 0 {
 			result[i].ReceiptId = &rows[i].ReceiptID
 		}

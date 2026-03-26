@@ -156,9 +156,7 @@ func TestToPgTimeOfDay_InvalidInputReturnsNull(t *testing.T) {
 }
 
 func TestValidateCreateParams_RequiresCoreFields(t *testing.T) {
-	svc := &txnSvc{}
-
-	err := svc.validateCreateParams(sqlc.CreateTransactionParams{})
+	err := validateCreateParams(sqlc.CreateTransactionParams{})
 	if err == nil {
 		t.Fatalf("expected error for missing required fields")
 	}
@@ -170,7 +168,7 @@ func TestValidateCreateParams_RequiresCoreFields(t *testing.T) {
 		TxCurrency:    "USD",
 		TxDirection:   1,
 	}
-	if err := svc.validateCreateParams(valid); err != nil {
+	if err := validateCreateParams(valid); err != nil {
 		t.Fatalf("expected valid params, got error: %v", err)
 	}
 }
@@ -316,7 +314,7 @@ func TestBuildUpdateTxParams_MapsManualFlagsAndDefaults(t *testing.T) {
 	}
 }
 
-func TestTxToPb_MapsOptionalFields(t *testing.T) {
+func TestTransactionToPb_MapsOptionalFields(t *testing.T) {
 	now := time.Date(2026, 3, 24, 15, 30, 0, 0, time.UTC)
 	emailID := "email-1"
 	desc := "Dinner"
@@ -352,7 +350,7 @@ func TestTxToPb_MapsOptionalFields(t *testing.T) {
 		UpdatedAt:           now,
 	}
 
-	pbTx := txToPb(&tx)
+	pbTx := transactionToPb(&tx)
 	if pbTx.Id != 99 || pbTx.AccountId != 12 {
 		t.Fatalf("expected id/account mapped, got id=%d account=%d", pbTx.Id, pbTx.AccountId)
 	}

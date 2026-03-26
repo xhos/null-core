@@ -113,7 +113,7 @@ func ruleToPb(r *sqlc.TransactionRule) *pb.Rule {
 	return rule
 }
 
-func (s *catRuleSvc) evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.GetAccountRow) *RuleMatchResult {
+func evaluateRulesForTransaction(activeRules []sqlc.TransactionRule, tx *sqlc.Transaction, account *sqlc.GetAccountRow) *RuleMatchResult {
 	result := &RuleMatchResult{}
 
 	for _, rule := range activeRules {

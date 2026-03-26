@@ -131,7 +131,6 @@ func TestRuleToPb_ParsesConditionsAndTimestamps(t *testing.T) {
 }
 
 func TestEvaluateRulesForTransaction_InvalidConditionsNoMatch(t *testing.T) {
-	svc := &catRuleSvc{}
 	account := &sqlc.GetAccountRow{}
 	tx := &sqlc.Transaction{}
 
@@ -139,7 +138,7 @@ func TestEvaluateRulesForTransaction_InvalidConditionsNoMatch(t *testing.T) {
 		{Conditions: []byte(`not-json`)},
 	}
 
-	result := svc.evaluateRulesForTransaction(rules, tx, account)
+	result := evaluateRulesForTransaction(rules, tx, account)
 	if result == nil {
 		t.Fatalf("expected non-nil match result")
 	}

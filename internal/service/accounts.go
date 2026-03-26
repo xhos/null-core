@@ -3,14 +3,12 @@ package service
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"null-core/internal/db/sqlc"
 	pb "null-core/internal/gen/null/v1"
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
-	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 // ----- interface --------------------------------------------------------------------------------
@@ -42,36 +40,9 @@ func newAcctSvc(queries *sqlc.Queries, logger *log.Logger) AccountService {
 // ----- methods ----------------------------------------------------------------------------------
 
 func (s *acctSvc) Create(ctx context.Context, req *pb.CreateAccountRequest) (*pb.Account, error) {
-	userID, err := uuid.Parse(req.GetUserId())
+	params, err := buildCreateAccountParams(req)
 	if err != nil {
-		return nil, wrapErr("AccountService.Create", fmt.Errorf("invalid user_id: %w", err))
-	}
-
-	anchorBalance := req.GetAnchorBalance()
-	anchorCents := moneyToCents(anchorBalance)
-	anchorCurrency := anchorBalance.GetCurrencyCode()
-
-	mainCurrency := req.GetMainCurrency()
-
-	colors := req.GetColors()
-	if len(colors) == 0 {
-		colors = []string{"#1f2937", "#3b82f6", "#10b981"}
-	} else if len(colors) != 3 {
-		return nil, wrapErr(
-			"AccountService.Create",
-			fmt.Errorf("colors must be exactly 3 hex values, got %d", len(colors)))
-	}
-
-	params := sqlc.CreateAccountParams{
-		OwnerID:            userID,
-		Name:               req.GetName(),
-		Bank:               req.GetBank(),
-		AccountType:        int16(req.GetType()),
-		FriendlyName:       req.FriendlyName,
-		AnchorBalanceCents: anchorCents,
-		AnchorCurrency:     anchorCurrency,
-		MainCurrency:       mainCurrency,
-		Colors:             colors,
+		return nil, wrapErr("AccountService.Create", err)
 	}
 
 	created, err := s.queries.CreateAccount(ctx, params)
@@ -95,40 +66,7 @@ func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, accountID int64) (*
 }
 
 func (s *acctSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAccountRequest) error {
-	params := sqlc.UpdateAccountParams{
-		ID:     req.GetId(),
-		UserID: userID,
-	}
-
-	if req.Name != nil {
-		params.Name = req.Name
-	}
-	if req.Bank != nil {
-		params.Bank = req.Bank
-	}
-	if req.AccountType != nil {
-		accountType := int16(*req.AccountType)
-		params.AccountType = &accountType
-	}
-	if req.FriendlyName != nil {
-		params.FriendlyName = req.FriendlyName
-	}
-	if req.AnchorDate != nil {
-		t := req.AnchorDate.AsTime()
-		params.AnchorDate = &t
-	}
-	if req.AnchorBalance != nil {
-		cents := moneyToCents(req.AnchorBalance)
-		currency := req.AnchorBalance.CurrencyCode
-		params.AnchorBalanceCents = &cents
-		params.AnchorCurrency = &currency
-	}
-	if req.MainCurrency != nil {
-		params.MainCurrency = req.MainCurrency
-	}
-	if len(req.Colors) > 0 {
-		params.Colors = req.Colors
-	}
+	params := buildUpdateAccountParams(userID, req)
 
 	err := s.queries.UpdateAccount(ctx, params)
 	if err != nil {
@@ -171,19 +109,19 @@ func (s *acctSvc) List(ctx context.Context, userID uuid.UUID) ([]*pb.Account, er
 }
 
 func (s *acctSvc) AddAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
-	alias = strings.TrimSpace(alias)
-	if alias == "" {
-		return wrapErr("AccountService.AddAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	cleanAlias, err := normalizeAlias(alias)
+	if err != nil {
+		return wrapErr("AccountService.AddAlias", err)
 	}
 
-	if err := s.checkAliasConflict(ctx, userID, accountID, alias); err != nil {
+	if err := s.checkAliasConflict(ctx, userID, accountID, cleanAlias); err != nil {
 		return wrapErr("AccountService.AddAlias", err)
 	}
 
 	if err := s.queries.AddAccountAlias(ctx, sqlc.AddAccountAliasParams{
 		ID:     accountID,
 		UserID: userID,
-		Alias:  alias,
+		Alias:  cleanAlias,
 	}); err != nil {
 		return wrapErr("AccountService.AddAlias", err)
 	}
@@ -191,15 +129,15 @@ func (s *acctSvc) AddAlias(ctx context.Context, userID uuid.UUID, accountID int6
 }
 
 func (s *acctSvc) RemoveAlias(ctx context.Context, userID uuid.UUID, accountID int64, alias string) error {
-	alias = strings.TrimSpace(alias)
-	if alias == "" {
-		return wrapErr("AccountService.RemoveAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	cleanAlias, err := normalizeAlias(alias)
+	if err != nil {
+		return wrapErr("AccountService.RemoveAlias", err)
 	}
 
 	if err := s.queries.RemoveAccountAlias(ctx, sqlc.RemoveAccountAliasParams{
 		ID:     accountID,
 		UserID: userID,
-		Alias:  alias,
+		Alias:  cleanAlias,
 	}); err != nil {
 		return wrapErr("AccountService.RemoveAlias", err)
 	}
@@ -207,18 +145,9 @@ func (s *acctSvc) RemoveAlias(ctx context.Context, userID uuid.UUID, accountID i
 }
 
 func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID int64, aliases []string) error {
-	seen := make(map[string]struct{}, len(aliases))
-	cleaned := make([]string, 0, len(aliases))
-	for _, a := range aliases {
-		a = strings.TrimSpace(a)
-		if a == "" {
-			return wrapErr("AccountService.SetAliases", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
-		}
-		if _, dup := seen[a]; dup {
-			continue
-		}
-		seen[a] = struct{}{}
-		cleaned = append(cleaned, a)
+	cleaned, err := normalizeAliases(aliases)
+	if err != nil {
+		return wrapErr("AccountService.SetAliases", err)
 	}
 
 	for _, a := range cleaned {
@@ -238,14 +167,14 @@ func (s *acctSvc) SetAliases(ctx context.Context, userID uuid.UUID, accountID in
 }
 
 func (s *acctSvc) FindByAlias(ctx context.Context, userID uuid.UUID, alias string) (*pb.Account, error) {
-	alias = strings.TrimSpace(alias)
-	if alias == "" {
-		return nil, wrapErr("AccountService.FindByAlias", fmt.Errorf("%w: alias cannot be empty", ErrValidation))
+	cleanAlias, err := normalizeAlias(alias)
+	if err != nil {
+		return nil, wrapErr("AccountService.FindByAlias", err)
 	}
 
 	row, err := s.queries.FindAccountByAlias(ctx, sqlc.FindAccountByAliasParams{
 		UserID: userID,
-		Alias:  alias,
+		Alias:  cleanAlias,
 	})
 	if err != nil {
 		return nil, wrapErr("AccountService.FindByAlias", err)
@@ -295,27 +224,10 @@ func (s *acctSvc) MergeAccounts(ctx context.Context, userID uuid.UUID, primaryID
 		return nil, 0, wrapErr("AccountService.MergeAccounts", fmt.Errorf("moving transactions: %w", err))
 	}
 
-	// Build merged alias list: existing primary aliases + secondary name + secondary aliases
-	seen := make(map[string]struct{})
-	merged := make([]string, 0)
-	for _, a := range primary.Account.Aliases {
-		if _, ok := seen[a]; !ok {
-			seen[a] = struct{}{}
-			merged = append(merged, a)
-		}
-	}
-	for _, candidate := range append([]string{secondary.Account.Name}, secondary.Account.Aliases...) {
-		candidate = strings.TrimSpace(candidate)
-		if candidate == "" {
-			continue
-		}
-		if _, ok := seen[candidate]; !ok {
-			seen[candidate] = struct{}{}
-			merged = append(merged, candidate)
-		}
-	}
+	// build merged alias list: existing primary aliases + secondary name + secondary aliases
+	merged := buildMergedAliases(primary.Account.Aliases, secondary.Account.Name, secondary.Account.Aliases)
 
-	// Set aliases directly, bypassing conflict checks (secondary is about to be deleted)
+	// set aliases directly, bypassing conflict checks (secondary is about to be deleted)
 	if err := s.queries.SetAccountAliases(ctx, sqlc.SetAccountAliasesParams{
 		ID:      primaryID,
 		UserID:  userID,
@@ -338,25 +250,4 @@ func (s *acctSvc) MergeAccounts(ctx context.Context, userID uuid.UUID, primaryID
 	}
 
 	return accountRowToPb(result.Account, result.BalanceCents, result.BalanceCurrency), moved, nil
-}
-
-// ----- conversion helpers -----------------------------------------------------------------------
-
-func accountRowToPb(a sqlc.Account, balanceCents int64, balanceCurrency string) *pb.Account {
-	return &pb.Account{
-		Id:            a.ID,
-		OwnerId:       a.OwnerID.String(),
-		Name:          a.Name,
-		Bank:          a.Bank,
-		Type:          pb.AccountType(a.AccountType),
-		FriendlyName:  a.FriendlyName,
-		AnchorDate:    timestamppb.New(a.AnchorDate),
-		AnchorBalance: centsToMoney(a.AnchorBalanceCents, a.AnchorCurrency),
-		MainCurrency:  a.MainCurrency,
-		Colors:        a.Colors,
-		Aliases:       a.Aliases,
-		CreatedAt:     timestamppb.New(a.CreatedAt),
-		UpdatedAt:     timestamppb.New(a.UpdatedAt),
-		Balance:       centsToMoney(balanceCents, balanceCurrency),
-	}
 }

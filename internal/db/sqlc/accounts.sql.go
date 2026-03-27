@@ -12,6 +12,19 @@ import (
 	"github.com/google/uuid"
 )
 
+const accountHasTransactions = `-- name: AccountHasTransactions :one
+select exists(
+  select 1 from transactions where account_id = $1::bigint
+) as has_transactions
+`
+
+func (q *Queries) AccountHasTransactions(ctx context.Context, accountID int64) (bool, error) {
+	row := q.db.QueryRow(ctx, accountHasTransactions, accountID)
+	var has_transactions bool
+	err := row.Scan(&has_transactions)
+	return has_transactions, err
+}
+
 const addAccountAlias = `-- name: AddAccountAlias :exec
 update accounts
 set aliases = array_append(aliases, $1::text)

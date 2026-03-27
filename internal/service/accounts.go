@@ -68,6 +68,17 @@ func (s *acctSvc) Get(ctx context.Context, userID uuid.UUID, accountID int64) (*
 func (s *acctSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateAccountRequest) error {
 	params := buildUpdateAccountParams(userID, req)
 
+	currencyChanging := params.AnchorCurrency != nil || params.MainCurrency != nil
+	if currencyChanging {
+		hasTxns, err := s.queries.AccountHasTransactions(ctx, params.ID)
+		if err != nil {
+			return wrapErr("AccountService.Update.CheckTransactions", err)
+		}
+		if hasTxns {
+			return fmt.Errorf("AccountService.Update: cannot change currency on an account with transactions: %w", ErrValidation)
+		}
+	}
+
 	err := s.queries.UpdateAccount(ctx, params)
 	if err != nil {
 		return wrapErr("AccountService.Update", err)

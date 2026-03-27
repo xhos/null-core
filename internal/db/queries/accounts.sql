@@ -144,6 +144,11 @@ order by
 limit
   1;
 
+-- name: AccountHasTransactions :one
+select exists(
+  select 1 from transactions where account_id = @account_id::bigint
+) as has_transactions;
+
 -- name: GetUserAccountsCount :one
 select
   COUNT(*) as account_count

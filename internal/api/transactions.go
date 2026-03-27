@@ -104,3 +104,49 @@ func (s *Server) CategorizeTransactions(ctx context.Context, req *connect.Reques
 		AffectedRows: int64(len(req.Msg.TransactionIds)),
 	}), nil
 }
+
+func (s *Server) SplitTransaction(ctx context.Context, req *connect.Request[pb.SplitTransactionRequest]) (*connect.Response[pb.SplitTransactionResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	splits, err := s.services.Transactions.SplitTransaction(ctx, userID, req.Msg)
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.SplitTransactionResponse{
+		CreatedSplits: splits,
+	}), nil
+}
+
+func (s *Server) ForgiveTransaction(ctx context.Context, req *connect.Request[pb.ForgiveTransactionRequest]) (*connect.Response[pb.ForgiveTransactionResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	err = s.services.Transactions.ForgiveTransaction(ctx, userID, req.Msg.GetTransactionId(), req.Msg.GetForgiven())
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.ForgiveTransactionResponse{}), nil
+}
+
+func (s *Server) GetFriendBalances(ctx context.Context, req *connect.Request[pb.GetFriendBalancesRequest]) (*connect.Response[pb.GetFriendBalancesResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	balances, err := s.services.Transactions.GetFriendBalances(ctx, userID)
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.GetFriendBalancesResponse{
+		Balances: balances,
+	}), nil
+}

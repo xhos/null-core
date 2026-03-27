@@ -25,6 +25,9 @@ const (
 	TransactionService_UpdateTransaction_FullMethodName      = "/null.v1.TransactionService/UpdateTransaction"
 	TransactionService_DeleteTransaction_FullMethodName      = "/null.v1.TransactionService/DeleteTransaction"
 	TransactionService_CategorizeTransactions_FullMethodName = "/null.v1.TransactionService/CategorizeTransactions"
+	TransactionService_SplitTransaction_FullMethodName       = "/null.v1.TransactionService/SplitTransaction"
+	TransactionService_ForgiveTransaction_FullMethodName     = "/null.v1.TransactionService/ForgiveTransaction"
+	TransactionService_GetFriendBalances_FullMethodName      = "/null.v1.TransactionService/GetFriendBalances"
 )
 
 // TransactionServiceClient is the client API for TransactionService service.
@@ -37,6 +40,9 @@ type TransactionServiceClient interface {
 	UpdateTransaction(ctx context.Context, in *UpdateTransactionRequest, opts ...grpc.CallOption) (*UpdateTransactionResponse, error)
 	DeleteTransaction(ctx context.Context, in *DeleteTransactionRequest, opts ...grpc.CallOption) (*DeleteTransactionResponse, error)
 	CategorizeTransactions(ctx context.Context, in *CategorizeTransactionsRequest, opts ...grpc.CallOption) (*CategorizeTransactionsResponse, error)
+	SplitTransaction(ctx context.Context, in *SplitTransactionRequest, opts ...grpc.CallOption) (*SplitTransactionResponse, error)
+	ForgiveTransaction(ctx context.Context, in *ForgiveTransactionRequest, opts ...grpc.CallOption) (*ForgiveTransactionResponse, error)
+	GetFriendBalances(ctx context.Context, in *GetFriendBalancesRequest, opts ...grpc.CallOption) (*GetFriendBalancesResponse, error)
 }
 
 type transactionServiceClient struct {
@@ -107,6 +113,36 @@ func (c *transactionServiceClient) CategorizeTransactions(ctx context.Context, i
 	return out, nil
 }
 
+func (c *transactionServiceClient) SplitTransaction(ctx context.Context, in *SplitTransactionRequest, opts ...grpc.CallOption) (*SplitTransactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SplitTransactionResponse)
+	err := c.cc.Invoke(ctx, TransactionService_SplitTransaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionServiceClient) ForgiveTransaction(ctx context.Context, in *ForgiveTransactionRequest, opts ...grpc.CallOption) (*ForgiveTransactionResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(ForgiveTransactionResponse)
+	err := c.cc.Invoke(ctx, TransactionService_ForgiveTransaction_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *transactionServiceClient) GetFriendBalances(ctx context.Context, in *GetFriendBalancesRequest, opts ...grpc.CallOption) (*GetFriendBalancesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetFriendBalancesResponse)
+	err := c.cc.Invoke(ctx, TransactionService_GetFriendBalances_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TransactionServiceServer is the server API for TransactionService service.
 // All implementations must embed UnimplementedTransactionServiceServer
 // for forward compatibility.
@@ -117,6 +153,9 @@ type TransactionServiceServer interface {
 	UpdateTransaction(context.Context, *UpdateTransactionRequest) (*UpdateTransactionResponse, error)
 	DeleteTransaction(context.Context, *DeleteTransactionRequest) (*DeleteTransactionResponse, error)
 	CategorizeTransactions(context.Context, *CategorizeTransactionsRequest) (*CategorizeTransactionsResponse, error)
+	SplitTransaction(context.Context, *SplitTransactionRequest) (*SplitTransactionResponse, error)
+	ForgiveTransaction(context.Context, *ForgiveTransactionRequest) (*ForgiveTransactionResponse, error)
+	GetFriendBalances(context.Context, *GetFriendBalancesRequest) (*GetFriendBalancesResponse, error)
 	mustEmbedUnimplementedTransactionServiceServer()
 }
 
@@ -144,6 +183,15 @@ func (UnimplementedTransactionServiceServer) DeleteTransaction(context.Context, 
 }
 func (UnimplementedTransactionServiceServer) CategorizeTransactions(context.Context, *CategorizeTransactionsRequest) (*CategorizeTransactionsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CategorizeTransactions not implemented")
+}
+func (UnimplementedTransactionServiceServer) SplitTransaction(context.Context, *SplitTransactionRequest) (*SplitTransactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SplitTransaction not implemented")
+}
+func (UnimplementedTransactionServiceServer) ForgiveTransaction(context.Context, *ForgiveTransactionRequest) (*ForgiveTransactionResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForgiveTransaction not implemented")
+}
+func (UnimplementedTransactionServiceServer) GetFriendBalances(context.Context, *GetFriendBalancesRequest) (*GetFriendBalancesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetFriendBalances not implemented")
 }
 func (UnimplementedTransactionServiceServer) mustEmbedUnimplementedTransactionServiceServer() {}
 func (UnimplementedTransactionServiceServer) testEmbeddedByValue()                            {}
@@ -274,6 +322,60 @@ func _TransactionService_CategorizeTransactions_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TransactionService_SplitTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SplitTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionServiceServer).SplitTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionService_SplitTransaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionServiceServer).SplitTransaction(ctx, req.(*SplitTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionService_ForgiveTransaction_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ForgiveTransactionRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionServiceServer).ForgiveTransaction(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionService_ForgiveTransaction_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionServiceServer).ForgiveTransaction(ctx, req.(*ForgiveTransactionRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TransactionService_GetFriendBalances_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetFriendBalancesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TransactionServiceServer).GetFriendBalances(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TransactionService_GetFriendBalances_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TransactionServiceServer).GetFriendBalances(ctx, req.(*GetFriendBalancesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TransactionService_ServiceDesc is the grpc.ServiceDesc for TransactionService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -304,6 +406,18 @@ var TransactionService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CategorizeTransactions",
 			Handler:    _TransactionService_CategorizeTransactions_Handler,
+		},
+		{
+			MethodName: "SplitTransaction",
+			Handler:    _TransactionService_SplitTransaction_Handler,
+		},
+		{
+			MethodName: "ForgiveTransaction",
+			Handler:    _TransactionService_ForgiveTransaction_Handler,
+		},
+		{
+			MethodName: "GetFriendBalances",
+			Handler:    _TransactionService_GetFriendBalances_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

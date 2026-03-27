@@ -965,6 +965,406 @@ func (x *CategorizeTransactionsResponse) GetAffectedRows() int64 {
 	return 0
 }
 
+type SplitEntry struct {
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	FriendAccountId int64                  `protobuf:"varint,1,opt,name=friend_account_id,json=friendAccountId,proto3" json:"friend_account_id,omitempty"`
+	Amount          *money.Money           `protobuf:"bytes,2,opt,name=amount,proto3" json:"amount,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
+}
+
+func (x *SplitEntry) Reset() {
+	*x = SplitEntry{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SplitEntry) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SplitEntry) ProtoMessage() {}
+
+func (x *SplitEntry) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SplitEntry.ProtoReflect.Descriptor instead.
+func (*SplitEntry) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *SplitEntry) GetFriendAccountId() int64 {
+	if x != nil {
+		return x.FriendAccountId
+	}
+	return 0
+}
+
+func (x *SplitEntry) GetAmount() *money.Money {
+	if x != nil {
+		return x.Amount
+	}
+	return nil
+}
+
+type SplitTransactionRequest struct {
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	UserId              string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	SourceTransactionId int64                  `protobuf:"varint,2,opt,name=source_transaction_id,json=sourceTransactionId,proto3" json:"source_transaction_id,omitempty"`
+	Splits              []*SplitEntry          `protobuf:"bytes,3,rep,name=splits,proto3" json:"splits,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *SplitTransactionRequest) Reset() {
+	*x = SplitTransactionRequest{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SplitTransactionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SplitTransactionRequest) ProtoMessage() {}
+
+func (x *SplitTransactionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SplitTransactionRequest.ProtoReflect.Descriptor instead.
+func (*SplitTransactionRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *SplitTransactionRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SplitTransactionRequest) GetSourceTransactionId() int64 {
+	if x != nil {
+		return x.SourceTransactionId
+	}
+	return 0
+}
+
+func (x *SplitTransactionRequest) GetSplits() []*SplitEntry {
+	if x != nil {
+		return x.Splits
+	}
+	return nil
+}
+
+type SplitTransactionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CreatedSplits []*Transaction         `protobuf:"bytes,1,rep,name=created_splits,json=createdSplits,proto3" json:"created_splits,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SplitTransactionResponse) Reset() {
+	*x = SplitTransactionResponse{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SplitTransactionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SplitTransactionResponse) ProtoMessage() {}
+
+func (x *SplitTransactionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SplitTransactionResponse.ProtoReflect.Descriptor instead.
+func (*SplitTransactionResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *SplitTransactionResponse) GetCreatedSplits() []*Transaction {
+	if x != nil {
+		return x.CreatedSplits
+	}
+	return nil
+}
+
+type ForgiveTransactionRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	TransactionId int64                  `protobuf:"varint,2,opt,name=transaction_id,json=transactionId,proto3" json:"transaction_id,omitempty"`
+	Forgiven      bool                   `protobuf:"varint,3,opt,name=forgiven,proto3" json:"forgiven,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForgiveTransactionRequest) Reset() {
+	*x = ForgiveTransactionRequest{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[16]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgiveTransactionRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgiveTransactionRequest) ProtoMessage() {}
+
+func (x *ForgiveTransactionRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[16]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgiveTransactionRequest.ProtoReflect.Descriptor instead.
+func (*ForgiveTransactionRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{16}
+}
+
+func (x *ForgiveTransactionRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *ForgiveTransactionRequest) GetTransactionId() int64 {
+	if x != nil {
+		return x.TransactionId
+	}
+	return 0
+}
+
+func (x *ForgiveTransactionRequest) GetForgiven() bool {
+	if x != nil {
+		return x.Forgiven
+	}
+	return false
+}
+
+type ForgiveTransactionResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *ForgiveTransactionResponse) Reset() {
+	*x = ForgiveTransactionResponse{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *ForgiveTransactionResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*ForgiveTransactionResponse) ProtoMessage() {}
+
+func (x *ForgiveTransactionResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use ForgiveTransactionResponse.ProtoReflect.Descriptor instead.
+func (*ForgiveTransactionResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{17}
+}
+
+type GetFriendBalancesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFriendBalancesRequest) Reset() {
+	*x = GetFriendBalancesRequest{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFriendBalancesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFriendBalancesRequest) ProtoMessage() {}
+
+func (x *GetFriendBalancesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFriendBalancesRequest.ProtoReflect.Descriptor instead.
+func (*GetFriendBalancesRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{18}
+}
+
+func (x *GetFriendBalancesRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+type FriendBalance struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	AccountId     int64                  `protobuf:"varint,1,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
+	FriendName    string                 `protobuf:"bytes,2,opt,name=friend_name,json=friendName,proto3" json:"friend_name,omitempty"`
+	Balance       *money.Money           `protobuf:"bytes,3,opt,name=balance,proto3" json:"balance,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FriendBalance) Reset() {
+	*x = FriendBalance{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FriendBalance) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FriendBalance) ProtoMessage() {}
+
+func (x *FriendBalance) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FriendBalance.ProtoReflect.Descriptor instead.
+func (*FriendBalance) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *FriendBalance) GetAccountId() int64 {
+	if x != nil {
+		return x.AccountId
+	}
+	return 0
+}
+
+func (x *FriendBalance) GetFriendName() string {
+	if x != nil {
+		return x.FriendName
+	}
+	return ""
+}
+
+func (x *FriendBalance) GetBalance() *money.Money {
+	if x != nil {
+		return x.Balance
+	}
+	return nil
+}
+
+type GetFriendBalancesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Balances      []*FriendBalance       `protobuf:"bytes,1,rep,name=balances,proto3" json:"balances,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFriendBalancesResponse) Reset() {
+	*x = GetFriendBalancesResponse{}
+	mi := &file_null_v1_transaction_services_proto_msgTypes[20]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFriendBalancesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFriendBalancesResponse) ProtoMessage() {}
+
+func (x *GetFriendBalancesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_transaction_services_proto_msgTypes[20]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFriendBalancesResponse.ProtoReflect.Descriptor instead.
+func (*GetFriendBalancesResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_transaction_services_proto_rawDescGZIP(), []int{20}
+}
+
+func (x *GetFriendBalancesResponse) GetBalances() []*FriendBalance {
+	if x != nil {
+		return x.Balances
+	}
+	return nil
+}
+
 var File_null_v1_transaction_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_services_proto_rawDesc = "" +
@@ -1100,14 +1500,42 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\vcategory_id\x18\x03 \x01(\x03R\n" +
 	"categoryId\"E\n" +
 	"\x1eCategorizeTransactionsResponse\x12#\n" +
-	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows2\xbf\x04\n" +
+	"\raffected_rows\x18\x01 \x01(\x03R\faffectedRows\"m\n" +
+	"\n" +
+	"SplitEntry\x123\n" +
+	"\x11friend_account_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x0ffriendAccountId\x12*\n" +
+	"\x06amount\x18\x02 \x01(\v2\x12.google.type.MoneyR\x06amount\"\xb0\x01\n" +
+	"\x17SplitTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12;\n" +
+	"\x15source_transaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x13sourceTransactionId\x125\n" +
+	"\x06splits\x18\x03 \x03(\v2\x13.null.v1.SplitEntryB\b\xbaH\x05\x92\x01\x02\b\x01R\x06splits\"W\n" +
+	"\x18SplitTransactionResponse\x12;\n" +
+	"\x0ecreated_splits\x18\x01 \x03(\v2\x14.null.v1.TransactionR\rcreatedSplits\"\x8a\x01\n" +
+	"\x19ForgiveTransactionRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12.\n" +
+	"\x0etransaction_id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\rtransactionId\x12\x1a\n" +
+	"\bforgiven\x18\x03 \x01(\bR\bforgiven\"\x1c\n" +
+	"\x1aForgiveTransactionResponse\"=\n" +
+	"\x18GetFriendBalancesRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"}\n" +
+	"\rFriendBalance\x12\x1d\n" +
+	"\n" +
+	"account_id\x18\x01 \x01(\x03R\taccountId\x12\x1f\n" +
+	"\vfriend_name\x18\x02 \x01(\tR\n" +
+	"friendName\x12,\n" +
+	"\abalance\x18\x03 \x01(\v2\x12.google.type.MoneyR\abalance\"O\n" +
+	"\x19GetFriendBalancesResponse\x122\n" +
+	"\bbalances\x18\x01 \x03(\v2\x16.null.v1.FriendBalanceR\bbalances2\xd3\x06\n" +
 	"\x12TransactionService\x12W\n" +
 	"\x10ListTransactions\x12 .null.v1.ListTransactionsRequest\x1a!.null.v1.ListTransactionsResponse\x12Q\n" +
 	"\x0eGetTransaction\x12\x1e.null.v1.GetTransactionRequest\x1a\x1f.null.v1.GetTransactionResponse\x12Z\n" +
 	"\x11CreateTransaction\x12!.null.v1.CreateTransactionRequest\x1a\".null.v1.CreateTransactionResponse\x12Z\n" +
 	"\x11UpdateTransaction\x12!.null.v1.UpdateTransactionRequest\x1a\".null.v1.UpdateTransactionResponse\x12Z\n" +
 	"\x11DeleteTransaction\x12!.null.v1.DeleteTransactionRequest\x1a\".null.v1.DeleteTransactionResponse\x12i\n" +
-	"\x16CategorizeTransactions\x12&.null.v1.CategorizeTransactionsRequest\x1a'.null.v1.CategorizeTransactionsResponseB\x8d\x01\n" +
+	"\x16CategorizeTransactions\x12&.null.v1.CategorizeTransactionsRequest\x1a'.null.v1.CategorizeTransactionsResponse\x12W\n" +
+	"\x10SplitTransaction\x12 .null.v1.SplitTransactionRequest\x1a!.null.v1.SplitTransactionResponse\x12]\n" +
+	"\x12ForgiveTransaction\x12\".null.v1.ForgiveTransactionRequest\x1a#.null.v1.ForgiveTransactionResponse\x12Z\n" +
+	"\x11GetFriendBalances\x12!.null.v1.GetFriendBalancesRequest\x1a\".null.v1.GetFriendBalancesResponseB\x8d\x01\n" +
 	"\vcom.null.v1B\x18TransactionServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
@@ -1122,7 +1550,7 @@ func file_null_v1_transaction_services_proto_rawDescGZIP() []byte {
 	return file_null_v1_transaction_services_proto_rawDescData
 }
 
-var file_null_v1_transaction_services_proto_msgTypes = make([]protoimpl.MessageInfo, 13)
+var file_null_v1_transaction_services_proto_msgTypes = make([]protoimpl.MessageInfo, 21)
 var file_null_v1_transaction_services_proto_goTypes = []any{
 	(*ListTransactionsRequest)(nil),        // 0: null.v1.ListTransactionsRequest
 	(*ListTransactionsResponse)(nil),       // 1: null.v1.ListTransactionsResponse
@@ -1137,54 +1565,73 @@ var file_null_v1_transaction_services_proto_goTypes = []any{
 	(*DeleteTransactionResponse)(nil),      // 10: null.v1.DeleteTransactionResponse
 	(*CategorizeTransactionsRequest)(nil),  // 11: null.v1.CategorizeTransactionsRequest
 	(*CategorizeTransactionsResponse)(nil), // 12: null.v1.CategorizeTransactionsResponse
-	(*timestamppb.Timestamp)(nil),          // 13: google.protobuf.Timestamp
-	(*Cursor)(nil),                         // 14: null.v1.Cursor
-	(*money.Money)(nil),                    // 15: google.type.Money
-	(TransactionDirection)(0),              // 16: null.v1.TransactionDirection
-	(*TimeOfDay)(nil),                      // 17: null.v1.TimeOfDay
-	(*Transaction)(nil),                    // 18: null.v1.Transaction
-	(*fieldmaskpb.FieldMask)(nil),          // 19: google.protobuf.FieldMask
+	(*SplitEntry)(nil),                     // 13: null.v1.SplitEntry
+	(*SplitTransactionRequest)(nil),        // 14: null.v1.SplitTransactionRequest
+	(*SplitTransactionResponse)(nil),       // 15: null.v1.SplitTransactionResponse
+	(*ForgiveTransactionRequest)(nil),      // 16: null.v1.ForgiveTransactionRequest
+	(*ForgiveTransactionResponse)(nil),     // 17: null.v1.ForgiveTransactionResponse
+	(*GetFriendBalancesRequest)(nil),       // 18: null.v1.GetFriendBalancesRequest
+	(*FriendBalance)(nil),                  // 19: null.v1.FriendBalance
+	(*GetFriendBalancesResponse)(nil),      // 20: null.v1.GetFriendBalancesResponse
+	(*timestamppb.Timestamp)(nil),          // 21: google.protobuf.Timestamp
+	(*Cursor)(nil),                         // 22: null.v1.Cursor
+	(*money.Money)(nil),                    // 23: google.type.Money
+	(TransactionDirection)(0),              // 24: null.v1.TransactionDirection
+	(*TimeOfDay)(nil),                      // 25: null.v1.TimeOfDay
+	(*Transaction)(nil),                    // 26: null.v1.Transaction
+	(*fieldmaskpb.FieldMask)(nil),          // 27: google.protobuf.FieldMask
 }
 var file_null_v1_transaction_services_proto_depIdxs = []int32{
-	13, // 0: null.v1.ListTransactionsRequest.start_date:type_name -> google.protobuf.Timestamp
-	13, // 1: null.v1.ListTransactionsRequest.end_date:type_name -> google.protobuf.Timestamp
-	14, // 2: null.v1.ListTransactionsRequest.cursor:type_name -> null.v1.Cursor
-	15, // 3: null.v1.ListTransactionsRequest.amount_min:type_name -> google.type.Money
-	15, // 4: null.v1.ListTransactionsRequest.amount_max:type_name -> google.type.Money
-	16, // 5: null.v1.ListTransactionsRequest.direction:type_name -> null.v1.TransactionDirection
-	17, // 6: null.v1.ListTransactionsRequest.time_of_day_start:type_name -> null.v1.TimeOfDay
-	17, // 7: null.v1.ListTransactionsRequest.time_of_day_end:type_name -> null.v1.TimeOfDay
-	18, // 8: null.v1.ListTransactionsResponse.transactions:type_name -> null.v1.Transaction
-	14, // 9: null.v1.ListTransactionsResponse.next_cursor:type_name -> null.v1.Cursor
-	18, // 10: null.v1.GetTransactionResponse.transaction:type_name -> null.v1.Transaction
-	13, // 11: null.v1.TransactionInput.tx_date:type_name -> google.protobuf.Timestamp
-	15, // 12: null.v1.TransactionInput.tx_amount:type_name -> google.type.Money
-	16, // 13: null.v1.TransactionInput.direction:type_name -> null.v1.TransactionDirection
-	15, // 14: null.v1.TransactionInput.foreign_amount:type_name -> google.type.Money
+	21, // 0: null.v1.ListTransactionsRequest.start_date:type_name -> google.protobuf.Timestamp
+	21, // 1: null.v1.ListTransactionsRequest.end_date:type_name -> google.protobuf.Timestamp
+	22, // 2: null.v1.ListTransactionsRequest.cursor:type_name -> null.v1.Cursor
+	23, // 3: null.v1.ListTransactionsRequest.amount_min:type_name -> google.type.Money
+	23, // 4: null.v1.ListTransactionsRequest.amount_max:type_name -> google.type.Money
+	24, // 5: null.v1.ListTransactionsRequest.direction:type_name -> null.v1.TransactionDirection
+	25, // 6: null.v1.ListTransactionsRequest.time_of_day_start:type_name -> null.v1.TimeOfDay
+	25, // 7: null.v1.ListTransactionsRequest.time_of_day_end:type_name -> null.v1.TimeOfDay
+	26, // 8: null.v1.ListTransactionsResponse.transactions:type_name -> null.v1.Transaction
+	22, // 9: null.v1.ListTransactionsResponse.next_cursor:type_name -> null.v1.Cursor
+	26, // 10: null.v1.GetTransactionResponse.transaction:type_name -> null.v1.Transaction
+	21, // 11: null.v1.TransactionInput.tx_date:type_name -> google.protobuf.Timestamp
+	23, // 12: null.v1.TransactionInput.tx_amount:type_name -> google.type.Money
+	24, // 13: null.v1.TransactionInput.direction:type_name -> null.v1.TransactionDirection
+	23, // 14: null.v1.TransactionInput.foreign_amount:type_name -> google.type.Money
 	4,  // 15: null.v1.CreateTransactionRequest.transactions:type_name -> null.v1.TransactionInput
-	18, // 16: null.v1.CreateTransactionResponse.transactions:type_name -> null.v1.Transaction
-	19, // 17: null.v1.UpdateTransactionRequest.update_mask:type_name -> google.protobuf.FieldMask
-	13, // 18: null.v1.UpdateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
-	15, // 19: null.v1.UpdateTransactionRequest.tx_amount:type_name -> google.type.Money
-	16, // 20: null.v1.UpdateTransactionRequest.direction:type_name -> null.v1.TransactionDirection
-	15, // 21: null.v1.UpdateTransactionRequest.foreign_amount:type_name -> google.type.Money
-	0,  // 22: null.v1.TransactionService.ListTransactions:input_type -> null.v1.ListTransactionsRequest
-	2,  // 23: null.v1.TransactionService.GetTransaction:input_type -> null.v1.GetTransactionRequest
-	5,  // 24: null.v1.TransactionService.CreateTransaction:input_type -> null.v1.CreateTransactionRequest
-	7,  // 25: null.v1.TransactionService.UpdateTransaction:input_type -> null.v1.UpdateTransactionRequest
-	9,  // 26: null.v1.TransactionService.DeleteTransaction:input_type -> null.v1.DeleteTransactionRequest
-	11, // 27: null.v1.TransactionService.CategorizeTransactions:input_type -> null.v1.CategorizeTransactionsRequest
-	1,  // 28: null.v1.TransactionService.ListTransactions:output_type -> null.v1.ListTransactionsResponse
-	3,  // 29: null.v1.TransactionService.GetTransaction:output_type -> null.v1.GetTransactionResponse
-	6,  // 30: null.v1.TransactionService.CreateTransaction:output_type -> null.v1.CreateTransactionResponse
-	8,  // 31: null.v1.TransactionService.UpdateTransaction:output_type -> null.v1.UpdateTransactionResponse
-	10, // 32: null.v1.TransactionService.DeleteTransaction:output_type -> null.v1.DeleteTransactionResponse
-	12, // 33: null.v1.TransactionService.CategorizeTransactions:output_type -> null.v1.CategorizeTransactionsResponse
-	28, // [28:34] is the sub-list for method output_type
-	22, // [22:28] is the sub-list for method input_type
-	22, // [22:22] is the sub-list for extension type_name
-	22, // [22:22] is the sub-list for extension extendee
-	0,  // [0:22] is the sub-list for field type_name
+	26, // 16: null.v1.CreateTransactionResponse.transactions:type_name -> null.v1.Transaction
+	27, // 17: null.v1.UpdateTransactionRequest.update_mask:type_name -> google.protobuf.FieldMask
+	21, // 18: null.v1.UpdateTransactionRequest.tx_date:type_name -> google.protobuf.Timestamp
+	23, // 19: null.v1.UpdateTransactionRequest.tx_amount:type_name -> google.type.Money
+	24, // 20: null.v1.UpdateTransactionRequest.direction:type_name -> null.v1.TransactionDirection
+	23, // 21: null.v1.UpdateTransactionRequest.foreign_amount:type_name -> google.type.Money
+	23, // 22: null.v1.SplitEntry.amount:type_name -> google.type.Money
+	13, // 23: null.v1.SplitTransactionRequest.splits:type_name -> null.v1.SplitEntry
+	26, // 24: null.v1.SplitTransactionResponse.created_splits:type_name -> null.v1.Transaction
+	23, // 25: null.v1.FriendBalance.balance:type_name -> google.type.Money
+	19, // 26: null.v1.GetFriendBalancesResponse.balances:type_name -> null.v1.FriendBalance
+	0,  // 27: null.v1.TransactionService.ListTransactions:input_type -> null.v1.ListTransactionsRequest
+	2,  // 28: null.v1.TransactionService.GetTransaction:input_type -> null.v1.GetTransactionRequest
+	5,  // 29: null.v1.TransactionService.CreateTransaction:input_type -> null.v1.CreateTransactionRequest
+	7,  // 30: null.v1.TransactionService.UpdateTransaction:input_type -> null.v1.UpdateTransactionRequest
+	9,  // 31: null.v1.TransactionService.DeleteTransaction:input_type -> null.v1.DeleteTransactionRequest
+	11, // 32: null.v1.TransactionService.CategorizeTransactions:input_type -> null.v1.CategorizeTransactionsRequest
+	14, // 33: null.v1.TransactionService.SplitTransaction:input_type -> null.v1.SplitTransactionRequest
+	16, // 34: null.v1.TransactionService.ForgiveTransaction:input_type -> null.v1.ForgiveTransactionRequest
+	18, // 35: null.v1.TransactionService.GetFriendBalances:input_type -> null.v1.GetFriendBalancesRequest
+	1,  // 36: null.v1.TransactionService.ListTransactions:output_type -> null.v1.ListTransactionsResponse
+	3,  // 37: null.v1.TransactionService.GetTransaction:output_type -> null.v1.GetTransactionResponse
+	6,  // 38: null.v1.TransactionService.CreateTransaction:output_type -> null.v1.CreateTransactionResponse
+	8,  // 39: null.v1.TransactionService.UpdateTransaction:output_type -> null.v1.UpdateTransactionResponse
+	10, // 40: null.v1.TransactionService.DeleteTransaction:output_type -> null.v1.DeleteTransactionResponse
+	12, // 41: null.v1.TransactionService.CategorizeTransactions:output_type -> null.v1.CategorizeTransactionsResponse
+	15, // 42: null.v1.TransactionService.SplitTransaction:output_type -> null.v1.SplitTransactionResponse
+	17, // 43: null.v1.TransactionService.ForgiveTransaction:output_type -> null.v1.ForgiveTransactionResponse
+	20, // 44: null.v1.TransactionService.GetFriendBalances:output_type -> null.v1.GetFriendBalancesResponse
+	36, // [36:45] is the sub-list for method output_type
+	27, // [27:36] is the sub-list for method input_type
+	27, // [27:27] is the sub-list for extension type_name
+	27, // [27:27] is the sub-list for extension extendee
+	0,  // [0:27] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_transaction_services_proto_init() }
@@ -1205,7 +1652,7 @@ func file_null_v1_transaction_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_null_v1_transaction_services_proto_rawDesc), len(file_null_v1_transaction_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   13,
+			NumMessages:   21,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

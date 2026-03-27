@@ -320,6 +320,58 @@ func (q *Queries) GetAccountBalance(ctx context.Context, accountID int64) (GetAc
 	return i, err
 }
 
+const getFriendAccountBalances = `-- name: GetFriendAccountBalances :many
+select
+  a.id,
+  a.name,
+  a.anchor_currency as currency,
+  COALESCE(
+    (select t.balance_after_cents
+     from transactions t
+     where t.account_id = a.id and not t.forgiven
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_balance_cents
+  ) as balance_cents
+from accounts a
+left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
+where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type = 6
+order by a.name
+`
+
+type GetFriendAccountBalancesRow struct {
+	ID           int64  `db:"id" json:"id"`
+	Name         string `db:"name" json:"name"`
+	Currency     string `db:"currency" json:"currency"`
+	BalanceCents int64  `db:"balance_cents" json:"balance_cents"`
+}
+
+func (q *Queries) GetFriendAccountBalances(ctx context.Context, userID uuid.UUID) ([]GetFriendAccountBalancesRow, error) {
+	rows, err := q.db.Query(ctx, getFriendAccountBalances, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []GetFriendAccountBalancesRow
+	for rows.Next() {
+		var i GetFriendAccountBalancesRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Name,
+			&i.Currency,
+			&i.BalanceCents,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const getUserAccountsCount = `-- name: GetUserAccountsCount :one
 select
   COUNT(*) as account_count

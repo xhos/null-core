@@ -261,3 +261,22 @@ from
   full outer join after_anchor aa on ba.id = aa.id
 where
   transactions.id = coalesce(ba.id, aa.id);
+
+-- name: GetFriendAccountBalances :many
+select
+  a.id,
+  a.name,
+  a.anchor_currency as currency,
+  COALESCE(
+    (select t.balance_after_cents
+     from transactions t
+     where t.account_id = a.id and not t.forgiven
+     order by t.tx_date desc, t.id desc
+     limit 1),
+    a.anchor_balance_cents
+  ) as balance_cents
+from accounts a
+left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type = 6
+order by a.name;

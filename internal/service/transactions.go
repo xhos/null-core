@@ -3,6 +3,7 @@ package service
 import (
 	"context"
 	"fmt"
+	"math"
 
 	"null-core/internal/db/sqlc"
 	"null-core/internal/exchange"
@@ -21,6 +22,9 @@ type TransactionService interface {
 	Delete(ctx context.Context, userID uuid.UUID, ids []int64) error
 	List(ctx context.Context, userID uuid.UUID, req *pb.ListTransactionsRequest) ([]*pb.Transaction, *pb.Cursor, error)
 	Categorize(ctx context.Context, userID uuid.UUID, transactionIDs []int64, categoryID int64) error
+	SplitTransaction(ctx context.Context, userID uuid.UUID, req *pb.SplitTransactionRequest) ([]*pb.Transaction, error)
+	ForgiveTransaction(ctx context.Context, userID uuid.UUID, transactionID int64, forgiven bool) error
+	GetFriendBalances(ctx context.Context, userID uuid.UUID) ([]*pb.FriendBalance, error)
 }
 
 type txnSvc struct {
@@ -110,7 +114,19 @@ func (s *txnSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Trans
 		return nil, wrapErr("TransactionService.Get", err)
 	}
 
-	return transactionToPb(&row), nil
+	proto := transactionToPb(&row)
+
+	if row.SplitFromID == nil {
+		splits, err := s.queries.GetSplitsBySourceID(ctx, row.ID)
+		if err == nil && len(splits) > 0 {
+			proto.Splits = make([]*pb.Transaction, len(splits))
+			for i := range splits {
+				proto.Splits[i] = transactionToPb(&splits[i])
+			}
+		}
+	}
+
+	return proto, nil
 }
 
 func (s *txnSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateTransactionRequest) error {
@@ -150,6 +166,10 @@ func (s *txnSvc) Update(ctx context.Context, userID uuid.UUID, req *pb.UpdateTra
 		s.applyRulesToTransaction(ctx, params.UserID, params.ID)
 	}
 
+	if params.TxAmountCents != nil {
+		s.adjustSplitsProportionally(ctx, userID, tx.ID, tx.TxAmountCents, *params.TxAmountCents)
+	}
+
 	return nil
 }
 
@@ -157,6 +177,11 @@ func (s *txnSvc) Delete(ctx context.Context, userID uuid.UUID, ids []int64) erro
 	affectedAccounts, err := s.queries.GetAccountIDsFromTransactionIDs(ctx, ids)
 	if err != nil {
 		return wrapErr("TransactionService.BulkDelete.GetAccounts", err)
+	}
+
+	friendAccounts, err := s.queries.GetFriendAccountIDsFromSplits(ctx, ids)
+	if err != nil {
+		s.log.Warn("failed to get friend accounts from splits before delete", "error", err)
 	}
 
 	_, err = s.queries.BulkDeleteTransactions(ctx, sqlc.BulkDeleteTransactionsParams{UserID: userID, TransactionIds: ids})
@@ -167,6 +192,11 @@ func (s *txnSvc) Delete(ctx context.Context, userID uuid.UUID, ids []int64) erro
 	for _, accountID := range affectedAccounts {
 		if err := s.queries.SyncAccountBalances(ctx, accountID); err != nil {
 			s.log.Warn("failed to sync account balances after bulk delete", "account_id", accountID, "error", err)
+		}
+	}
+	for _, accountID := range friendAccounts {
+		if err := s.queries.SyncAccountBalances(ctx, accountID); err != nil {
+			s.log.Warn("failed to sync friend account balances after bulk delete", "account_id", accountID, "error", err)
 		}
 	}
 
@@ -216,4 +246,157 @@ func (s *txnSvc) Categorize(ctx context.Context, userID uuid.UUID, transactionID
 	}
 
 	return nil
+}
+
+func (s *txnSvc) SplitTransaction(ctx context.Context, userID uuid.UUID, req *pb.SplitTransactionRequest) ([]*pb.Transaction, error) {
+	sourceTx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{UserID: userID, ID: req.SourceTransactionId})
+	if err != nil {
+		return nil, wrapErr("TransactionService.Split.GetSource", err)
+	}
+	if sourceTx.SplitFromID != nil {
+		return nil, fmt.Errorf("TransactionService.Split: cannot split a transaction that is itself a split: %w", ErrValidation)
+	}
+
+	for _, entry := range req.Splits {
+		account, err := s.queries.GetAccount(ctx, sqlc.GetAccountParams{UserID: userID, ID: entry.FriendAccountId})
+		if err != nil {
+			return nil, wrapErr("TransactionService.Split.GetFriendAccount", err)
+		}
+		if account.Account.AccountType != 6 {
+			return nil, fmt.Errorf("TransactionService.Split: account %d is not a friend account: %w", entry.FriendAccountId, ErrValidation)
+		}
+	}
+
+	// Replace existing splits: collect affected accounts, then delete
+	existingSplits, err := s.queries.GetSplitsBySourceID(ctx, sourceTx.ID)
+	if err != nil {
+		return nil, wrapErr("TransactionService.Split.GetExisting", err)
+	}
+
+	affectedAccounts := make(map[int64]bool)
+	if len(existingSplits) > 0 {
+		existingIDs := make([]int64, len(existingSplits))
+		for i, split := range existingSplits {
+			existingIDs[i] = split.ID
+			affectedAccounts[split.AccountID] = true
+		}
+		if _, err := s.queries.BulkDeleteTransactions(ctx, sqlc.BulkDeleteTransactionsParams{
+			UserID:         userID,
+			TransactionIds: existingIDs,
+		}); err != nil {
+			return nil, wrapErr("TransactionService.Split.DeleteExisting", err)
+		}
+	}
+
+	sourceID := sourceTx.ID
+	created := make([]*pb.Transaction, 0, len(req.Splits))
+
+	categoryManuallySet := false
+	merchantManuallySet := false
+
+	for _, entry := range req.Splits {
+		params := sqlc.CreateTransactionParams{
+			UserID:              userID,
+			AccountID:           entry.FriendAccountId,
+			TxDate:              sourceTx.TxDate,
+			TxAmountCents:       moneyToCents(entry.Amount),
+			TxCurrency:          sourceTx.TxCurrency,
+			TxDirection:         1, // incoming = adds to what they owe you
+			TxDesc:              sourceTx.TxDesc,
+			Merchant:            sourceTx.Merchant,
+			CategoryID:          sourceTx.CategoryID,
+			CategoryManuallySet: &categoryManuallySet,
+			MerchantManuallySet: &merchantManuallySet,
+			SplitFromID:         &sourceID,
+		}
+
+		processed, err := s.processForeignCurrency(ctx, userID, &params)
+		if err != nil {
+			return nil, wrapErr("TransactionService.Split.Currency", err)
+		}
+
+		tx, err := s.queries.CreateTransaction(ctx, *processed)
+		if err != nil {
+			return nil, wrapErr("TransactionService.Split.Create", err)
+		}
+		created = append(created, transactionToPb(&tx))
+		affectedAccounts[entry.FriendAccountId] = true
+	}
+
+	for accountID := range affectedAccounts {
+		if err := s.queries.SyncAccountBalances(ctx, accountID); err != nil {
+			s.log.Warn("failed to sync friend account balances after split", "account_id", accountID, "error", err)
+		}
+	}
+
+	return created, nil
+}
+
+func (s *txnSvc) ForgiveTransaction(ctx context.Context, userID uuid.UUID, transactionID int64, forgiven bool) error {
+	tx, err := s.queries.GetTransaction(ctx, sqlc.GetTransactionParams{UserID: userID, ID: transactionID})
+	if err != nil {
+		return wrapErr("TransactionService.Forgive.Get", err)
+	}
+
+	err = s.queries.UpdateTransactionForgiven(ctx, sqlc.UpdateTransactionForgivenParams{
+		Forgiven: forgiven,
+		ID:       transactionID,
+		UserID:   userID,
+	})
+	if err != nil {
+		return wrapErr("TransactionService.Forgive", err)
+	}
+
+	if err := s.queries.SyncAccountBalances(ctx, tx.AccountID); err != nil {
+		s.log.Warn("failed to sync account balances after forgive", "account_id", tx.AccountID, "error", err)
+	}
+
+	return nil
+}
+
+func (s *txnSvc) GetFriendBalances(ctx context.Context, userID uuid.UUID) ([]*pb.FriendBalance, error) {
+	rows, err := s.queries.GetFriendAccountBalances(ctx, userID)
+	if err != nil {
+		return nil, wrapErr("TransactionService.GetFriendBalances", err)
+	}
+
+	result := make([]*pb.FriendBalance, len(rows))
+	for i, row := range rows {
+		result[i] = &pb.FriendBalance{
+			AccountId:  row.ID,
+			FriendName: row.Name,
+			Balance:    centsToMoney(row.BalanceCents, row.Currency),
+		}
+	}
+
+	return result, nil
+}
+
+func (s *txnSvc) adjustSplitsProportionally(ctx context.Context, userID uuid.UUID, sourceID int64, oldAmountCents, newAmountCents int64) {
+	if oldAmountCents == 0 {
+		return
+	}
+
+	splits, err := s.queries.GetSplitsBySourceID(ctx, sourceID)
+	if err != nil || len(splits) == 0 {
+		return
+	}
+
+	ratio := float64(newAmountCents) / float64(oldAmountCents)
+
+	for _, split := range splits {
+		adjustedCents := int64(math.Round(float64(split.TxAmountCents) * ratio))
+		err := s.queries.UpdateTransaction(ctx, sqlc.UpdateTransactionParams{
+			ID:            split.ID,
+			UserID:        userID,
+			TxAmountCents: &adjustedCents,
+		})
+		if err != nil {
+			s.log.Warn("failed to adjust split proportionally", "split_id", split.ID, "error", err)
+			continue
+		}
+		if err := s.queries.SyncAccountBalances(ctx, split.AccountID); err != nil {
+			s.log.Warn("failed to sync friend account after split adjustment", "account_id", split.AccountID, "error", err)
+		}
+	}
 }

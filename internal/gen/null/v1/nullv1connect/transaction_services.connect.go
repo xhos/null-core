@@ -51,6 +51,15 @@ const (
 	// TransactionServiceCategorizeTransactionsProcedure is the fully-qualified name of the
 	// TransactionService's CategorizeTransactions RPC.
 	TransactionServiceCategorizeTransactionsProcedure = "/null.v1.TransactionService/CategorizeTransactions"
+	// TransactionServiceSplitTransactionProcedure is the fully-qualified name of the
+	// TransactionService's SplitTransaction RPC.
+	TransactionServiceSplitTransactionProcedure = "/null.v1.TransactionService/SplitTransaction"
+	// TransactionServiceForgiveTransactionProcedure is the fully-qualified name of the
+	// TransactionService's ForgiveTransaction RPC.
+	TransactionServiceForgiveTransactionProcedure = "/null.v1.TransactionService/ForgiveTransaction"
+	// TransactionServiceGetFriendBalancesProcedure is the fully-qualified name of the
+	// TransactionService's GetFriendBalances RPC.
+	TransactionServiceGetFriendBalancesProcedure = "/null.v1.TransactionService/GetFriendBalances"
 )
 
 // TransactionServiceClient is a client for the null.v1.TransactionService service.
@@ -61,6 +70,9 @@ type TransactionServiceClient interface {
 	UpdateTransaction(context.Context, *connect.Request[v1.UpdateTransactionRequest]) (*connect.Response[v1.UpdateTransactionResponse], error)
 	DeleteTransaction(context.Context, *connect.Request[v1.DeleteTransactionRequest]) (*connect.Response[v1.DeleteTransactionResponse], error)
 	CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error)
+	SplitTransaction(context.Context, *connect.Request[v1.SplitTransactionRequest]) (*connect.Response[v1.SplitTransactionResponse], error)
+	ForgiveTransaction(context.Context, *connect.Request[v1.ForgiveTransactionRequest]) (*connect.Response[v1.ForgiveTransactionResponse], error)
+	GetFriendBalances(context.Context, *connect.Request[v1.GetFriendBalancesRequest]) (*connect.Response[v1.GetFriendBalancesResponse], error)
 }
 
 // NewTransactionServiceClient constructs a client for the null.v1.TransactionService service. By
@@ -110,6 +122,24 @@ func NewTransactionServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransactions")),
 			connect.WithClientOptions(opts...),
 		),
+		splitTransaction: connect.NewClient[v1.SplitTransactionRequest, v1.SplitTransactionResponse](
+			httpClient,
+			baseURL+TransactionServiceSplitTransactionProcedure,
+			connect.WithSchema(transactionServiceMethods.ByName("SplitTransaction")),
+			connect.WithClientOptions(opts...),
+		),
+		forgiveTransaction: connect.NewClient[v1.ForgiveTransactionRequest, v1.ForgiveTransactionResponse](
+			httpClient,
+			baseURL+TransactionServiceForgiveTransactionProcedure,
+			connect.WithSchema(transactionServiceMethods.ByName("ForgiveTransaction")),
+			connect.WithClientOptions(opts...),
+		),
+		getFriendBalances: connect.NewClient[v1.GetFriendBalancesRequest, v1.GetFriendBalancesResponse](
+			httpClient,
+			baseURL+TransactionServiceGetFriendBalancesProcedure,
+			connect.WithSchema(transactionServiceMethods.ByName("GetFriendBalances")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -121,6 +151,9 @@ type transactionServiceClient struct {
 	updateTransaction      *connect.Client[v1.UpdateTransactionRequest, v1.UpdateTransactionResponse]
 	deleteTransaction      *connect.Client[v1.DeleteTransactionRequest, v1.DeleteTransactionResponse]
 	categorizeTransactions *connect.Client[v1.CategorizeTransactionsRequest, v1.CategorizeTransactionsResponse]
+	splitTransaction       *connect.Client[v1.SplitTransactionRequest, v1.SplitTransactionResponse]
+	forgiveTransaction     *connect.Client[v1.ForgiveTransactionRequest, v1.ForgiveTransactionResponse]
+	getFriendBalances      *connect.Client[v1.GetFriendBalancesRequest, v1.GetFriendBalancesResponse]
 }
 
 // ListTransactions calls null.v1.TransactionService.ListTransactions.
@@ -153,6 +186,21 @@ func (c *transactionServiceClient) CategorizeTransactions(ctx context.Context, r
 	return c.categorizeTransactions.CallUnary(ctx, req)
 }
 
+// SplitTransaction calls null.v1.TransactionService.SplitTransaction.
+func (c *transactionServiceClient) SplitTransaction(ctx context.Context, req *connect.Request[v1.SplitTransactionRequest]) (*connect.Response[v1.SplitTransactionResponse], error) {
+	return c.splitTransaction.CallUnary(ctx, req)
+}
+
+// ForgiveTransaction calls null.v1.TransactionService.ForgiveTransaction.
+func (c *transactionServiceClient) ForgiveTransaction(ctx context.Context, req *connect.Request[v1.ForgiveTransactionRequest]) (*connect.Response[v1.ForgiveTransactionResponse], error) {
+	return c.forgiveTransaction.CallUnary(ctx, req)
+}
+
+// GetFriendBalances calls null.v1.TransactionService.GetFriendBalances.
+func (c *transactionServiceClient) GetFriendBalances(ctx context.Context, req *connect.Request[v1.GetFriendBalancesRequest]) (*connect.Response[v1.GetFriendBalancesResponse], error) {
+	return c.getFriendBalances.CallUnary(ctx, req)
+}
+
 // TransactionServiceHandler is an implementation of the null.v1.TransactionService service.
 type TransactionServiceHandler interface {
 	ListTransactions(context.Context, *connect.Request[v1.ListTransactionsRequest]) (*connect.Response[v1.ListTransactionsResponse], error)
@@ -161,6 +209,9 @@ type TransactionServiceHandler interface {
 	UpdateTransaction(context.Context, *connect.Request[v1.UpdateTransactionRequest]) (*connect.Response[v1.UpdateTransactionResponse], error)
 	DeleteTransaction(context.Context, *connect.Request[v1.DeleteTransactionRequest]) (*connect.Response[v1.DeleteTransactionResponse], error)
 	CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error)
+	SplitTransaction(context.Context, *connect.Request[v1.SplitTransactionRequest]) (*connect.Response[v1.SplitTransactionResponse], error)
+	ForgiveTransaction(context.Context, *connect.Request[v1.ForgiveTransactionRequest]) (*connect.Response[v1.ForgiveTransactionResponse], error)
+	GetFriendBalances(context.Context, *connect.Request[v1.GetFriendBalancesRequest]) (*connect.Response[v1.GetFriendBalancesResponse], error)
 }
 
 // NewTransactionServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -206,6 +257,24 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 		connect.WithSchema(transactionServiceMethods.ByName("CategorizeTransactions")),
 		connect.WithHandlerOptions(opts...),
 	)
+	transactionServiceSplitTransactionHandler := connect.NewUnaryHandler(
+		TransactionServiceSplitTransactionProcedure,
+		svc.SplitTransaction,
+		connect.WithSchema(transactionServiceMethods.ByName("SplitTransaction")),
+		connect.WithHandlerOptions(opts...),
+	)
+	transactionServiceForgiveTransactionHandler := connect.NewUnaryHandler(
+		TransactionServiceForgiveTransactionProcedure,
+		svc.ForgiveTransaction,
+		connect.WithSchema(transactionServiceMethods.ByName("ForgiveTransaction")),
+		connect.WithHandlerOptions(opts...),
+	)
+	transactionServiceGetFriendBalancesHandler := connect.NewUnaryHandler(
+		TransactionServiceGetFriendBalancesProcedure,
+		svc.GetFriendBalances,
+		connect.WithSchema(transactionServiceMethods.ByName("GetFriendBalances")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.TransactionService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case TransactionServiceListTransactionsProcedure:
@@ -220,6 +289,12 @@ func NewTransactionServiceHandler(svc TransactionServiceHandler, opts ...connect
 			transactionServiceDeleteTransactionHandler.ServeHTTP(w, r)
 		case TransactionServiceCategorizeTransactionsProcedure:
 			transactionServiceCategorizeTransactionsHandler.ServeHTTP(w, r)
+		case TransactionServiceSplitTransactionProcedure:
+			transactionServiceSplitTransactionHandler.ServeHTTP(w, r)
+		case TransactionServiceForgiveTransactionProcedure:
+			transactionServiceForgiveTransactionHandler.ServeHTTP(w, r)
+		case TransactionServiceGetFriendBalancesProcedure:
+			transactionServiceGetFriendBalancesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -251,4 +326,16 @@ func (UnimplementedTransactionServiceHandler) DeleteTransaction(context.Context,
 
 func (UnimplementedTransactionServiceHandler) CategorizeTransactions(context.Context, *connect.Request[v1.CategorizeTransactionsRequest]) (*connect.Response[v1.CategorizeTransactionsResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.TransactionService.CategorizeTransactions is not implemented"))
+}
+
+func (UnimplementedTransactionServiceHandler) SplitTransaction(context.Context, *connect.Request[v1.SplitTransactionRequest]) (*connect.Response[v1.SplitTransactionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.TransactionService.SplitTransaction is not implemented"))
+}
+
+func (UnimplementedTransactionServiceHandler) ForgiveTransaction(context.Context, *connect.Request[v1.ForgiveTransactionRequest]) (*connect.Response[v1.ForgiveTransactionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.TransactionService.ForgiveTransaction is not implemented"))
+}
+
+func (UnimplementedTransactionServiceHandler) GetFriendBalances(context.Context, *connect.Request[v1.GetFriendBalancesRequest]) (*connect.Response[v1.GetFriendBalancesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.TransactionService.GetFriendBalances is not implemented"))
 }

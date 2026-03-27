@@ -30,6 +30,7 @@ select
 from accounts a
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
 order by
   case a.account_type
     when 1 then 1
@@ -88,6 +89,7 @@ from accounts a
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 left join transactions t on a.id = t.account_id
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
   and ($2::timestamptz is null or t.tx_date >= $2::timestamptz)
   and ($3::timestamptz is null or t.tx_date <= $3::timestamptz)
 `
@@ -130,6 +132,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
   and ($2::timestamptz is null or t.tx_date >= $2::timestamptz)
   and ($3::timestamptz is null or t.tx_date <= $3::timestamptz)
 group by date
@@ -174,6 +177,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
 `
 
 func (q *Queries) GetEarliestTransactionDate(ctx context.Context, userID uuid.UUID) (time.Time, error) {
@@ -193,6 +197,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.tx_date >= COALESCE($2::timestamptz, CURRENT_DATE - interval '12 months')
   and t.tx_date <= COALESCE($3::timestamptz, CURRENT_DATE)
 group by month
@@ -277,6 +282,7 @@ account_balances_at_date as (
   cross join accounts a
   left join account_users au on a.id = au.account_id and au.user_id = $4::uuid
   where (a.owner_id = $4::uuid or au.user_id is not null)
+    and a.account_type != 6
 )
 select
   to_char(ab.period_date, 'YYYY-MM-DD') as date,
@@ -334,6 +340,7 @@ join categories c on t.category_id = c.id
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.tx_direction = 2
   and ($2::timestamptz is null or t.tx_date >= $2::timestamptz)
   and ($3::timestamptz is null or t.tx_date <= $3::timestamptz)
@@ -396,6 +403,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
 where (a.owner_id = $1::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.merchant is not null
   and t.tx_direction = 2
   and ($2::timestamptz is null or t.tx_date >= $2::timestamptz)

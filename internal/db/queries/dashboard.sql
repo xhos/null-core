@@ -7,6 +7,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
   and (sqlc.narg('start')::timestamptz is null or t.tx_date >= sqlc.narg('start')::timestamptz)
   and (sqlc.narg('end')::timestamptz is null or t.tx_date <= sqlc.narg('end')::timestamptz)
 group by date
@@ -24,6 +25,7 @@ from accounts a
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 left join transactions t on a.id = t.account_id
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
   and (sqlc.narg('start')::timestamptz is null or t.tx_date >= sqlc.narg('start')::timestamptz)
   and (sqlc.narg('end')::timestamptz is null or t.tx_date <= sqlc.narg('end')::timestamptz);
 
@@ -38,6 +40,7 @@ join categories c on t.category_id = c.id
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.tx_direction = 2
   and (sqlc.narg('start')::timestamptz is null or t.tx_date >= sqlc.narg('start')::timestamptz)
   and (sqlc.narg('end')::timestamptz is null or t.tx_date <= sqlc.narg('end')::timestamptz)
@@ -55,6 +58,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.merchant is not null
   and t.tx_direction = 2
   and (sqlc.narg('start')::timestamptz is null or t.tx_date >= sqlc.narg('start')::timestamptz)
@@ -73,6 +77,7 @@ from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
   and t.tx_date >= COALESCE(sqlc.narg('start')::timestamptz, CURRENT_DATE - interval '12 months')
   and t.tx_date <= COALESCE(sqlc.narg('end')::timestamptz, CURRENT_DATE)
 group by month
@@ -95,6 +100,7 @@ select
 from accounts a
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
 where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6
 order by
   case a.account_type
     when 1 then 1
@@ -146,6 +152,7 @@ account_balances_at_date as (
   cross join accounts a
   left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
   where (a.owner_id = @user_id::uuid or au.user_id is not null)
+    and a.account_type != 6
 )
 select
   to_char(ab.period_date, 'YYYY-MM-DD') as date,
@@ -159,4 +166,5 @@ select MIN(t.tx_date)::date as earliest_date
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
-where (a.owner_id = @user_id::uuid or au.user_id is not null);
+where (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6;

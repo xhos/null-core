@@ -373,6 +373,7 @@ type TransactionInput struct {
 	CategoryId    *int64                 `protobuf:"varint,8,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
 	ForeignAmount *money.Money           `protobuf:"bytes,9,opt,name=foreign_amount,json=foreignAmount,proto3,oneof" json:"foreign_amount,omitempty"`
 	ExchangeRate  *float64               `protobuf:"fixed64,10,opt,name=exchange_rate,json=exchangeRate,proto3,oneof" json:"exchange_rate,omitempty"`
+	SplitFromId   *int64                 `protobuf:"varint,11,opt,name=split_from_id,json=splitFromId,proto3,oneof" json:"split_from_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -473,6 +474,13 @@ func (x *TransactionInput) GetForeignAmount() *money.Money {
 func (x *TransactionInput) GetExchangeRate() float64 {
 	if x != nil && x.ExchangeRate != nil {
 		return *x.ExchangeRate
+	}
+	return 0
+}
+
+func (x *TransactionInput) GetSplitFromId() int64 {
+	if x != nil && x.SplitFromId != nil {
+		return *x.SplitFromId
 	}
 	return 0
 }
@@ -1018,7 +1026,7 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"P\n" +
 	"\x16GetTransactionResponse\x126\n" +
-	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\"\xba\x04\n" +
+	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\"\xf5\x04\n" +
 	"\x10TransactionInput\x12&\n" +
 	"\n" +
 	"account_id\x18\x01 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\taccountId\x123\n" +
@@ -1033,13 +1041,15 @@ const file_null_v1_transaction_services_proto_rawDesc = "" +
 	"categoryId\x88\x01\x01\x12>\n" +
 	"\x0eforeign_amount\x18\t \x01(\v2\x12.google.type.MoneyH\x04R\rforeignAmount\x88\x01\x01\x12(\n" +
 	"\rexchange_rate\x18\n" +
-	" \x01(\x01H\x05R\fexchangeRate\x88\x01\x01B\x0e\n" +
+	" \x01(\x01H\x05R\fexchangeRate\x88\x01\x01\x12'\n" +
+	"\rsplit_from_id\x18\v \x01(\x03H\x06R\vsplitFromId\x88\x01\x01B\x0e\n" +
 	"\f_descriptionB\v\n" +
 	"\t_merchantB\r\n" +
 	"\v_user_notesB\x0e\n" +
 	"\f_category_idB\x11\n" +
 	"\x0f_foreign_amountB\x10\n" +
-	"\x0e_exchange_rate\"\x86\x01\n" +
+	"\x0e_exchange_rateB\x10\n" +
+	"\x0e_split_from_id\"\x86\x01\n" +
 	"\x18CreateTransactionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12G\n" +
 	"\ftransactions\x18\x02 \x03(\v2\x19.null.v1.TransactionInputB\b\xbaH\x05\x92\x01\x02\b\x01R\ftransactions\"z\n" +

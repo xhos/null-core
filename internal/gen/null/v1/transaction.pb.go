@@ -49,9 +49,13 @@ type Transaction struct {
 	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,16,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	UpdatedAt     *timestamppb.Timestamp `protobuf:"bytes,17,opt,name=updated_at,json=updatedAt,proto3" json:"updated_at,omitempty"`
 	// additional fields for API responses
-	Category      *Category `protobuf:"bytes,18,opt,name=category,proto3,oneof" json:"category,omitempty"`
-	AccountName   *string   `protobuf:"bytes,19,opt,name=account_name,json=accountName,proto3,oneof" json:"account_name,omitempty"`
-	ReceiptId     *int64    `protobuf:"varint,20,opt,name=receipt_id,json=receiptId,proto3,oneof" json:"receipt_id,omitempty"`
+	Category    *Category `protobuf:"bytes,18,opt,name=category,proto3,oneof" json:"category,omitempty"`
+	AccountName *string   `protobuf:"bytes,19,opt,name=account_name,json=accountName,proto3,oneof" json:"account_name,omitempty"`
+	ReceiptId   *int64    `protobuf:"varint,20,opt,name=receipt_id,json=receiptId,proto3,oneof" json:"receipt_id,omitempty"`
+	// splitting
+	SplitFromId   *int64         `protobuf:"varint,21,opt,name=split_from_id,json=splitFromId,proto3,oneof" json:"split_from_id,omitempty"`
+	Forgiven      bool           `protobuf:"varint,22,opt,name=forgiven,proto3" json:"forgiven,omitempty"`
+	Splits        []*Transaction `protobuf:"bytes,23,rep,name=splits,proto3" json:"splits,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -226,6 +230,27 @@ func (x *Transaction) GetReceiptId() int64 {
 	return 0
 }
 
+func (x *Transaction) GetSplitFromId() int64 {
+	if x != nil && x.SplitFromId != nil {
+		return *x.SplitFromId
+	}
+	return 0
+}
+
+func (x *Transaction) GetForgiven() bool {
+	if x != nil {
+		return x.Forgiven
+	}
+	return false
+}
+
+func (x *Transaction) GetSplits() []*Transaction {
+	if x != nil {
+		return x.Splits
+	}
+	return nil
+}
+
 type TransactionWithScore struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Transaction   *Transaction           `protobuf:"bytes,1,opt,name=transaction,proto3" json:"transaction,omitempty"`
@@ -342,7 +367,8 @@ var File_null_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x84\t\n" +
+	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x89\n" +
+	"\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
 	"\atx_date\x18\x02 \x01(\v2\x1a.google.protobuf.TimestampR\x06txDate\x12/\n" +
@@ -371,7 +397,10 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\faccount_name\x18\x13 \x01(\tH\tR\vaccountName\x88\x01\x01\x12\"\n" +
 	"\n" +
 	"receipt_id\x18\x14 \x01(\x03H\n" +
-	"R\treceiptId\x88\x01\x01B\v\n" +
+	"R\treceiptId\x88\x01\x01\x12'\n" +
+	"\rsplit_from_id\x18\x15 \x01(\x03H\vR\vsplitFromId\x88\x01\x01\x12\x1a\n" +
+	"\bforgiven\x18\x16 \x01(\bR\bforgiven\x12,\n" +
+	"\x06splits\x18\x17 \x03(\v2\x14.null.v1.TransactionR\x06splitsB\v\n" +
 	"\t_email_idB\x0e\n" +
 	"\f_descriptionB\x0e\n" +
 	"\f_category_idB\v\n" +
@@ -382,7 +411,8 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\x0e_exchange_rateB\v\n" +
 	"\t_categoryB\x0f\n" +
 	"\r_account_nameB\r\n" +
-	"\v_receipt_id\"u\n" +
+	"\v_receipt_idB\x10\n" +
+	"\x0e_split_from_id\"u\n" +
 	"\x14TransactionWithScore\x126\n" +
 	"\vtransaction\x18\x01 \x01(\v2\x14.null.v1.TransactionR\vtransaction\x12%\n" +
 	"\x0emerchant_score\x18\x02 \x01(\x01R\rmerchantScore\"\x8a\x01\n" +
@@ -416,20 +446,21 @@ var file_null_v1_transaction_proto_goTypes = []any{
 	(*Category)(nil),                  // 6: null.v1.Category
 }
 var file_null_v1_transaction_proto_depIdxs = []int32{
-	3, // 0: null.v1.Transaction.tx_date:type_name -> google.protobuf.Timestamp
-	4, // 1: null.v1.Transaction.tx_amount:type_name -> google.type.Money
-	5, // 2: null.v1.Transaction.direction:type_name -> null.v1.TransactionDirection
-	4, // 3: null.v1.Transaction.balance_after:type_name -> google.type.Money
-	4, // 4: null.v1.Transaction.foreign_amount:type_name -> google.type.Money
-	3, // 5: null.v1.Transaction.created_at:type_name -> google.protobuf.Timestamp
-	3, // 6: null.v1.Transaction.updated_at:type_name -> google.protobuf.Timestamp
-	6, // 7: null.v1.Transaction.category:type_name -> null.v1.Category
-	0, // 8: null.v1.TransactionWithScore.transaction:type_name -> null.v1.Transaction
-	9, // [9:9] is the sub-list for method output_type
-	9, // [9:9] is the sub-list for method input_type
-	9, // [9:9] is the sub-list for extension type_name
-	9, // [9:9] is the sub-list for extension extendee
-	0, // [0:9] is the sub-list for field type_name
+	3,  // 0: null.v1.Transaction.tx_date:type_name -> google.protobuf.Timestamp
+	4,  // 1: null.v1.Transaction.tx_amount:type_name -> google.type.Money
+	5,  // 2: null.v1.Transaction.direction:type_name -> null.v1.TransactionDirection
+	4,  // 3: null.v1.Transaction.balance_after:type_name -> google.type.Money
+	4,  // 4: null.v1.Transaction.foreign_amount:type_name -> google.type.Money
+	3,  // 5: null.v1.Transaction.created_at:type_name -> google.protobuf.Timestamp
+	3,  // 6: null.v1.Transaction.updated_at:type_name -> google.protobuf.Timestamp
+	6,  // 7: null.v1.Transaction.category:type_name -> null.v1.Category
+	0,  // 8: null.v1.Transaction.splits:type_name -> null.v1.Transaction
+	0,  // 9: null.v1.TransactionWithScore.transaction:type_name -> null.v1.Transaction
+	10, // [10:10] is the sub-list for method output_type
+	10, // [10:10] is the sub-list for method input_type
+	10, // [10:10] is the sub-list for extension type_name
+	10, // [10:10] is the sub-list for extension extendee
+	0,  // [0:10] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_transaction_proto_init() }

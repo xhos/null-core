@@ -30,6 +30,7 @@ const (
 	AccountType_ACCOUNT_CREDIT_CARD AccountType = 3
 	AccountType_ACCOUNT_INVESTMENT  AccountType = 4
 	AccountType_ACCOUNT_OTHER       AccountType = 5
+	AccountType_ACCOUNT_FRIEND      AccountType = 6
 )
 
 // Enum value maps for AccountType.
@@ -41,6 +42,7 @@ var (
 		3: "ACCOUNT_CREDIT_CARD",
 		4: "ACCOUNT_INVESTMENT",
 		5: "ACCOUNT_OTHER",
+		6: "ACCOUNT_FRIEND",
 	}
 	AccountType_value = map[string]int32{
 		"ACCOUNT_UNSPECIFIED": 0,
@@ -49,6 +51,7 @@ var (
 		"ACCOUNT_CREDIT_CARD": 3,
 		"ACCOUNT_INVESTMENT":  4,
 		"ACCOUNT_OTHER":       5,
+		"ACCOUNT_FRIEND":      6,
 	}
 )
 
@@ -251,14 +254,15 @@ var File_null_v1_enums_proto protoreflect.FileDescriptor
 
 const file_null_v1_enums_proto_rawDesc = "" +
 	"\n" +
-	"\x13null/v1/enums.proto\x12\anull.v1*\x95\x01\n" +
+	"\x13null/v1/enums.proto\x12\anull.v1*\xa9\x01\n" +
 	"\vAccountType\x12\x17\n" +
 	"\x13ACCOUNT_UNSPECIFIED\x10\x00\x12\x14\n" +
 	"\x10ACCOUNT_CHEQUING\x10\x01\x12\x13\n" +
 	"\x0fACCOUNT_SAVINGS\x10\x02\x12\x17\n" +
 	"\x13ACCOUNT_CREDIT_CARD\x10\x03\x12\x16\n" +
 	"\x12ACCOUNT_INVESTMENT\x10\x04\x12\x11\n" +
-	"\rACCOUNT_OTHER\x10\x05*a\n" +
+	"\rACCOUNT_OTHER\x10\x05\x12\x12\n" +
+	"\x0eACCOUNT_FRIEND\x10\x06*a\n" +
 	"\x14TransactionDirection\x12\x19\n" +
 	"\x15DIRECTION_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12DIRECTION_INCOMING\x10\x01\x12\x16\n" +

@@ -117,7 +117,9 @@ insert into
     foreign_amount_cents,
     foreign_currency,
     exchange_rate,
-    suggestions
+    suggestions,
+    split_from_id,
+    forgiven
   )
 select
   sqlc.narg('email_id')::text,
@@ -137,7 +139,9 @@ select
   sqlc.narg('foreign_amount_cents')::bigint,
   sqlc.narg('foreign_currency')::char(3),
   sqlc.narg('exchange_rate')::double precision,
-  sqlc.narg('suggestions')::text []
+  sqlc.narg('suggestions')::text [],
+  sqlc.narg('split_from_id')::bigint,
+  coalesce(sqlc.narg('forgiven')::boolean, false)
 from
   accounts a
   left join account_users au on a.id = au.account_id
@@ -202,7 +206,8 @@ set
   exchange_rate = coalesce(sqlc.narg('exchange_rate')::double precision, exchange_rate),
   suggestions = coalesce(sqlc.narg('suggestions')::text[], suggestions),
   category_manually_set = coalesce(sqlc.narg('category_manually_set')::boolean, category_manually_set),
-  merchant_manually_set = coalesce(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set)
+  merchant_manually_set = coalesce(sqlc.narg('merchant_manually_set')::boolean, merchant_manually_set),
+  forgiven = coalesce(sqlc.narg('forgiven')::boolean, forgiven)
 where
   id = sqlc.arg(id)::bigint
   and account_id in (
@@ -307,8 +312,8 @@ from
   and au.user_id = sqlc.arg(user_id)::uuid
   left join transactions t on a.id = t.account_id
 where
-  a.owner_id = sqlc.arg(user_id)::uuid
-  or au.user_id is not null
+  (a.owner_id = sqlc.arg(user_id)::uuid or au.user_id is not null)
+  and a.account_type != 6
 group by
   a.id,
   a.name
@@ -362,3 +367,25 @@ where
 order by
   t.tx_date desc,
   t.id desc;
+
+-- name: GetSplitsBySourceID :many
+select t.*
+from transactions t
+where t.split_from_id = @source_id::bigint
+order by t.id;
+
+-- name: UpdateTransactionForgiven :exec
+update transactions
+set forgiven = @forgiven::boolean
+where id = @id::bigint
+  and account_id in (
+    select a.id
+    from accounts a
+    left join account_users au on a.id = au.account_id and au.user_id = @user_id::uuid
+    where a.owner_id = @user_id::uuid or au.user_id is not null
+  );
+
+-- name: GetFriendAccountIDsFromSplits :many
+select distinct t.account_id
+from transactions t
+where t.split_from_id = any(@ids::bigint[]);

@@ -116,6 +116,10 @@ func buildCreateTxParamsList(userID uuid.UUID, req *pb.CreateTransactionRequest)
 			params.MerchantManuallySet = &manuallySet
 		}
 
+		if txInput.SplitFromId != nil {
+			params.SplitFromID = txInput.SplitFromId
+		}
+
 		if txInput.ForeignAmount != nil {
 			foreignCents := moneyToCents(txInput.ForeignAmount)
 			foreignCurrency := txInput.ForeignAmount.CurrencyCode
@@ -221,6 +225,8 @@ func transactionToPb(tx *sqlc.Transaction) *pb.Transaction {
 		UserNotes:           tx.UserNotes,
 		CreatedAt:           timestamppb.New(tx.CreatedAt),
 		UpdatedAt:           timestamppb.New(tx.UpdatedAt),
+		SplitFromId:         tx.SplitFromID,
+		Forgiven:            tx.Forgiven,
 	}
 
 	if tx.BalanceAfterCents != nil && tx.BalanceCurrency != nil {

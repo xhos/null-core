@@ -197,7 +197,7 @@ func (q *Queries) GetRule(ctx context.Context, arg GetRuleParams) (TransactionRu
 
 const getTransactionsForRuleApplication = `-- name: GetTransactionsForRuleApplication :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at
+  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
 from transactions t
 join accounts a on t.account_id = a.id
 left join account_users au on a.id = au.account_id and au.user_id = $1::uuid
@@ -243,6 +243,8 @@ func (q *Queries) GetTransactionsForRuleApplication(ctx context.Context, arg Get
 			&i.ExchangeRate,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.SplitFromID,
+			&i.Forgiven,
 		); err != nil {
 			return nil, err
 		}

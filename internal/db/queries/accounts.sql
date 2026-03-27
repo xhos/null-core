@@ -152,8 +152,8 @@ from
   left join account_users au on a.id = au.account_id
   and au.user_id = @user_id::uuid
 where
-  a.owner_id = @user_id::uuid
-  or au.user_id is not null;
+  (a.owner_id = @user_id::uuid or au.user_id is not null)
+  and a.account_type != 6;
 
 -- name: AddAccountAlias :exec
 update accounts
@@ -212,6 +212,7 @@ with anchor_transactions as (
     join accounts a on t.account_id = a.id
   where
     t.account_id = @account_id::bigint
+    and not t.forgiven
 ),
 before_anchor as (
   select

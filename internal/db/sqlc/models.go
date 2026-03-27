@@ -97,6 +97,8 @@ type Transaction struct {
 	ExchangeRate        *float64                  `db:"exchange_rate" json:"exchange_rate"`
 	CreatedAt           time.Time                 `db:"created_at" json:"created_at"`
 	UpdatedAt           time.Time                 `db:"updated_at" json:"updated_at"`
+	SplitFromID         *int64                    `db:"split_from_id" json:"split_from_id"`
+	Forgiven            bool                      `db:"forgiven" json:"forgiven"`
 }
 
 type TransactionRule struct {

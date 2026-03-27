@@ -13,5 +13,5 @@ devenv.local.nix
 tmp
 
 coverage.*
-app.log
+*.log
 data/*

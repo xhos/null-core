@@ -49,6 +49,30 @@ WHERE r.user_id = sqlc.arg(user_id)::uuid
     sqlc.narg('end_date')::date IS NULL
     OR r.receipt_date <= sqlc.narg('end_date')::date
   )
+  AND (
+    sqlc.narg('query')::text IS NULL
+    OR r.merchant ILIKE '%' || sqlc.narg('query')::text || '%'
+    OR EXISTS (
+      SELECT 1 FROM receipt_items ri
+      WHERE ri.receipt_id = r.id
+        AND (
+          ri.name ILIKE '%' || sqlc.narg('query')::text || '%'
+          OR ri.raw_name ILIKE '%' || sqlc.narg('query')::text || '%'
+        )
+    )
+  )
+  AND (
+    sqlc.narg('min_total_cents')::bigint IS NULL
+    OR r.total_cents >= sqlc.narg('min_total_cents')::bigint
+  )
+  AND (
+    sqlc.narg('max_total_cents')::bigint IS NULL
+    OR r.total_cents <= sqlc.narg('max_total_cents')::bigint
+  )
+  AND (
+    sqlc.narg('currency')::char(3) IS NULL
+    OR r.currency = sqlc.narg('currency')::char(3)
+  )
 ORDER BY r.created_at DESC, r.id DESC
 LIMIT COALESCE(sqlc.narg('lim')::int, 50)
 OFFSET COALESCE(sqlc.narg('off')::int, 0);
@@ -65,6 +89,22 @@ SET
   total_cents    = coalesce(sqlc.narg('total_cents')::bigint, total_cents),
   confidence     = coalesce(sqlc.narg('confidence')::real, confidence),
   status         = coalesce(sqlc.narg('status')::smallint, status)
+WHERE id = sqlc.arg(id)::bigint
+  AND user_id = sqlc.arg(user_id)::uuid
+RETURNING *;
+
+-- name: ResetReceiptForRetry :one
+UPDATE receipts
+SET
+  status         = 1,
+  merchant       = NULL,
+  receipt_date   = NULL,
+  currency       = NULL,
+  subtotal_cents = NULL,
+  tax_cents      = NULL,
+  total_cents    = NULL,
+  confidence     = NULL,
+  transaction_id = NULL
 WHERE id = sqlc.arg(id)::bigint
   AND user_id = sqlc.arg(user_id)::uuid
 RETURNING *;

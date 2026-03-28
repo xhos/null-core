@@ -29,7 +29,7 @@ func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, er
 		Categories:   catSvc,
 		Rules:        ruleSvc,
 		Accounts:     newAcctSvc(queries, logger.WithPrefix("acct")),
-		Dashboard:    newDashSvc(queries),
+		Dashboard:    newDashSvc(queries, exchangeClient),
 		Users:        newUserSvc(queries, logger.WithPrefix("user")),
 		Receipts:     newRcptSvc(queries, logger.WithPrefix("rcpt"), cfg.NullReceiptsURL, cfg.DataDir),
 	}, nil

@@ -48,6 +48,9 @@ const (
 	// ReceiptServiceDeleteReceiptProcedure is the fully-qualified name of the ReceiptService's
 	// DeleteReceipt RPC.
 	ReceiptServiceDeleteReceiptProcedure = "/null.v1.ReceiptService/DeleteReceipt"
+	// ReceiptServiceRetryParseReceiptProcedure is the fully-qualified name of the ReceiptService's
+	// RetryParseReceipt RPC.
+	ReceiptServiceRetryParseReceiptProcedure = "/null.v1.ReceiptService/RetryParseReceipt"
 )
 
 // ReceiptServiceClient is a client for the null.v1.ReceiptService service.
@@ -57,6 +60,7 @@ type ReceiptServiceClient interface {
 	GetReceipt(context.Context, *connect.Request[v1.GetReceiptRequest]) (*connect.Response[v1.GetReceiptResponse], error)
 	UpdateReceipt(context.Context, *connect.Request[v1.UpdateReceiptRequest]) (*connect.Response[v1.UpdateReceiptResponse], error)
 	DeleteReceipt(context.Context, *connect.Request[v1.DeleteReceiptRequest]) (*connect.Response[v1.DeleteReceiptResponse], error)
+	RetryParseReceipt(context.Context, *connect.Request[v1.RetryParseReceiptRequest]) (*connect.Response[v1.RetryParseReceiptResponse], error)
 }
 
 // NewReceiptServiceClient constructs a client for the null.v1.ReceiptService service. By default,
@@ -100,16 +104,23 @@ func NewReceiptServiceClient(httpClient connect.HTTPClient, baseURL string, opts
 			connect.WithSchema(receiptServiceMethods.ByName("DeleteReceipt")),
 			connect.WithClientOptions(opts...),
 		),
+		retryParseReceipt: connect.NewClient[v1.RetryParseReceiptRequest, v1.RetryParseReceiptResponse](
+			httpClient,
+			baseURL+ReceiptServiceRetryParseReceiptProcedure,
+			connect.WithSchema(receiptServiceMethods.ByName("RetryParseReceipt")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
 // receiptServiceClient implements ReceiptServiceClient.
 type receiptServiceClient struct {
-	uploadReceipt *connect.Client[v1.UploadReceiptRequest, v1.UploadReceiptResponse]
-	listReceipts  *connect.Client[v1.ListReceiptsRequest, v1.ListReceiptsResponse]
-	getReceipt    *connect.Client[v1.GetReceiptRequest, v1.GetReceiptResponse]
-	updateReceipt *connect.Client[v1.UpdateReceiptRequest, v1.UpdateReceiptResponse]
-	deleteReceipt *connect.Client[v1.DeleteReceiptRequest, v1.DeleteReceiptResponse]
+	uploadReceipt     *connect.Client[v1.UploadReceiptRequest, v1.UploadReceiptResponse]
+	listReceipts      *connect.Client[v1.ListReceiptsRequest, v1.ListReceiptsResponse]
+	getReceipt        *connect.Client[v1.GetReceiptRequest, v1.GetReceiptResponse]
+	updateReceipt     *connect.Client[v1.UpdateReceiptRequest, v1.UpdateReceiptResponse]
+	deleteReceipt     *connect.Client[v1.DeleteReceiptRequest, v1.DeleteReceiptResponse]
+	retryParseReceipt *connect.Client[v1.RetryParseReceiptRequest, v1.RetryParseReceiptResponse]
 }
 
 // UploadReceipt calls null.v1.ReceiptService.UploadReceipt.
@@ -137,6 +148,11 @@ func (c *receiptServiceClient) DeleteReceipt(ctx context.Context, req *connect.R
 	return c.deleteReceipt.CallUnary(ctx, req)
 }
 
+// RetryParseReceipt calls null.v1.ReceiptService.RetryParseReceipt.
+func (c *receiptServiceClient) RetryParseReceipt(ctx context.Context, req *connect.Request[v1.RetryParseReceiptRequest]) (*connect.Response[v1.RetryParseReceiptResponse], error) {
+	return c.retryParseReceipt.CallUnary(ctx, req)
+}
+
 // ReceiptServiceHandler is an implementation of the null.v1.ReceiptService service.
 type ReceiptServiceHandler interface {
 	UploadReceipt(context.Context, *connect.Request[v1.UploadReceiptRequest]) (*connect.Response[v1.UploadReceiptResponse], error)
@@ -144,6 +160,7 @@ type ReceiptServiceHandler interface {
 	GetReceipt(context.Context, *connect.Request[v1.GetReceiptRequest]) (*connect.Response[v1.GetReceiptResponse], error)
 	UpdateReceipt(context.Context, *connect.Request[v1.UpdateReceiptRequest]) (*connect.Response[v1.UpdateReceiptResponse], error)
 	DeleteReceipt(context.Context, *connect.Request[v1.DeleteReceiptRequest]) (*connect.Response[v1.DeleteReceiptResponse], error)
+	RetryParseReceipt(context.Context, *connect.Request[v1.RetryParseReceiptRequest]) (*connect.Response[v1.RetryParseReceiptResponse], error)
 }
 
 // NewReceiptServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -183,6 +200,12 @@ func NewReceiptServiceHandler(svc ReceiptServiceHandler, opts ...connect.Handler
 		connect.WithSchema(receiptServiceMethods.ByName("DeleteReceipt")),
 		connect.WithHandlerOptions(opts...),
 	)
+	receiptServiceRetryParseReceiptHandler := connect.NewUnaryHandler(
+		ReceiptServiceRetryParseReceiptProcedure,
+		svc.RetryParseReceipt,
+		connect.WithSchema(receiptServiceMethods.ByName("RetryParseReceipt")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.ReceiptService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ReceiptServiceUploadReceiptProcedure:
@@ -195,6 +218,8 @@ func NewReceiptServiceHandler(svc ReceiptServiceHandler, opts ...connect.Handler
 			receiptServiceUpdateReceiptHandler.ServeHTTP(w, r)
 		case ReceiptServiceDeleteReceiptProcedure:
 			receiptServiceDeleteReceiptHandler.ServeHTTP(w, r)
+		case ReceiptServiceRetryParseReceiptProcedure:
+			receiptServiceRetryParseReceiptHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -222,4 +247,8 @@ func (UnimplementedReceiptServiceHandler) UpdateReceipt(context.Context, *connec
 
 func (UnimplementedReceiptServiceHandler) DeleteReceipt(context.Context, *connect.Request[v1.DeleteReceiptRequest]) (*connect.Response[v1.DeleteReceiptResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.ReceiptService.DeleteReceipt is not implemented"))
+}
+
+func (UnimplementedReceiptServiceHandler) RetryParseReceipt(context.Context, *connect.Request[v1.RetryParseReceiptRequest]) (*connect.Response[v1.RetryParseReceiptResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.ReceiptService.RetryParseReceipt is not implemented"))
 }

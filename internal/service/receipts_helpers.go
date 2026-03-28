@@ -111,6 +111,18 @@ func buildListReceiptsParams(userID uuid.UUID, req *pb.ListReceiptsRequest) sqlc
 		end := dateToTime(req.EndDate)
 		params.EndDate = end
 	}
+	if req.Query != nil {
+		params.Query = req.Query
+	}
+	if req.MinTotalCents != nil {
+		params.MinTotalCents = req.MinTotalCents
+	}
+	if req.MaxTotalCents != nil {
+		params.MaxTotalCents = req.MaxTotalCents
+	}
+	if req.Currency != nil {
+		params.Currency = req.Currency
+	}
 	return params
 }
 

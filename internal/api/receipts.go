@@ -98,3 +98,17 @@ func (s *Server) DeleteReceipt(ctx context.Context, req *connect.Request[pb.Dele
 
 	return connect.NewResponse(&pb.DeleteReceiptResponse{}), nil
 }
+
+func (s *Server) RetryParseReceipt(ctx context.Context, req *connect.Request[pb.RetryParseReceiptRequest]) (*connect.Response[pb.RetryParseReceiptResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	receipt, err := s.services.Receipts.RetryParsing(ctx, userID, req.Msg.GetId())
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.RetryParseReceiptResponse{Receipt: receipt}), nil
+}

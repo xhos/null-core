@@ -27,6 +27,7 @@ const (
 	DashboardService_GetFinancialSummary_FullMethodName           = "/null.v1.DashboardService/GetFinancialSummary"
 	DashboardService_GetCategorySpendingComparison_FullMethodName = "/null.v1.DashboardService/GetCategorySpendingComparison"
 	DashboardService_GetNetWorthHistory_FullMethodName            = "/null.v1.DashboardService/GetNetWorthHistory"
+	DashboardService_GetCurrencies_FullMethodName                 = "/null.v1.DashboardService/GetCurrencies"
 )
 
 // DashboardServiceClient is the client API for DashboardService service.
@@ -45,6 +46,7 @@ type DashboardServiceClient interface {
 	// compares category spending between current and previous period
 	GetCategorySpendingComparison(ctx context.Context, in *GetCategorySpendingComparisonRequest, opts ...grpc.CallOption) (*GetCategorySpendingComparisonResponse, error)
 	GetNetWorthHistory(ctx context.Context, in *GetNetWorthHistoryRequest, opts ...grpc.CallOption) (*GetNetWorthHistoryResponse, error)
+	GetCurrencies(ctx context.Context, in *GetCurrenciesRequest, opts ...grpc.CallOption) (*GetCurrenciesResponse, error)
 }
 
 type dashboardServiceClient struct {
@@ -135,6 +137,16 @@ func (c *dashboardServiceClient) GetNetWorthHistory(ctx context.Context, in *Get
 	return out, nil
 }
 
+func (c *dashboardServiceClient) GetCurrencies(ctx context.Context, in *GetCurrenciesRequest, opts ...grpc.CallOption) (*GetCurrenciesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetCurrenciesResponse)
+	err := c.cc.Invoke(ctx, DashboardService_GetCurrencies_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DashboardServiceServer is the server API for DashboardService service.
 // All implementations must embed UnimplementedDashboardServiceServer
 // for forward compatibility.
@@ -151,6 +163,7 @@ type DashboardServiceServer interface {
 	// compares category spending between current and previous period
 	GetCategorySpendingComparison(context.Context, *GetCategorySpendingComparisonRequest) (*GetCategorySpendingComparisonResponse, error)
 	GetNetWorthHistory(context.Context, *GetNetWorthHistoryRequest) (*GetNetWorthHistoryResponse, error)
+	GetCurrencies(context.Context, *GetCurrenciesRequest) (*GetCurrenciesResponse, error)
 	mustEmbedUnimplementedDashboardServiceServer()
 }
 
@@ -184,6 +197,9 @@ func (UnimplementedDashboardServiceServer) GetCategorySpendingComparison(context
 }
 func (UnimplementedDashboardServiceServer) GetNetWorthHistory(context.Context, *GetNetWorthHistoryRequest) (*GetNetWorthHistoryResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetNetWorthHistory not implemented")
+}
+func (UnimplementedDashboardServiceServer) GetCurrencies(context.Context, *GetCurrenciesRequest) (*GetCurrenciesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetCurrencies not implemented")
 }
 func (UnimplementedDashboardServiceServer) mustEmbedUnimplementedDashboardServiceServer() {}
 func (UnimplementedDashboardServiceServer) testEmbeddedByValue()                          {}
@@ -350,6 +366,24 @@ func _DashboardService_GetNetWorthHistory_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _DashboardService_GetCurrencies_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetCurrenciesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DashboardServiceServer).GetCurrencies(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: DashboardService_GetCurrencies_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DashboardServiceServer).GetCurrencies(ctx, req.(*GetCurrenciesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // DashboardService_ServiceDesc is the grpc.ServiceDesc for DashboardService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -388,6 +422,10 @@ var DashboardService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetNetWorthHistory",
 			Handler:    _DashboardService_GetNetWorthHistory_Handler,
+		},
+		{
+			MethodName: "GetCurrencies",
+			Handler:    _DashboardService_GetCurrencies_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

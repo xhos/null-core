@@ -2,9 +2,11 @@ package service
 
 import (
 	"context"
+	"sort"
 	"time"
 
 	"null-core/internal/db/sqlc"
+	"null-core/internal/exchange"
 	pb "null-core/internal/gen/null/v1"
 
 	"github.com/google/uuid"
@@ -74,14 +76,16 @@ type DashboardService interface {
 	GetCategorySpendingComparison(ctx context.Context, params CategorySpendingParams) (*CategorySpendingResult, error)
 	GetNetWorthHistory(ctx context.Context, params NetWorthHistoryParams) ([]*pb.NetWorthPoint, error)
 	GetEarliestTransactionDate(ctx context.Context, userID uuid.UUID) (time.Time, error)
+	GetCurrencies(ctx context.Context) ([]*pb.CurrencyInfo, error)
 }
 
 type dashSvc struct {
-	queries *sqlc.Queries
+	queries        *sqlc.Queries
+	exchangeClient *exchange.Client
 }
 
-func newDashSvc(queries *sqlc.Queries) DashboardService {
-	return &dashSvc{queries: queries}
+func newDashSvc(queries *sqlc.Queries, exchangeClient *exchange.Client) DashboardService {
+	return &dashSvc{queries: queries, exchangeClient: exchangeClient}
 }
 
 // ----- methods -----------------------------------------------------------------------------
@@ -331,4 +335,19 @@ func (s *dashSvc) GetEarliestTransactionDate(ctx context.Context, userID uuid.UU
 		return time.Time{}, wrapErr("DashboardService.GetEarliestTransactionDate", err)
 	}
 	return date, nil
+}
+
+func (s *dashSvc) GetCurrencies(_ context.Context) ([]*pb.CurrencyInfo, error) {
+	names, err := s.exchangeClient.GetCurrencies()
+	if err != nil {
+		return nil, wrapErr("DashboardService.GetCurrencies", err)
+	}
+
+	result := make([]*pb.CurrencyInfo, 0, len(names))
+	for code, name := range names {
+		result = append(result, &pb.CurrencyInfo{Code: code, Name: name})
+	}
+	sort.Slice(result, func(i, j int) bool { return result[i].Code < result[j].Code })
+
+	return result, nil
 }

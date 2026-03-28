@@ -19,11 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	ReceiptService_UploadReceipt_FullMethodName = "/null.v1.ReceiptService/UploadReceipt"
-	ReceiptService_ListReceipts_FullMethodName  = "/null.v1.ReceiptService/ListReceipts"
-	ReceiptService_GetReceipt_FullMethodName    = "/null.v1.ReceiptService/GetReceipt"
-	ReceiptService_UpdateReceipt_FullMethodName = "/null.v1.ReceiptService/UpdateReceipt"
-	ReceiptService_DeleteReceipt_FullMethodName = "/null.v1.ReceiptService/DeleteReceipt"
+	ReceiptService_UploadReceipt_FullMethodName     = "/null.v1.ReceiptService/UploadReceipt"
+	ReceiptService_ListReceipts_FullMethodName      = "/null.v1.ReceiptService/ListReceipts"
+	ReceiptService_GetReceipt_FullMethodName        = "/null.v1.ReceiptService/GetReceipt"
+	ReceiptService_UpdateReceipt_FullMethodName     = "/null.v1.ReceiptService/UpdateReceipt"
+	ReceiptService_DeleteReceipt_FullMethodName     = "/null.v1.ReceiptService/DeleteReceipt"
+	ReceiptService_RetryParseReceipt_FullMethodName = "/null.v1.ReceiptService/RetryParseReceipt"
 )
 
 // ReceiptServiceClient is the client API for ReceiptService service.
@@ -35,6 +36,7 @@ type ReceiptServiceClient interface {
 	GetReceipt(ctx context.Context, in *GetReceiptRequest, opts ...grpc.CallOption) (*GetReceiptResponse, error)
 	UpdateReceipt(ctx context.Context, in *UpdateReceiptRequest, opts ...grpc.CallOption) (*UpdateReceiptResponse, error)
 	DeleteReceipt(ctx context.Context, in *DeleteReceiptRequest, opts ...grpc.CallOption) (*DeleteReceiptResponse, error)
+	RetryParseReceipt(ctx context.Context, in *RetryParseReceiptRequest, opts ...grpc.CallOption) (*RetryParseReceiptResponse, error)
 }
 
 type receiptServiceClient struct {
@@ -95,6 +97,16 @@ func (c *receiptServiceClient) DeleteReceipt(ctx context.Context, in *DeleteRece
 	return out, nil
 }
 
+func (c *receiptServiceClient) RetryParseReceipt(ctx context.Context, in *RetryParseReceiptRequest, opts ...grpc.CallOption) (*RetryParseReceiptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(RetryParseReceiptResponse)
+	err := c.cc.Invoke(ctx, ReceiptService_RetryParseReceipt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ReceiptServiceServer is the server API for ReceiptService service.
 // All implementations must embed UnimplementedReceiptServiceServer
 // for forward compatibility.
@@ -104,6 +116,7 @@ type ReceiptServiceServer interface {
 	GetReceipt(context.Context, *GetReceiptRequest) (*GetReceiptResponse, error)
 	UpdateReceipt(context.Context, *UpdateReceiptRequest) (*UpdateReceiptResponse, error)
 	DeleteReceipt(context.Context, *DeleteReceiptRequest) (*DeleteReceiptResponse, error)
+	RetryParseReceipt(context.Context, *RetryParseReceiptRequest) (*RetryParseReceiptResponse, error)
 	mustEmbedUnimplementedReceiptServiceServer()
 }
 
@@ -128,6 +141,9 @@ func (UnimplementedReceiptServiceServer) UpdateReceipt(context.Context, *UpdateR
 }
 func (UnimplementedReceiptServiceServer) DeleteReceipt(context.Context, *DeleteReceiptRequest) (*DeleteReceiptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteReceipt not implemented")
+}
+func (UnimplementedReceiptServiceServer) RetryParseReceipt(context.Context, *RetryParseReceiptRequest) (*RetryParseReceiptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method RetryParseReceipt not implemented")
 }
 func (UnimplementedReceiptServiceServer) mustEmbedUnimplementedReceiptServiceServer() {}
 func (UnimplementedReceiptServiceServer) testEmbeddedByValue()                        {}
@@ -240,6 +256,24 @@ func _ReceiptService_DeleteReceipt_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ReceiptService_RetryParseReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(RetryParseReceiptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReceiptServiceServer).RetryParseReceipt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReceiptService_RetryParseReceipt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReceiptServiceServer).RetryParseReceipt(ctx, req.(*RetryParseReceiptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ReceiptService_ServiceDesc is the grpc.ServiceDesc for ReceiptService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -266,6 +300,10 @@ var ReceiptService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteReceipt",
 			Handler:    _ReceiptService_DeleteReceipt_Handler,
+		},
+		{
+			MethodName: "RetryParseReceipt",
+			Handler:    _ReceiptService_RetryParseReceipt_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

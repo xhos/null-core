@@ -30,6 +30,7 @@ type ReceiptService interface {
 	List(ctx context.Context, userID uuid.UUID, req *pb.ListReceiptsRequest) ([]*pb.Receipt, int64, error)
 	Update(ctx context.Context, userID uuid.UUID, id int64, req *pb.UpdateReceiptRequest) (*pb.Receipt, error)
 	Delete(ctx context.Context, userID uuid.UUID, id int64) error
+	RetryParsing(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, error)
 	StartWorker(ctx context.Context)
 }
 
@@ -58,6 +59,8 @@ func newRcptSvc(queries *sqlc.Queries, logger *log.Logger, ocrURL string, dataDi
 			h2cClient,
 			ocrURL,
 			connect.WithGRPC(),
+			connect.WithSendMaxBytes(16*1024*1024),
+			connect.WithReadMaxBytes(16*1024*1024),
 		)
 	}
 	return &rcptSvc{
@@ -89,6 +92,17 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		UserID:    userID,
 		ImageHash: imageHash,
 	}); err == nil {
+		if pb.ReceiptStatus(existing.Status) == pb.ReceiptStatus_RECEIPT_STATUS_FAILED {
+			// Previous parse failed — reset to pending so the worker retries it.
+			updated, resetErr := s.queries.ResetReceiptForRetry(ctx, sqlc.ResetReceiptForRetryParams{
+				ID:     existing.ID,
+				UserID: userID,
+			})
+			if resetErr != nil {
+				return nil, wrapErr("ReceiptService.Upload.Reset", resetErr)
+			}
+			return receiptToPb(&updated, nil), nil
+		}
 		return nil, &DuplicateReceiptError{ExistingID: existing.ID}
 	}
 
@@ -246,6 +260,33 @@ func (s *rcptSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) error 
 	}
 
 	return nil
+}
+
+func (s *rcptSvc) RetryParsing(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, error) {
+	if s.ocrClient == nil {
+		return nil, fmt.Errorf("ReceiptService.RetryParsing: OCR not configured: %w", ErrValidation)
+	}
+
+	row, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{ID: id, UserID: userID})
+	if err != nil {
+		return nil, wrapErr("ReceiptService.RetryParsing", err)
+	}
+
+	status := pb.ReceiptStatus(row.Status)
+	if status == pb.ReceiptStatus_RECEIPT_STATUS_PENDING {
+		return nil, fmt.Errorf("ReceiptService.RetryParsing: receipt is already queued for parsing: %w", ErrValidation)
+	}
+
+	if err := s.queries.DeleteReceiptItemsByReceipt(ctx, row.ID); err != nil {
+		return nil, wrapErr("ReceiptService.RetryParsing.DeleteItems", err)
+	}
+
+	updated, err := s.queries.ResetReceiptForRetry(ctx, sqlc.ResetReceiptForRetryParams{ID: id, UserID: userID})
+	if err != nil {
+		return nil, wrapErr("ReceiptService.RetryParsing", err)
+	}
+
+	return receiptToPb(&updated, nil), nil
 }
 
 // ----- background worker -------------------------------------------------------------------

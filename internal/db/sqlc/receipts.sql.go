@@ -466,19 +466,47 @@ WHERE r.user_id = $1::uuid
     $5::date IS NULL
     OR r.receipt_date <= $5::date
   )
+  AND (
+    $6::text IS NULL
+    OR r.merchant ILIKE '%' || $6::text || '%'
+    OR EXISTS (
+      SELECT 1 FROM receipt_items ri
+      WHERE ri.receipt_id = r.id
+        AND (
+          ri.name ILIKE '%' || $6::text || '%'
+          OR ri.raw_name ILIKE '%' || $6::text || '%'
+        )
+    )
+  )
+  AND (
+    $7::bigint IS NULL
+    OR r.total_cents >= $7::bigint
+  )
+  AND (
+    $8::bigint IS NULL
+    OR r.total_cents <= $8::bigint
+  )
+  AND (
+    $9::char(3) IS NULL
+    OR r.currency = $9::char(3)
+  )
 ORDER BY r.created_at DESC, r.id DESC
-LIMIT COALESCE($7::int, 50)
-OFFSET COALESCE($6::int, 0)
+LIMIT COALESCE($11::int, 50)
+OFFSET COALESCE($10::int, 0)
 `
 
 type ListReceiptsParams struct {
-	UserID       uuid.UUID  `db:"user_id" json:"user_id"`
-	Status       *int16     `db:"status" json:"status"`
-	UnlinkedOnly *bool      `db:"unlinked_only" json:"unlinked_only"`
-	StartDate    *time.Time `db:"start_date" json:"start_date"`
-	EndDate      *time.Time `db:"end_date" json:"end_date"`
-	Off          *int32     `db:"off" json:"off"`
-	Lim          *int32     `db:"lim" json:"lim"`
+	UserID        uuid.UUID  `db:"user_id" json:"user_id"`
+	Status        *int16     `db:"status" json:"status"`
+	UnlinkedOnly  *bool      `db:"unlinked_only" json:"unlinked_only"`
+	StartDate     *time.Time `db:"start_date" json:"start_date"`
+	EndDate       *time.Time `db:"end_date" json:"end_date"`
+	Query         *string    `db:"query" json:"query"`
+	MinTotalCents *int64     `db:"min_total_cents" json:"min_total_cents"`
+	MaxTotalCents *int64     `db:"max_total_cents" json:"max_total_cents"`
+	Currency      *string    `db:"currency" json:"currency"`
+	Off           *int32     `db:"off" json:"off"`
+	Lim           *int32     `db:"lim" json:"lim"`
 }
 
 type ListReceiptsRow struct {
@@ -508,6 +536,10 @@ func (q *Queries) ListReceipts(ctx context.Context, arg ListReceiptsParams) ([]L
 		arg.UnlinkedOnly,
 		arg.StartDate,
 		arg.EndDate,
+		arg.Query,
+		arg.MinTotalCents,
+		arg.MaxTotalCents,
+		arg.Currency,
 		arg.Off,
 		arg.Lim,
 	)
@@ -545,6 +577,52 @@ func (q *Queries) ListReceipts(ctx context.Context, arg ListReceiptsParams) ([]L
 		return nil, err
 	}
 	return items, nil
+}
+
+const resetReceiptForRetry = `-- name: ResetReceiptForRetry :one
+UPDATE receipts
+SET
+  status         = 1,
+  merchant       = NULL,
+  receipt_date   = NULL,
+  currency       = NULL,
+  subtotal_cents = NULL,
+  tax_cents      = NULL,
+  total_cents    = NULL,
+  confidence     = NULL,
+  transaction_id = NULL
+WHERE id = $1::bigint
+  AND user_id = $2::uuid
+RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+`
+
+type ResetReceiptForRetryParams struct {
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) ResetReceiptForRetry(ctx context.Context, arg ResetReceiptForRetryParams) (Receipt, error) {
+	row := q.db.QueryRow(ctx, resetReceiptForRetry, arg.ID, arg.UserID)
+	var i Receipt
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.TransactionID,
+		&i.ImagePath,
+		&i.Merchant,
+		&i.ReceiptDate,
+		&i.Currency,
+		&i.SubtotalCents,
+		&i.TaxCents,
+		&i.TotalCents,
+		&i.Confidence,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ImageHash,
+		&i.ImageTakenAt,
+	)
+	return i, err
 }
 
 const updateReceipt = `-- name: UpdateReceipt :one

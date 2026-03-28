@@ -12,6 +12,7 @@ type Client struct {
 	baseURL        string
 	httpClient     *http.Client
 	supportedCodes map[string]bool
+	currencyNames  map[string]string
 	codesLoaded    bool
 }
 
@@ -30,6 +31,7 @@ func NewClient(baseURL string) *Client {
 			Timeout: 10 * time.Second,
 		},
 		supportedCodes: make(map[string]bool),
+		currencyNames:  make(map[string]string),
 		codesLoaded:    false,
 	}
 }
@@ -58,8 +60,9 @@ func (c *Client) loadSupportedCurrencies() error {
 		return fmt.Errorf("failed to parse currencies response: %w", err)
 	}
 
-	for code := range currencies {
+	for code, name := range currencies {
 		c.supportedCodes[code] = true
+		c.currencyNames[code] = name
 	}
 	c.codesLoaded = true
 
@@ -95,6 +98,14 @@ func (c *Client) IsValidCurrency(currencyCode string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// GetCurrencies returns all supported currency codes and their names.
+func (c *Client) GetCurrencies() (map[string]string, error) {
+	if err := c.loadSupportedCurrencies(); err != nil {
+		return nil, err
+	}
+	return c.currencyNames, nil
 }
 
 // GetExchangeRate fetches exchange rate from one currency to another

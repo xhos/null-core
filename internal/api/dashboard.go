@@ -381,3 +381,14 @@ func mapGranularity(g pb.Granularity) int32 {
 		return 1 // default to day
 	}
 }
+
+func (s *Server) GetCurrencies(ctx context.Context, _ *connect.Request[pb.GetCurrenciesRequest]) (*connect.Response[pb.GetCurrenciesResponse], error) {
+	currencies, err := s.services.Dashboard.GetCurrencies(ctx)
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+
+	return connect.NewResponse(&pb.GetCurrenciesResponse{
+		Currencies: currencies,
+	}), nil
+}

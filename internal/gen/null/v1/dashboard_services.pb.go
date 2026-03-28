@@ -987,6 +987,138 @@ func (x *GetNetWorthHistoryResponse) GetDataPoints() []*NetWorthPoint {
 	return nil
 }
 
+type CurrencyInfo struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Name          string                 `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CurrencyInfo) Reset() {
+	*x = CurrencyInfo{}
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[17]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CurrencyInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CurrencyInfo) ProtoMessage() {}
+
+func (x *CurrencyInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[17]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CurrencyInfo.ProtoReflect.Descriptor instead.
+func (*CurrencyInfo) Descriptor() ([]byte, []int) {
+	return file_null_v1_dashboard_services_proto_rawDescGZIP(), []int{17}
+}
+
+func (x *CurrencyInfo) GetCode() string {
+	if x != nil {
+		return x.Code
+	}
+	return ""
+}
+
+func (x *CurrencyInfo) GetName() string {
+	if x != nil {
+		return x.Name
+	}
+	return ""
+}
+
+type GetCurrenciesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCurrenciesRequest) Reset() {
+	*x = GetCurrenciesRequest{}
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[18]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCurrenciesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCurrenciesRequest) ProtoMessage() {}
+
+func (x *GetCurrenciesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[18]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCurrenciesRequest.ProtoReflect.Descriptor instead.
+func (*GetCurrenciesRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_dashboard_services_proto_rawDescGZIP(), []int{18}
+}
+
+type GetCurrenciesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Currencies    []*CurrencyInfo        `protobuf:"bytes,1,rep,name=currencies,proto3" json:"currencies,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetCurrenciesResponse) Reset() {
+	*x = GetCurrenciesResponse{}
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[19]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetCurrenciesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetCurrenciesResponse) ProtoMessage() {}
+
+func (x *GetCurrenciesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_dashboard_services_proto_msgTypes[19]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetCurrenciesResponse.ProtoReflect.Descriptor instead.
+func (*GetCurrenciesResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_dashboard_services_proto_rawDescGZIP(), []int{19}
+}
+
+func (x *GetCurrenciesResponse) GetCurrencies() []*CurrencyInfo {
+	if x != nil {
+		return x.Currencies
+	}
+	return nil
+}
+
 var File_null_v1_dashboard_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_dashboard_services_proto_rawDesc = "" +
@@ -1084,7 +1216,15 @@ const file_null_v1_dashboard_services_proto_rawDesc = "" +
 	"\vgranularity\x18\x04 \x01(\x0e2\x14.null.v1.GranularityR\vgranularity\"U\n" +
 	"\x1aGetNetWorthHistoryResponse\x127\n" +
 	"\vdata_points\x18\x01 \x03(\v2\x16.null.v1.NetWorthPointR\n" +
-	"dataPoints2\xa5\x06\n" +
+	"dataPoints\"6\n" +
+	"\fCurrencyInfo\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x12\n" +
+	"\x04name\x18\x02 \x01(\tR\x04name\"\x16\n" +
+	"\x14GetCurrenciesRequest\"N\n" +
+	"\x15GetCurrenciesResponse\x125\n" +
+	"\n" +
+	"currencies\x18\x01 \x03(\v2\x15.null.v1.CurrencyInfoR\n" +
+	"currencies2\xf5\x06\n" +
 	"\x10DashboardService\x12`\n" +
 	"\x13GetDashboardSummary\x12#.null.v1.GetDashboardSummaryRequest\x1a$.null.v1.GetDashboardSummaryResponse\x12c\n" +
 	"\x14GetMonthlyComparison\x12$.null.v1.GetMonthlyComparisonRequest\x1a%.null.v1.GetMonthlyComparisonResponse\x12W\n" +
@@ -1093,7 +1233,8 @@ const file_null_v1_dashboard_services_proto_rawDesc = "" +
 	"\x11GetSpendingTrends\x12!.null.v1.GetSpendingTrendsRequest\x1a\".null.v1.GetSpendingTrendsResponse\x12`\n" +
 	"\x13GetFinancialSummary\x12#.null.v1.GetFinancialSummaryRequest\x1a$.null.v1.GetFinancialSummaryResponse\x12~\n" +
 	"\x1dGetCategorySpendingComparison\x12-.null.v1.GetCategorySpendingComparisonRequest\x1a..null.v1.GetCategorySpendingComparisonResponse\x12]\n" +
-	"\x12GetNetWorthHistory\x12\".null.v1.GetNetWorthHistoryRequest\x1a#.null.v1.GetNetWorthHistoryResponseB\x8b\x01\n" +
+	"\x12GetNetWorthHistory\x12\".null.v1.GetNetWorthHistoryRequest\x1a#.null.v1.GetNetWorthHistoryResponse\x12N\n" +
+	"\rGetCurrencies\x12\x1d.null.v1.GetCurrenciesRequest\x1a\x1e.null.v1.GetCurrenciesResponseB\x8b\x01\n" +
 	"\vcom.null.v1B\x16DashboardServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
@@ -1108,7 +1249,7 @@ func file_null_v1_dashboard_services_proto_rawDescGZIP() []byte {
 	return file_null_v1_dashboard_services_proto_rawDescData
 }
 
-var file_null_v1_dashboard_services_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
+var file_null_v1_dashboard_services_proto_msgTypes = make([]protoimpl.MessageInfo, 20)
 var file_null_v1_dashboard_services_proto_goTypes = []any{
 	(*GetDashboardSummaryRequest)(nil),            // 0: null.v1.GetDashboardSummaryRequest
 	(*GetDashboardSummaryResponse)(nil),           // 1: null.v1.GetDashboardSummaryResponse
@@ -1127,73 +1268,79 @@ var file_null_v1_dashboard_services_proto_goTypes = []any{
 	(*GetCategorySpendingComparisonResponse)(nil), // 14: null.v1.GetCategorySpendingComparisonResponse
 	(*GetNetWorthHistoryRequest)(nil),             // 15: null.v1.GetNetWorthHistoryRequest
 	(*GetNetWorthHistoryResponse)(nil),            // 16: null.v1.GetNetWorthHistoryResponse
-	(*date.Date)(nil),                             // 17: google.type.Date
-	(*DashboardSummary)(nil),                      // 18: null.v1.DashboardSummary
-	(*MonthlyComparison)(nil),                     // 19: null.v1.MonthlyComparison
-	(*TopCategory)(nil),                           // 20: null.v1.TopCategory
-	(*TopMerchant)(nil),                           // 21: null.v1.TopMerchant
-	(*TrendPoint)(nil),                            // 22: null.v1.TrendPoint
-	(*money.Money)(nil),                           // 23: google.type.Money
-	(PeriodType)(0),                               // 24: null.v1.PeriodType
-	(*Category)(nil),                              // 25: null.v1.Category
-	(*CategorySpendingComparison)(nil),            // 26: null.v1.CategorySpendingComparison
-	(*PeriodInfo)(nil),                            // 27: null.v1.PeriodInfo
-	(*CategorySpendingTotals)(nil),                // 28: null.v1.CategorySpendingTotals
-	(Granularity)(0),                              // 29: null.v1.Granularity
-	(*NetWorthPoint)(nil),                         // 30: null.v1.NetWorthPoint
+	(*CurrencyInfo)(nil),                          // 17: null.v1.CurrencyInfo
+	(*GetCurrenciesRequest)(nil),                  // 18: null.v1.GetCurrenciesRequest
+	(*GetCurrenciesResponse)(nil),                 // 19: null.v1.GetCurrenciesResponse
+	(*date.Date)(nil),                             // 20: google.type.Date
+	(*DashboardSummary)(nil),                      // 21: null.v1.DashboardSummary
+	(*MonthlyComparison)(nil),                     // 22: null.v1.MonthlyComparison
+	(*TopCategory)(nil),                           // 23: null.v1.TopCategory
+	(*TopMerchant)(nil),                           // 24: null.v1.TopMerchant
+	(*TrendPoint)(nil),                            // 25: null.v1.TrendPoint
+	(*money.Money)(nil),                           // 26: google.type.Money
+	(PeriodType)(0),                               // 27: null.v1.PeriodType
+	(*Category)(nil),                              // 28: null.v1.Category
+	(*CategorySpendingComparison)(nil),            // 29: null.v1.CategorySpendingComparison
+	(*PeriodInfo)(nil),                            // 30: null.v1.PeriodInfo
+	(*CategorySpendingTotals)(nil),                // 31: null.v1.CategorySpendingTotals
+	(Granularity)(0),                              // 32: null.v1.Granularity
+	(*NetWorthPoint)(nil),                         // 33: null.v1.NetWorthPoint
 }
 var file_null_v1_dashboard_services_proto_depIdxs = []int32{
-	17, // 0: null.v1.GetDashboardSummaryRequest.start_date:type_name -> google.type.Date
-	17, // 1: null.v1.GetDashboardSummaryRequest.end_date:type_name -> google.type.Date
-	18, // 2: null.v1.GetDashboardSummaryResponse.summary:type_name -> null.v1.DashboardSummary
-	19, // 3: null.v1.GetMonthlyComparisonResponse.comparisons:type_name -> null.v1.MonthlyComparison
-	17, // 4: null.v1.GetTopCategoriesRequest.start_date:type_name -> google.type.Date
-	17, // 5: null.v1.GetTopCategoriesRequest.end_date:type_name -> google.type.Date
-	20, // 6: null.v1.GetTopCategoriesResponse.categories:type_name -> null.v1.TopCategory
-	17, // 7: null.v1.GetTopMerchantsRequest.start_date:type_name -> google.type.Date
-	17, // 8: null.v1.GetTopMerchantsRequest.end_date:type_name -> google.type.Date
-	21, // 9: null.v1.GetTopMerchantsResponse.merchants:type_name -> null.v1.TopMerchant
-	17, // 10: null.v1.GetSpendingTrendsRequest.start_date:type_name -> google.type.Date
-	17, // 11: null.v1.GetSpendingTrendsRequest.end_date:type_name -> google.type.Date
-	22, // 12: null.v1.GetSpendingTrendsResponse.trends:type_name -> null.v1.TrendPoint
-	23, // 13: null.v1.GetFinancialSummaryResponse.total_balance:type_name -> google.type.Money
-	23, // 14: null.v1.GetFinancialSummaryResponse.total_debt:type_name -> google.type.Money
-	23, // 15: null.v1.GetFinancialSummaryResponse.net_balance:type_name -> google.type.Money
-	24, // 16: null.v1.GetCategorySpendingComparisonRequest.period_type:type_name -> null.v1.PeriodType
-	17, // 17: null.v1.GetCategorySpendingComparisonRequest.custom_start_date:type_name -> google.type.Date
-	17, // 18: null.v1.GetCategorySpendingComparisonRequest.custom_end_date:type_name -> google.type.Date
-	25, // 19: null.v1.CategorySpendingItem.category:type_name -> null.v1.Category
-	26, // 20: null.v1.CategorySpendingItem.spending:type_name -> null.v1.CategorySpendingComparison
-	27, // 21: null.v1.GetCategorySpendingComparisonResponse.current_period:type_name -> null.v1.PeriodInfo
-	27, // 22: null.v1.GetCategorySpendingComparisonResponse.previous_period:type_name -> null.v1.PeriodInfo
+	20, // 0: null.v1.GetDashboardSummaryRequest.start_date:type_name -> google.type.Date
+	20, // 1: null.v1.GetDashboardSummaryRequest.end_date:type_name -> google.type.Date
+	21, // 2: null.v1.GetDashboardSummaryResponse.summary:type_name -> null.v1.DashboardSummary
+	22, // 3: null.v1.GetMonthlyComparisonResponse.comparisons:type_name -> null.v1.MonthlyComparison
+	20, // 4: null.v1.GetTopCategoriesRequest.start_date:type_name -> google.type.Date
+	20, // 5: null.v1.GetTopCategoriesRequest.end_date:type_name -> google.type.Date
+	23, // 6: null.v1.GetTopCategoriesResponse.categories:type_name -> null.v1.TopCategory
+	20, // 7: null.v1.GetTopMerchantsRequest.start_date:type_name -> google.type.Date
+	20, // 8: null.v1.GetTopMerchantsRequest.end_date:type_name -> google.type.Date
+	24, // 9: null.v1.GetTopMerchantsResponse.merchants:type_name -> null.v1.TopMerchant
+	20, // 10: null.v1.GetSpendingTrendsRequest.start_date:type_name -> google.type.Date
+	20, // 11: null.v1.GetSpendingTrendsRequest.end_date:type_name -> google.type.Date
+	25, // 12: null.v1.GetSpendingTrendsResponse.trends:type_name -> null.v1.TrendPoint
+	26, // 13: null.v1.GetFinancialSummaryResponse.total_balance:type_name -> google.type.Money
+	26, // 14: null.v1.GetFinancialSummaryResponse.total_debt:type_name -> google.type.Money
+	26, // 15: null.v1.GetFinancialSummaryResponse.net_balance:type_name -> google.type.Money
+	27, // 16: null.v1.GetCategorySpendingComparisonRequest.period_type:type_name -> null.v1.PeriodType
+	20, // 17: null.v1.GetCategorySpendingComparisonRequest.custom_start_date:type_name -> google.type.Date
+	20, // 18: null.v1.GetCategorySpendingComparisonRequest.custom_end_date:type_name -> google.type.Date
+	28, // 19: null.v1.CategorySpendingItem.category:type_name -> null.v1.Category
+	29, // 20: null.v1.CategorySpendingItem.spending:type_name -> null.v1.CategorySpendingComparison
+	30, // 21: null.v1.GetCategorySpendingComparisonResponse.current_period:type_name -> null.v1.PeriodInfo
+	30, // 22: null.v1.GetCategorySpendingComparisonResponse.previous_period:type_name -> null.v1.PeriodInfo
 	13, // 23: null.v1.GetCategorySpendingComparisonResponse.categories:type_name -> null.v1.CategorySpendingItem
-	26, // 24: null.v1.GetCategorySpendingComparisonResponse.uncategorized:type_name -> null.v1.CategorySpendingComparison
-	28, // 25: null.v1.GetCategorySpendingComparisonResponse.totals:type_name -> null.v1.CategorySpendingTotals
-	17, // 26: null.v1.GetNetWorthHistoryRequest.start_date:type_name -> google.type.Date
-	17, // 27: null.v1.GetNetWorthHistoryRequest.end_date:type_name -> google.type.Date
-	29, // 28: null.v1.GetNetWorthHistoryRequest.granularity:type_name -> null.v1.Granularity
-	30, // 29: null.v1.GetNetWorthHistoryResponse.data_points:type_name -> null.v1.NetWorthPoint
-	0,  // 30: null.v1.DashboardService.GetDashboardSummary:input_type -> null.v1.GetDashboardSummaryRequest
-	2,  // 31: null.v1.DashboardService.GetMonthlyComparison:input_type -> null.v1.GetMonthlyComparisonRequest
-	4,  // 32: null.v1.DashboardService.GetTopCategories:input_type -> null.v1.GetTopCategoriesRequest
-	6,  // 33: null.v1.DashboardService.GetTopMerchants:input_type -> null.v1.GetTopMerchantsRequest
-	8,  // 34: null.v1.DashboardService.GetSpendingTrends:input_type -> null.v1.GetSpendingTrendsRequest
-	10, // 35: null.v1.DashboardService.GetFinancialSummary:input_type -> null.v1.GetFinancialSummaryRequest
-	12, // 36: null.v1.DashboardService.GetCategorySpendingComparison:input_type -> null.v1.GetCategorySpendingComparisonRequest
-	15, // 37: null.v1.DashboardService.GetNetWorthHistory:input_type -> null.v1.GetNetWorthHistoryRequest
-	1,  // 38: null.v1.DashboardService.GetDashboardSummary:output_type -> null.v1.GetDashboardSummaryResponse
-	3,  // 39: null.v1.DashboardService.GetMonthlyComparison:output_type -> null.v1.GetMonthlyComparisonResponse
-	5,  // 40: null.v1.DashboardService.GetTopCategories:output_type -> null.v1.GetTopCategoriesResponse
-	7,  // 41: null.v1.DashboardService.GetTopMerchants:output_type -> null.v1.GetTopMerchantsResponse
-	9,  // 42: null.v1.DashboardService.GetSpendingTrends:output_type -> null.v1.GetSpendingTrendsResponse
-	11, // 43: null.v1.DashboardService.GetFinancialSummary:output_type -> null.v1.GetFinancialSummaryResponse
-	14, // 44: null.v1.DashboardService.GetCategorySpendingComparison:output_type -> null.v1.GetCategorySpendingComparisonResponse
-	16, // 45: null.v1.DashboardService.GetNetWorthHistory:output_type -> null.v1.GetNetWorthHistoryResponse
-	38, // [38:46] is the sub-list for method output_type
-	30, // [30:38] is the sub-list for method input_type
-	30, // [30:30] is the sub-list for extension type_name
-	30, // [30:30] is the sub-list for extension extendee
-	0,  // [0:30] is the sub-list for field type_name
+	29, // 24: null.v1.GetCategorySpendingComparisonResponse.uncategorized:type_name -> null.v1.CategorySpendingComparison
+	31, // 25: null.v1.GetCategorySpendingComparisonResponse.totals:type_name -> null.v1.CategorySpendingTotals
+	20, // 26: null.v1.GetNetWorthHistoryRequest.start_date:type_name -> google.type.Date
+	20, // 27: null.v1.GetNetWorthHistoryRequest.end_date:type_name -> google.type.Date
+	32, // 28: null.v1.GetNetWorthHistoryRequest.granularity:type_name -> null.v1.Granularity
+	33, // 29: null.v1.GetNetWorthHistoryResponse.data_points:type_name -> null.v1.NetWorthPoint
+	17, // 30: null.v1.GetCurrenciesResponse.currencies:type_name -> null.v1.CurrencyInfo
+	0,  // 31: null.v1.DashboardService.GetDashboardSummary:input_type -> null.v1.GetDashboardSummaryRequest
+	2,  // 32: null.v1.DashboardService.GetMonthlyComparison:input_type -> null.v1.GetMonthlyComparisonRequest
+	4,  // 33: null.v1.DashboardService.GetTopCategories:input_type -> null.v1.GetTopCategoriesRequest
+	6,  // 34: null.v1.DashboardService.GetTopMerchants:input_type -> null.v1.GetTopMerchantsRequest
+	8,  // 35: null.v1.DashboardService.GetSpendingTrends:input_type -> null.v1.GetSpendingTrendsRequest
+	10, // 36: null.v1.DashboardService.GetFinancialSummary:input_type -> null.v1.GetFinancialSummaryRequest
+	12, // 37: null.v1.DashboardService.GetCategorySpendingComparison:input_type -> null.v1.GetCategorySpendingComparisonRequest
+	15, // 38: null.v1.DashboardService.GetNetWorthHistory:input_type -> null.v1.GetNetWorthHistoryRequest
+	18, // 39: null.v1.DashboardService.GetCurrencies:input_type -> null.v1.GetCurrenciesRequest
+	1,  // 40: null.v1.DashboardService.GetDashboardSummary:output_type -> null.v1.GetDashboardSummaryResponse
+	3,  // 41: null.v1.DashboardService.GetMonthlyComparison:output_type -> null.v1.GetMonthlyComparisonResponse
+	5,  // 42: null.v1.DashboardService.GetTopCategories:output_type -> null.v1.GetTopCategoriesResponse
+	7,  // 43: null.v1.DashboardService.GetTopMerchants:output_type -> null.v1.GetTopMerchantsResponse
+	9,  // 44: null.v1.DashboardService.GetSpendingTrends:output_type -> null.v1.GetSpendingTrendsResponse
+	11, // 45: null.v1.DashboardService.GetFinancialSummary:output_type -> null.v1.GetFinancialSummaryResponse
+	14, // 46: null.v1.DashboardService.GetCategorySpendingComparison:output_type -> null.v1.GetCategorySpendingComparisonResponse
+	16, // 47: null.v1.DashboardService.GetNetWorthHistory:output_type -> null.v1.GetNetWorthHistoryResponse
+	19, // 48: null.v1.DashboardService.GetCurrencies:output_type -> null.v1.GetCurrenciesResponse
+	40, // [40:49] is the sub-list for method output_type
+	31, // [31:40] is the sub-list for method input_type
+	31, // [31:31] is the sub-list for extension type_name
+	31, // [31:31] is the sub-list for extension extendee
+	0,  // [0:31] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_dashboard_services_proto_init() }
@@ -1219,7 +1366,7 @@ func file_null_v1_dashboard_services_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_null_v1_dashboard_services_proto_rawDesc), len(file_null_v1_dashboard_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   17,
+			NumMessages:   20,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

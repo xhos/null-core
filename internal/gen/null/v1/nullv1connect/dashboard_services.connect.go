@@ -57,6 +57,9 @@ const (
 	// DashboardServiceGetNetWorthHistoryProcedure is the fully-qualified name of the DashboardService's
 	// GetNetWorthHistory RPC.
 	DashboardServiceGetNetWorthHistoryProcedure = "/null.v1.DashboardService/GetNetWorthHistory"
+	// DashboardServiceGetCurrenciesProcedure is the fully-qualified name of the DashboardService's
+	// GetCurrencies RPC.
+	DashboardServiceGetCurrenciesProcedure = "/null.v1.DashboardService/GetCurrencies"
 )
 
 // DashboardServiceClient is a client for the null.v1.DashboardService service.
@@ -71,6 +74,7 @@ type DashboardServiceClient interface {
 	// compares category spending between current and previous period
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
 	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
+	GetCurrencies(context.Context, *connect.Request[v1.GetCurrenciesRequest]) (*connect.Response[v1.GetCurrenciesResponse], error)
 }
 
 // NewDashboardServiceClient constructs a client for the null.v1.DashboardService service. By
@@ -132,6 +136,12 @@ func NewDashboardServiceClient(httpClient connect.HTTPClient, baseURL string, op
 			connect.WithSchema(dashboardServiceMethods.ByName("GetNetWorthHistory")),
 			connect.WithClientOptions(opts...),
 		),
+		getCurrencies: connect.NewClient[v1.GetCurrenciesRequest, v1.GetCurrenciesResponse](
+			httpClient,
+			baseURL+DashboardServiceGetCurrenciesProcedure,
+			connect.WithSchema(dashboardServiceMethods.ByName("GetCurrencies")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -145,6 +155,7 @@ type dashboardServiceClient struct {
 	getFinancialSummary           *connect.Client[v1.GetFinancialSummaryRequest, v1.GetFinancialSummaryResponse]
 	getCategorySpendingComparison *connect.Client[v1.GetCategorySpendingComparisonRequest, v1.GetCategorySpendingComparisonResponse]
 	getNetWorthHistory            *connect.Client[v1.GetNetWorthHistoryRequest, v1.GetNetWorthHistoryResponse]
+	getCurrencies                 *connect.Client[v1.GetCurrenciesRequest, v1.GetCurrenciesResponse]
 }
 
 // GetDashboardSummary calls null.v1.DashboardService.GetDashboardSummary.
@@ -187,6 +198,11 @@ func (c *dashboardServiceClient) GetNetWorthHistory(ctx context.Context, req *co
 	return c.getNetWorthHistory.CallUnary(ctx, req)
 }
 
+// GetCurrencies calls null.v1.DashboardService.GetCurrencies.
+func (c *dashboardServiceClient) GetCurrencies(ctx context.Context, req *connect.Request[v1.GetCurrenciesRequest]) (*connect.Response[v1.GetCurrenciesResponse], error) {
+	return c.getCurrencies.CallUnary(ctx, req)
+}
+
 // DashboardServiceHandler is an implementation of the null.v1.DashboardService service.
 type DashboardServiceHandler interface {
 	GetDashboardSummary(context.Context, *connect.Request[v1.GetDashboardSummaryRequest]) (*connect.Response[v1.GetDashboardSummaryResponse], error)
@@ -199,6 +215,7 @@ type DashboardServiceHandler interface {
 	// compares category spending between current and previous period
 	GetCategorySpendingComparison(context.Context, *connect.Request[v1.GetCategorySpendingComparisonRequest]) (*connect.Response[v1.GetCategorySpendingComparisonResponse], error)
 	GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error)
+	GetCurrencies(context.Context, *connect.Request[v1.GetCurrenciesRequest]) (*connect.Response[v1.GetCurrenciesResponse], error)
 }
 
 // NewDashboardServiceHandler builds an HTTP handler from the service implementation. It returns the
@@ -256,6 +273,12 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 		connect.WithSchema(dashboardServiceMethods.ByName("GetNetWorthHistory")),
 		connect.WithHandlerOptions(opts...),
 	)
+	dashboardServiceGetCurrenciesHandler := connect.NewUnaryHandler(
+		DashboardServiceGetCurrenciesProcedure,
+		svc.GetCurrencies,
+		connect.WithSchema(dashboardServiceMethods.ByName("GetCurrencies")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.DashboardService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case DashboardServiceGetDashboardSummaryProcedure:
@@ -274,6 +297,8 @@ func NewDashboardServiceHandler(svc DashboardServiceHandler, opts ...connect.Han
 			dashboardServiceGetCategorySpendingComparisonHandler.ServeHTTP(w, r)
 		case DashboardServiceGetNetWorthHistoryProcedure:
 			dashboardServiceGetNetWorthHistoryHandler.ServeHTTP(w, r)
+		case DashboardServiceGetCurrenciesProcedure:
+			dashboardServiceGetCurrenciesHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -313,4 +338,8 @@ func (UnimplementedDashboardServiceHandler) GetCategorySpendingComparison(contex
 
 func (UnimplementedDashboardServiceHandler) GetNetWorthHistory(context.Context, *connect.Request[v1.GetNetWorthHistoryRequest]) (*connect.Response[v1.GetNetWorthHistoryResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.DashboardService.GetNetWorthHistory is not implemented"))
+}
+
+func (UnimplementedDashboardServiceHandler) GetCurrencies(context.Context, *connect.Request[v1.GetCurrenciesRequest]) (*connect.Response[v1.GetCurrenciesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.DashboardService.GetCurrencies is not implemented"))
 }

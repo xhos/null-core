@@ -65,9 +65,11 @@ func buildUpdateAccountParams(userID uuid.UUID, req *pb.UpdateAccountRequest) sq
 	}
 	if req.AnchorBalance != nil {
 		cents := moneyToCents(req.AnchorBalance)
-		currency := req.AnchorBalance.CurrencyCode
 		params.AnchorBalanceCents = &cents
-		params.AnchorCurrency = &currency
+		if req.AnchorBalance.CurrencyCode != "" {
+			currency := req.AnchorBalance.CurrencyCode
+			params.AnchorCurrency = &currency
+		}
 	}
 	if req.MainCurrency != nil {
 		params.MainCurrency = req.MainCurrency

@@ -5,8 +5,14 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 )
+
+type rateEntry struct {
+	rate      float64
+	fetchedAt time.Time
+}
 
 type Client struct {
 	baseURL        string
@@ -14,6 +20,10 @@ type Client struct {
 	supportedCodes map[string]bool
 	currencyNames  map[string]string
 	codesLoaded    bool
+
+	rateCacheMu  sync.RWMutex
+	rateCache    map[string]rateEntry
+	rateCacheTTL time.Duration
 }
 
 type RatesResponse struct {
@@ -33,6 +43,8 @@ func NewClient(baseURL string) *Client {
 		supportedCodes: make(map[string]bool),
 		currencyNames:  make(map[string]string),
 		codesLoaded:    false,
+		rateCache:      make(map[string]rateEntry),
+		rateCacheTTL:   1 * time.Hour,
 	}
 }
 
@@ -125,24 +137,38 @@ func (c *Client) GetExchangeRate(fromCurrency, toCurrency string, date *time.Tim
 		return 1.0, nil
 	}
 
-	var url string
 	isHistorical := date != nil
 
 	if isHistorical {
-		// Check if date is too far in the future
 		tomorrow := time.Now().AddDate(0, 0, 1)
 		if date.After(tomorrow) {
 			return 0, fmt.Errorf("cannot get exchange rates for future dates")
 		}
 
-		// Check if date is too far in the past (Frankfurt API goes back to 1999-01-04)
 		earliestDate := time.Date(1999, 1, 4, 0, 0, 0, 0, time.UTC)
 		if date.Before(earliestDate) {
 			return 0, fmt.Errorf("exchange rates not available before 1999-01-04")
 		}
+	}
 
-		dateStr := date.Format("2006-01-02")
-		url = fmt.Sprintf("%s/%s?base=%s&symbols=%s", c.baseURL, dateStr, fromCurrency, toCurrency)
+	// Build cache key: "USD:EUR:2024-01-15" or "USD:EUR:latest"
+	dateKey := "latest"
+	if isHistorical {
+		dateKey = date.Format("2006-01-02")
+	}
+	cacheKey := fromCurrency + ":" + toCurrency + ":" + dateKey
+
+	// Check cache
+	c.rateCacheMu.RLock()
+	if entry, ok := c.rateCache[cacheKey]; ok && time.Since(entry.fetchedAt) < c.rateCacheTTL {
+		c.rateCacheMu.RUnlock()
+		return entry.rate, nil
+	}
+	c.rateCacheMu.RUnlock()
+
+	var url string
+	if isHistorical {
+		url = fmt.Sprintf("%s/%s?base=%s&symbols=%s", c.baseURL, dateKey, fromCurrency, toCurrency)
 	} else {
 		url = fmt.Sprintf("%s/latest?base=%s&symbols=%s", c.baseURL, fromCurrency, toCurrency)
 	}
@@ -167,6 +193,11 @@ func (c *Client) GetExchangeRate(fromCurrency, toCurrency string, date *time.Tim
 	if !exists {
 		return 0, fmt.Errorf("exchange rate not found for %s to %s", fromCurrency, toCurrency)
 	}
+
+	// Store in cache
+	c.rateCacheMu.Lock()
+	c.rateCache[cacheKey] = rateEntry{rate: rate, fetchedAt: time.Now()}
+	c.rateCacheMu.Unlock()
 
 	return rate, nil
 }

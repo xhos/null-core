@@ -28,7 +28,30 @@
             entry = "${pkgs.golangci-lint}/bin/golangci-lint fmt";
             types = ["go"];
           };
+
+          nix-build = {
+            enable = true;
+            name = "nix-build";
+            entry = pkgs.lib.getExe (pkgs.writeShellApplication {
+              name = "nix-build-check";
+              runtimeInputs = [pkgs.nix];
+              text = "nix build --no-link";
+            });
+            stages = ["pre-push"];
+            pass_filenames = false;
+            files = "go\\.(mod|sum)|flake\\.nix";
+          };
         };
+      };
+    });
+
+    packages = forAllSystems (pkgs: {
+      default = pkgs.buildGoModule {
+        pname = "null-core";
+        version = self.shortRev or self.dirtyShortRev or "dev";
+        src = ./.;
+        vendorHash = "sha256-R0/pogg9IMjnKWuldCGcqb6UnSVUAM33de/S81gEUv4=";
+        subPackages = ["cmd/null"];
       };
     });
 

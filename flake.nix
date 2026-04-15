@@ -72,7 +72,7 @@
           protoc-gen-go
 
           (writeShellScriptBin "run" ''
-            go run cmd/null/main.go
+            exec ${air}/bin/air -build.cmd "go build -o ./tmp/main ./cmd/null/main.go" -build.bin ./tmp/main
           '')
 
           (writeShellScriptBin "fmt" ''

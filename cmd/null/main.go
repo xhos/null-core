@@ -23,7 +23,6 @@ func main() {
 
 	// ----- logger -----------------
 	var logger *log.Logger
-	var logFile *os.File
 
 	// create a log file only when using json
 	// cause why would anyone point monitoring tools to a non json log file
@@ -31,14 +30,6 @@ func main() {
 	logFormatter := log.TextFormatter
 
 	if cfg.LogFormat != "text" {
-		var err error
-		logFile, err = os.OpenFile("null-core.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0666)
-		if err != nil {
-			log.Fatal("failed to create log file", "err", err)
-		}
-		defer logFile.Close()
-
-		logWriter = io.MultiWriter(os.Stdout, logFile)
 		logFormatter = log.JSONFormatter
 	}
 

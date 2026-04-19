@@ -50,7 +50,7 @@
         pname = "null-core";
         version = self.shortRev or self.dirtyShortRev or "dev";
         src = ./.;
-        vendorHash = "sha256-R0/pogg9IMjnKWuldCGcqb6UnSVUAM33de/S81gEUv4=";
+        vendorHash = "sha256-R4AHEa2t2cclh0QTOLYWYn+sm2DZm4WR6+aU2NdynX8=";
         subPackages = ["cmd/null"];
       };
     });

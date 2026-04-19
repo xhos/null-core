@@ -13,6 +13,11 @@ null-core is a high-performance gRPC (or rather [connect-go](https://github.com/
 | `NULL_GATEWAY_URL`        | URL for null-gateway (auth + proxy)        |                      | [x]        |
 | `NULL_RECEIPTS_URL`       | gRPC endpoint for receipt parsing service  |                      | [x]        |
 | `EXCHANGE_API_URL`        | Exchange rate API endpoint                 |                      | [x]        |
+| `S3_ENDPOINT`             | S3-compatible endpoint URL (Garage/B2/...) |                      | [x]        |
+| `S3_BUCKET`               | Bucket used for receipt images             |                      | [x]        |
+| `S3_ACCESS_KEY`           | S3 access key ID                           |                      | [x]        |
+| `S3_SECRET_KEY`           | S3 secret access key                       |                      | [x]        |
+| `S3_REGION`               | Region string                              |                      | [x]        |
 | `LISTEN_ADDRESS`          | Server listen address (port or host:port)  | `127.0.0.1:55555`    | [ ]        |
 | `LOG_LEVEL`               | Log level: debug, info, warn, error        | `info`               | [ ]        |
 | `LOG_FORMAT`              | Log format: json, text                     | `text`               | [ ]        |

@@ -8,13 +8,13 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"os"
-	"path/filepath"
+	"path"
 	"time"
 
 	"null-core/internal/db/sqlc"
 	pb "null-core/internal/gen/null/v1"
 	"null-core/internal/gen/null/v1/nullv1connect"
+	"null-core/internal/storage"
 
 	"connectrpc.com/connect"
 	"github.com/charmbracelet/log"
@@ -38,10 +38,10 @@ type rcptSvc struct {
 	queries   *sqlc.Queries
 	log       *log.Logger
 	ocrClient nullv1connect.ReceiptOCRServiceClient
-	dataDir   string
+	store     *storage.Store
 }
 
-func newRcptSvc(queries *sqlc.Queries, logger *log.Logger, ocrURL string, dataDir string) ReceiptService {
+func newRcptSvc(queries *sqlc.Queries, logger *log.Logger, ocrURL string, store *storage.Store) ReceiptService {
 	var ocrClient nullv1connect.ReceiptOCRServiceClient
 	if ocrURL != "" {
 		// gRPC requires HTTP/2; over plaintext that means h2c,
@@ -67,7 +67,7 @@ func newRcptSvc(queries *sqlc.Queries, logger *log.Logger, ocrURL string, dataDi
 		queries:   queries,
 		log:       logger,
 		ocrClient: ocrClient,
-		dataDir:   dataDir,
+		store:     store,
 	}
 }
 
@@ -106,26 +106,23 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 		return nil, &DuplicateReceiptError{ExistingID: existing.ID}
 	}
 
-	relPath := filepath.Join("receipts", userID.String(), uuid.New().String()+"."+ext)
-	absPath := filepath.Join(s.dataDir, relPath)
+	key := path.Join("receipts", userID.String(), uuid.New().String()+"."+ext)
 
-	if err := os.MkdirAll(filepath.Dir(absPath), 0755); err != nil {
-		return nil, fmt.Errorf("ReceiptService.Upload: mkdir: %w", err)
-	}
-	if err := os.WriteFile(absPath, imageData, 0644); err != nil {
-		return nil, fmt.Errorf("ReceiptService.Upload: write file: %w", err)
+	if err := s.store.Put(ctx, key, imageData, contentType); err != nil {
+		return nil, fmt.Errorf("ReceiptService.Upload: %w", err)
 	}
 
 	row, err := s.queries.CreateReceipt(ctx, sqlc.CreateReceiptParams{
 		UserID:       userID,
-		ImagePath:    relPath,
+		ImagePath:    key,
 		ImageHash:    imageHash,
 		ImageTakenAt: imageTakenAt,
 		Status:       int16(pb.ReceiptStatus_RECEIPT_STATUS_PENDING),
 	})
 	if err != nil {
-		// clean up file on DB error
-		os.Remove(absPath)
+		if delErr := s.store.Delete(ctx, key); delErr != nil {
+			s.log.Warn("failed to clean up orphaned receipt blob", "key", key, "error", delErr)
+		}
 		return nil, wrapErr("ReceiptService.Upload", err)
 	}
 
@@ -148,9 +145,9 @@ func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Rece
 
 	receipt := receiptToPb(&row, items)
 
-	imageData, err := os.ReadFile(filepath.Join(s.dataDir, row.ImagePath))
+	imageData, err := s.store.Get(ctx, row.ImagePath)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("ReceiptService.Get: read image: %w", err)
+		return nil, nil, nil, fmt.Errorf("ReceiptService.Get: %w", err)
 	}
 
 	var candidates []*pb.ReceiptLinkCandidate
@@ -254,9 +251,8 @@ func (s *rcptSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) error 
 		return wrapErr("ReceiptService.Delete", err)
 	}
 
-	absPath := filepath.Join(s.dataDir, row.ImagePath)
-	if err := os.Remove(absPath); err != nil {
-		s.log.Warn("failed to remove receipt image", "path", absPath, "error", err)
+	if err := s.store.Delete(ctx, row.ImagePath); err != nil {
+		s.log.Warn("failed to remove receipt image", "key", row.ImagePath, "error", err)
 	}
 
 	return nil
@@ -364,15 +360,14 @@ func (s *rcptSvc) retryUnlinkedReceipts(ctx context.Context) {
 }
 
 func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
-	absPath := filepath.Join(s.dataDir, receipt.ImagePath)
-	imageData, err := os.ReadFile(absPath)
+	imageData, err := s.store.Get(ctx, receipt.ImagePath)
 	if err != nil {
-		s.log.Error("failed to read receipt image", "id", receipt.ID, "path", absPath, "error", err)
+		s.log.Error("failed to read receipt image", "id", receipt.ID, "key", receipt.ImagePath, "error", err)
 		s.setReceiptFailed(ctx, receipt)
 		return
 	}
 
-	contentType := extToContentType(filepath.Ext(receipt.ImagePath))
+	contentType := extToContentType(path.Ext(receipt.ImagePath))
 
 	ocrCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()

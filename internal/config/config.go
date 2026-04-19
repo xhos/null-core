@@ -16,7 +16,11 @@ type Config struct {
 	NullReceiptsURL string
 	ExchangeAPIURL  string
 
-	DataDir string // local data directory for file storage
+	S3Endpoint  string
+	S3Bucket    string
+	S3AccessKey string
+	S3SecretKey string
+	S3Region    string
 
 	LogLevel  log.Level
 	LogFormat string // "json" | "text"
@@ -75,9 +79,29 @@ func Load() Config {
 		listenAddr = "127.0.0.1:55555"
 	}
 
-	dataDir := os.Getenv("DATA_DIR")
-	if dataDir == "" {
-		dataDir = "./data"
+	s3Endpoint := os.Getenv("S3_ENDPOINT")
+	if s3Endpoint == "" {
+		panic("S3_ENDPOINT environment variable is required")
+	}
+
+	s3Bucket := os.Getenv("S3_BUCKET")
+	if s3Bucket == "" {
+		panic("S3_BUCKET environment variable is required")
+	}
+
+	s3AccessKey := os.Getenv("S3_ACCESS_KEY")
+	if s3AccessKey == "" {
+		panic("S3_ACCESS_KEY environment variable is required")
+	}
+
+	s3SecretKey := os.Getenv("S3_SECRET_KEY")
+	if s3SecretKey == "" {
+		panic("S3_SECRET_KEY environment variable is required")
+	}
+
+	s3Region := os.Getenv("S3_REGION")
+	if s3Region == "" {
+		panic("S3_REGION environment variable is required")
 	}
 
 	return Config{
@@ -87,7 +111,11 @@ func Load() Config {
 		NullGatewayURL:  nullGatewayURL,
 		NullReceiptsURL: nullReceiptsURL,
 		ExchangeAPIURL:  exchangeAPIURL,
-		DataDir:         dataDir,
+		S3Endpoint:      s3Endpoint,
+		S3Bucket:        s3Bucket,
+		S3AccessKey:     s3AccessKey,
+		S3SecretKey:     s3SecretKey,
+		S3Region:        s3Region,
 		LogLevel:        logLevel,
 		LogFormat:       logFormat,
 	}

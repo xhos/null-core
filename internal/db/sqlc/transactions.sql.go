@@ -78,7 +78,7 @@ select
   unnest($11::char(3)[]),
   unnest($12::double precision[])
 returning
-  id, account_id, email_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at, split_from_id, forgiven
+  id, account_id, external_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at, split_from_id, forgiven
 `
 
 type BulkCreateTransactionsParams struct {
@@ -121,7 +121,7 @@ func (q *Queries) BulkCreateTransactions(ctx context.Context, arg BulkCreateTran
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
-			&i.EmailID,
+			&i.ExternalID,
 			&i.TxDate,
 			&i.TxAmountCents,
 			&i.TxCurrency,
@@ -239,7 +239,7 @@ func (q *Queries) CategorizeTransactionAtomic(ctx context.Context, arg Categoriz
 const createTransaction = `-- name: CreateTransaction :one
 insert into
   transactions (
-    email_id,
+    external_id,
     account_id,
     tx_date,
     tx_amount_cents,
@@ -291,12 +291,13 @@ where
     a.owner_id = $21::uuid
     or au.user_id is not null
   )
+on conflict (account_id, external_id) where external_id is not null do nothing
 returning
-  id, account_id, email_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at, split_from_id, forgiven
+  id, account_id, external_id, tx_date, tx_amount_cents, tx_currency, tx_direction, tx_desc, balance_after_cents, balance_currency, merchant, category_id, category_manually_set, merchant_manually_set, suggestions, user_notes, foreign_amount_cents, foreign_currency, exchange_rate, created_at, updated_at, split_from_id, forgiven
 `
 
 type CreateTransactionParams struct {
-	EmailID             *string   `db:"email_id" json:"email_id"`
+	ExternalID          *string   `db:"external_id" json:"external_id"`
 	AccountID           int64     `db:"account_id" json:"account_id"`
 	TxDate              time.Time `db:"tx_date" json:"tx_date"`
 	TxAmountCents       int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
@@ -321,7 +322,7 @@ type CreateTransactionParams struct {
 
 func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionParams) (Transaction, error) {
 	row := q.db.QueryRow(ctx, createTransaction,
-		arg.EmailID,
+		arg.ExternalID,
 		arg.AccountID,
 		arg.TxDate,
 		arg.TxAmountCents,
@@ -347,7 +348,7 @@ func (q *Queries) CreateTransaction(ctx context.Context, arg CreateTransactionPa
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.EmailID,
+		&i.ExternalID,
 		&i.TxDate,
 		&i.TxAmountCents,
 		&i.TxCurrency,
@@ -405,7 +406,7 @@ func (q *Queries) DeleteTransaction(ctx context.Context, arg DeleteTransactionPa
 
 const findCandidateTransactions = `-- name: FindCandidateTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven,
+  t.id, t.account_id, t.external_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven,
   similarity(t.tx_desc::text, $1::text) as merchant_score
 from
   transactions t
@@ -456,7 +457,7 @@ func (q *Queries) FindCandidateTransactions(ctx context.Context, arg FindCandida
 		if err := rows.Scan(
 			&i.Transaction.ID,
 			&i.Transaction.AccountID,
-			&i.Transaction.EmailID,
+			&i.Transaction.ExternalID,
 			&i.Transaction.TxDate,
 			&i.Transaction.TxAmountCents,
 			&i.Transaction.TxCurrency,
@@ -545,7 +546,7 @@ func (q *Queries) GetFriendAccountIDsFromSplits(ctx context.Context, ids []int64
 }
 
 const getSplitsBySourceID = `-- name: GetSplitsBySourceID :many
-select t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
+select t.id, t.account_id, t.external_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
 from transactions t
 where t.split_from_id = $1::bigint
 order by t.id
@@ -563,7 +564,7 @@ func (q *Queries) GetSplitsBySourceID(ctx context.Context, sourceID int64) ([]Tr
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
-			&i.EmailID,
+			&i.ExternalID,
 			&i.TxDate,
 			&i.TxAmountCents,
 			&i.TxCurrency,
@@ -597,7 +598,7 @@ func (q *Queries) GetSplitsBySourceID(ctx context.Context, sourceID int64) ([]Tr
 
 const getTransaction = `-- name: GetTransaction :one
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
+  t.id, t.account_id, t.external_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -622,7 +623,7 @@ func (q *Queries) GetTransaction(ctx context.Context, arg GetTransactionParams) 
 	err := row.Scan(
 		&i.ID,
 		&i.AccountID,
-		&i.EmailID,
+		&i.ExternalID,
 		&i.TxDate,
 		&i.TxAmountCents,
 		&i.TxCurrency,
@@ -695,7 +696,7 @@ func (q *Queries) GetTransactionCountByAccount(ctx context.Context, userID uuid.
 
 const listAllTransactions = `-- name: ListAllTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
+  t.id, t.account_id, t.external_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven
 from
   transactions t
   join accounts a on t.account_id = a.id
@@ -723,7 +724,7 @@ func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]
 		if err := rows.Scan(
 			&i.ID,
 			&i.AccountID,
-			&i.EmailID,
+			&i.ExternalID,
 			&i.TxDate,
 			&i.TxAmountCents,
 			&i.TxCurrency,
@@ -757,7 +758,7 @@ func (q *Queries) ListAllTransactions(ctx context.Context, userID uuid.UUID) ([]
 
 const listTransactions = `-- name: ListTransactions :many
 select
-  t.id, t.account_id, t.email_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven,
+  t.id, t.account_id, t.external_id, t.tx_date, t.tx_amount_cents, t.tx_currency, t.tx_direction, t.tx_desc, t.balance_after_cents, t.balance_currency, t.merchant, t.category_id, t.category_manually_set, t.merchant_manually_set, t.suggestions, t.user_notes, t.foreign_amount_cents, t.foreign_currency, t.exchange_rate, t.created_at, t.updated_at, t.split_from_id, t.forgiven,
   COALESCE((SELECT r.id FROM receipts r WHERE r.transaction_id = t.id LIMIT 1), 0)::bigint as receipt_id
 from
   transactions t
@@ -895,7 +896,7 @@ func (q *Queries) ListTransactions(ctx context.Context, arg ListTransactionsPara
 		if err := rows.Scan(
 			&i.Transaction.ID,
 			&i.Transaction.AccountID,
-			&i.Transaction.EmailID,
+			&i.Transaction.ExternalID,
 			&i.Transaction.TxDate,
 			&i.Transaction.TxAmountCents,
 			&i.Transaction.TxCurrency,
@@ -932,7 +933,7 @@ const updateTransaction = `-- name: UpdateTransaction :exec
 update
   transactions
 set
-  email_id = coalesce($1::text, email_id),
+  external_id = coalesce($1::text, external_id),
   account_id = coalesce($2::bigint, account_id),
   tx_date = coalesce($3::timestamptz, tx_date),
   tx_amount_cents = coalesce($4::bigint, tx_amount_cents),
@@ -965,7 +966,7 @@ where
 `
 
 type UpdateTransactionParams struct {
-	EmailID             *string    `db:"email_id" json:"email_id"`
+	ExternalID          *string    `db:"external_id" json:"external_id"`
 	AccountID           *int64     `db:"account_id" json:"account_id"`
 	TxDate              *time.Time `db:"tx_date" json:"tx_date"`
 	TxAmountCents       *int64     `db:"tx_amount_cents" json:"tx_amount_cents"`
@@ -988,7 +989,7 @@ type UpdateTransactionParams struct {
 
 func (q *Queries) UpdateTransaction(ctx context.Context, arg UpdateTransactionParams) error {
 	_, err := q.db.Exec(ctx, updateTransaction,
-		arg.EmailID,
+		arg.ExternalID,
 		arg.AccountID,
 		arg.TxDate,
 		arg.TxAmountCents,

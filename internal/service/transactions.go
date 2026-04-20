@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"math"
 
@@ -11,6 +12,7 @@ import (
 
 	"github.com/charmbracelet/log"
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
 )
 
 // ----- interface ---------------------------------------------------------------------------
@@ -78,6 +80,12 @@ func (s *txnSvc) Create(ctx context.Context, userID uuid.UUID, req *pb.CreateTra
 	for _, params := range paramsList {
 		tx, err := s.queries.CreateTransaction(ctx, params)
 		if err != nil {
+			// null-connector and null-email parser may send duplicats.
+			// that is expected and ignored.
+			if errors.Is(err, pgx.ErrNoRows) && params.ExternalID != nil {
+				s.log.Debug("skipping duplicate transaction", "external_id", *params.ExternalID, "account_id", params.AccountID)
+				continue
+			}
 			return nil, wrapErr("TransactionService.Create.Insert", err)
 		}
 		created = append(created, tx)

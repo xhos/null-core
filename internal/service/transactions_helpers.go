@@ -95,6 +95,7 @@ func buildCreateTxParamsList(userID uuid.UUID, req *pb.CreateTransactionRequest)
 		params := sqlc.CreateTransactionParams{
 			UserID:              userID,
 			AccountID:           txInput.GetAccountId(),
+			ExternalID:          txInput.ExternalId,
 			TxDate:              fromProtoTimestamp(txInput.TxDate),
 			TxAmountCents:       moneyToCents(txAmount),
 			TxCurrency:          txCurrency,
@@ -216,7 +217,7 @@ func transactionToPb(tx *sqlc.Transaction) *pb.Transaction {
 		TxAmount:            centsToMoney(tx.TxAmountCents, tx.TxCurrency),
 		Direction:           pb.TransactionDirection(tx.TxDirection),
 		AccountId:           tx.AccountID,
-		EmailId:             tx.EmailID,
+		ExternalId:          tx.ExternalID,
 		Description:         tx.TxDesc,
 		CategoryId:          tx.CategoryID,
 		CategoryManuallySet: tx.CategoryManuallySet,

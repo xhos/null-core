@@ -316,7 +316,7 @@ func TestBuildUpdateTxParams_MapsManualFlagsAndDefaults(t *testing.T) {
 
 func TestTransactionToPb_MapsOptionalFields(t *testing.T) {
 	now := time.Date(2026, 3, 24, 15, 30, 0, 0, time.UTC)
-	emailID := "email-1"
+	externalID := "external-1"
 	desc := "Dinner"
 	merchant := "Restaurant"
 	categoryID := int64(8)
@@ -330,7 +330,7 @@ func TestTransactionToPb_MapsOptionalFields(t *testing.T) {
 	tx := sqlc.Transaction{
 		ID:                  99,
 		AccountID:           12,
-		EmailID:             &emailID,
+		ExternalID:          &externalID,
 		TxDate:              now,
 		TxAmountCents:       2500,
 		TxCurrency:          "USD",

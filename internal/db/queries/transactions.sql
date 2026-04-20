@@ -100,7 +100,7 @@ where
 -- name: CreateTransaction :one
 insert into
   transactions (
-    email_id,
+    external_id,
     account_id,
     tx_date,
     tx_amount_cents,
@@ -122,7 +122,7 @@ insert into
     forgiven
   )
 select
-  sqlc.narg('email_id')::text,
+  sqlc.narg('external_id')::text,
   sqlc.arg(account_id)::bigint,
   sqlc.arg(tx_date)::timestamptz,
   sqlc.arg(tx_amount_cents)::bigint,
@@ -152,6 +152,7 @@ where
     a.owner_id = sqlc.arg(user_id)::uuid
     or au.user_id is not null
   )
+on conflict (account_id, external_id) where external_id is not null do nothing
 returning
   *;
 
@@ -191,7 +192,7 @@ returning
 update
   transactions
 set
-  email_id = coalesce(sqlc.narg('email_id')::text, email_id),
+  external_id = coalesce(sqlc.narg('external_id')::text, external_id),
   account_id = coalesce(sqlc.narg('account_id')::bigint, account_id),
   tx_date = coalesce(sqlc.narg('tx_date')::timestamptz, tx_date),
   tx_amount_cents = coalesce(sqlc.narg('tx_amount_cents')::bigint, tx_amount_cents),

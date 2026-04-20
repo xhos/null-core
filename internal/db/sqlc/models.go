@@ -78,7 +78,7 @@ type ReceiptItem struct {
 type Transaction struct {
 	ID                  int64                     `db:"id" json:"id"`
 	AccountID           int64                     `db:"account_id" json:"account_id"`
-	EmailID             *string                   `db:"email_id" json:"email_id"`
+	ExternalID          *string                   `db:"external_id" json:"external_id"`
 	TxDate              time.Time                 `db:"tx_date" json:"tx_date"`
 	TxAmountCents       int64                     `db:"tx_amount_cents" json:"tx_amount_cents"`
 	TxCurrency          string                    `db:"tx_currency" json:"tx_currency"`

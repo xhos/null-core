@@ -32,7 +32,7 @@ type Transaction struct {
 	Direction TransactionDirection   `protobuf:"varint,4,opt,name=direction,proto3,enum=null.v1.TransactionDirection" json:"direction,omitempty"`
 	AccountId int64                  `protobuf:"varint,5,opt,name=account_id,json=accountId,proto3" json:"account_id,omitempty"`
 	// metadata
-	EmailId     *string `protobuf:"bytes,6,opt,name=email_id,json=emailId,proto3,oneof" json:"email_id,omitempty"`
+	ExternalId  *string `protobuf:"bytes,6,opt,name=external_id,json=externalId,proto3,oneof" json:"external_id,omitempty"`
 	Description *string `protobuf:"bytes,7,opt,name=description,proto3,oneof" json:"description,omitempty"`
 	// categorization
 	CategoryId          *int64 `protobuf:"varint,8,opt,name=category_id,json=categoryId,proto3,oneof" json:"category_id,omitempty"`
@@ -125,9 +125,9 @@ func (x *Transaction) GetAccountId() int64 {
 	return 0
 }
 
-func (x *Transaction) GetEmailId() string {
-	if x != nil && x.EmailId != nil {
-		return *x.EmailId
+func (x *Transaction) GetExternalId() string {
+	if x != nil && x.ExternalId != nil {
+		return *x.ExternalId
 	}
 	return ""
 }
@@ -367,7 +367,7 @@ var File_null_v1_transaction_proto protoreflect.FileDescriptor
 
 const file_null_v1_transaction_proto_rawDesc = "" +
 	"\n" +
-	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x89\n" +
+	"\x19null/v1/transaction.proto\x12\anull.v1\x1a\x16null/v1/category.proto\x1a\x17google/type/money.proto\x1a\x13null/v1/enums.proto\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x92\n" +
 	"\n" +
 	"\vTransaction\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x123\n" +
@@ -375,8 +375,9 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"\ttx_amount\x18\x03 \x01(\v2\x12.google.type.MoneyR\btxAmount\x12;\n" +
 	"\tdirection\x18\x04 \x01(\x0e2\x1d.null.v1.TransactionDirectionR\tdirection\x12\x1d\n" +
 	"\n" +
-	"account_id\x18\x05 \x01(\x03R\taccountId\x12\x1e\n" +
-	"\bemail_id\x18\x06 \x01(\tH\x00R\aemailId\x88\x01\x01\x12/\n" +
+	"account_id\x18\x05 \x01(\x03R\taccountId\x12$\n" +
+	"\vexternal_id\x18\x06 \x01(\tH\x00R\n" +
+	"externalId\x88\x01\x01\x12/\n" +
 	"\vdescription\x18\a \x01(\tB\b\xbaH\x05r\x03\x18\xf4\x03H\x01R\vdescription\x88\x01\x01\x12-\n" +
 	"\vcategory_id\x18\b \x01(\x03B\a\xbaH\x04\"\x02 \x00H\x02R\n" +
 	"categoryId\x88\x01\x01\x122\n" +
@@ -400,8 +401,8 @@ const file_null_v1_transaction_proto_rawDesc = "" +
 	"R\treceiptId\x88\x01\x01\x12'\n" +
 	"\rsplit_from_id\x18\x15 \x01(\x03H\vR\vsplitFromId\x88\x01\x01\x12\x1a\n" +
 	"\bforgiven\x18\x16 \x01(\bR\bforgiven\x12,\n" +
-	"\x06splits\x18\x17 \x03(\v2\x14.null.v1.TransactionR\x06splitsB\v\n" +
-	"\t_email_idB\x0e\n" +
+	"\x06splits\x18\x17 \x03(\v2\x14.null.v1.TransactionR\x06splitsB\x0e\n" +
+	"\f_external_idB\x0e\n" +
 	"\f_descriptionB\x0e\n" +
 	"\f_category_idB\v\n" +
 	"\t_merchantB\r\n" +

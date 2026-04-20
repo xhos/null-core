@@ -23,3 +23,9 @@ returning *;
 -- name: DeleteConnectedAccount :execrows
 delete from connected_accounts
 where id = @id::bigint and user_id = @user_id::uuid;
+
+-- name: ListConnectionsForUser :many
+select id, provider, status, sync_cursor, created_at
+from connected_accounts
+where user_id = @user_id::uuid
+order by created_at desc;

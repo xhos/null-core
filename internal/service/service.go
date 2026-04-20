@@ -21,6 +21,7 @@ type Services struct {
 	Users        UserService
 	Receipts     ReceiptService
 	Connector    ConnectorService
+	Connections  ConnectionService
 }
 
 func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, error) {
@@ -51,5 +52,6 @@ func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, er
 		Users:        newUserSvc(queries, logger.WithPrefix("user")),
 		Receipts:     newRcptSvc(queries, logger.WithPrefix("rcpt"), cfg.NullReceiptsURL, store),
 		Connector:    newConnSvc(queries, cipher, logger.WithPrefix("connector")),
+		Connections:  newConnectionSvc(queries, cipher),
 	}, nil
 }

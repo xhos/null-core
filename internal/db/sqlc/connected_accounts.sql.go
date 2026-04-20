@@ -116,6 +116,47 @@ func (q *Queries) ListActiveConnectedAccounts(ctx context.Context) ([]ConnectedA
 	return items, nil
 }
 
+const listConnectionsForUser = `-- name: ListConnectionsForUser :many
+select id, provider, status, sync_cursor, created_at
+from connected_accounts
+where user_id = $1::uuid
+order by created_at desc
+`
+
+type ListConnectionsForUserRow struct {
+	ID         int64      `db:"id" json:"id"`
+	Provider   string     `db:"provider" json:"provider"`
+	Status     string     `db:"status" json:"status"`
+	SyncCursor *time.Time `db:"sync_cursor" json:"sync_cursor"`
+	CreatedAt  time.Time  `db:"created_at" json:"created_at"`
+}
+
+func (q *Queries) ListConnectionsForUser(ctx context.Context, userID uuid.UUID) ([]ListConnectionsForUserRow, error) {
+	rows, err := q.db.Query(ctx, listConnectionsForUser, userID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListConnectionsForUserRow
+	for rows.Next() {
+		var i ListConnectionsForUserRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.Provider,
+			&i.Status,
+			&i.SyncCursor,
+			&i.CreatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateConnectedAccountCursor = `-- name: UpdateConnectedAccountCursor :exec
 update connected_accounts
 set sync_cursor = $1::timestamptz,

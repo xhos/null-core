@@ -1,7 +1,10 @@
 package service
 
 import (
+	"fmt"
+
 	"null-core/internal/config"
+	"null-core/internal/crypto"
 	"null-core/internal/db"
 	"null-core/internal/exchange"
 	"null-core/internal/storage"
@@ -17,6 +20,7 @@ type Services struct {
 	Dashboard    DashboardService
 	Users        UserService
 	Receipts     ReceiptService
+	Connector    ConnectorService
 }
 
 func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, error) {
@@ -33,6 +37,11 @@ func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, er
 		Region:    cfg.S3Region,
 	})
 
+	cipher, err := crypto.NewFromHex(cfg.CredentialsKey)
+	if err != nil {
+		return nil, fmt.Errorf("init credentials cipher: %w", err)
+	}
+
 	return &Services{
 		Transactions: newTxnSvc(queries, logger.WithPrefix("txn"), catSvc, ruleSvc, exchangeClient),
 		Categories:   catSvc,
@@ -41,5 +50,6 @@ func New(database *db.DB, logger *log.Logger, cfg *config.Config) (*Services, er
 		Dashboard:    newDashSvc(queries, exchangeClient),
 		Users:        newUserSvc(queries, logger.WithPrefix("user")),
 		Receipts:     newRcptSvc(queries, logger.WithPrefix("rcpt"), cfg.NullReceiptsURL, store),
+		Connector:    newConnSvc(queries, cipher, logger.WithPrefix("connector")),
 	}, nil
 }

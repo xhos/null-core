@@ -43,6 +43,17 @@ type Category struct {
 	UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
 }
 
+type ConnectedAccount struct {
+	ID          int64      `db:"id" json:"id"`
+	UserID      uuid.UUID  `db:"user_id" json:"user_id"`
+	Provider    string     `db:"provider" json:"provider"`
+	Credentials []byte     `db:"credentials" json:"credentials"`
+	SyncCursor  *time.Time `db:"sync_cursor" json:"sync_cursor"`
+	Status      string     `db:"status" json:"status"`
+	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
+}
+
 type Receipt struct {
 	ID            int64              `db:"id" json:"id"`
 	UserID        uuid.UUID          `db:"user_id" json:"user_id"`

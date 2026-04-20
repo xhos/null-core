@@ -11,6 +11,8 @@ type Config struct {
 	ListenAddress string
 	APIKey        string // for for internal service communication
 
+	CredentialsKey string
+
 	DatabaseURL     string
 	NullGatewayURL  string
 	NullReceiptsURL string
@@ -40,6 +42,11 @@ func Load() Config {
 	apiKey := os.Getenv("API_KEY")
 	if apiKey == "" {
 		panic("API_KEY environment variable is required")
+	}
+
+	credentialsKey := os.Getenv("CREDENTIALS_KEY")
+	if credentialsKey == "" {
+		panic("CREDENTIALS_KEY environment variable is required (64 hex chars)")
 	}
 
 	nullGatewayURL := os.Getenv("NULL_GATEWAY_URL")
@@ -107,6 +114,7 @@ func Load() Config {
 	return Config{
 		ListenAddress:   parseAddress(listenAddr),
 		APIKey:          apiKey,
+		CredentialsKey:  credentialsKey,
 		DatabaseURL:     databaseURL,
 		NullGatewayURL:  nullGatewayURL,
 		NullReceiptsURL: nullReceiptsURL,

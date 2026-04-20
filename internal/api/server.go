@@ -27,6 +27,7 @@ func NewServer(services *service.Services, logger *log.Logger) *Server {
 		"null.v1.RuleService",
 		"null.v1.DashboardService",
 		"null.v1.ReceiptService",
+		"null.v1.ConnectorService",
 	)
 
 	return &Server{
@@ -75,6 +76,7 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 		"null.v1.RuleService",
 		"null.v1.DashboardService",
 		"null.v1.ReceiptService",
+		"null.v1.ConnectorService",
 	)
 	reflectPath, reflectHandler := grpcreflect.NewHandlerV1(reflector)
 	mux.Handle(reflectPath, reflectHandler)
@@ -106,6 +108,9 @@ func (s *Server) registerServices(mux *http.ServeMux) {
 	mux.Handle(path, handler)
 
 	path, handler = nullv1connect.NewReceiptServiceHandler(s, interceptors)
+	mux.Handle(path, handler)
+
+	path, handler = nullv1connect.NewConnectorServiceHandler(s, interceptors)
 	mux.Handle(path, handler)
 
 	s.log.Info("all connect-go services registered",

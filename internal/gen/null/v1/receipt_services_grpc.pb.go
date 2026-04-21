@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion9
 
 const (
 	ReceiptService_UploadReceipt_FullMethodName     = "/null.v1.ReceiptService/UploadReceipt"
+	ReceiptService_CreateReceipt_FullMethodName     = "/null.v1.ReceiptService/CreateReceipt"
 	ReceiptService_ListReceipts_FullMethodName      = "/null.v1.ReceiptService/ListReceipts"
 	ReceiptService_GetReceipt_FullMethodName        = "/null.v1.ReceiptService/GetReceipt"
 	ReceiptService_UpdateReceipt_FullMethodName     = "/null.v1.ReceiptService/UpdateReceipt"
@@ -32,6 +33,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ReceiptServiceClient interface {
 	UploadReceipt(ctx context.Context, in *UploadReceiptRequest, opts ...grpc.CallOption) (*UploadReceiptResponse, error)
+	CreateReceipt(ctx context.Context, in *CreateReceiptRequest, opts ...grpc.CallOption) (*CreateReceiptResponse, error)
 	ListReceipts(ctx context.Context, in *ListReceiptsRequest, opts ...grpc.CallOption) (*ListReceiptsResponse, error)
 	GetReceipt(ctx context.Context, in *GetReceiptRequest, opts ...grpc.CallOption) (*GetReceiptResponse, error)
 	UpdateReceipt(ctx context.Context, in *UpdateReceiptRequest, opts ...grpc.CallOption) (*UpdateReceiptResponse, error)
@@ -51,6 +53,16 @@ func (c *receiptServiceClient) UploadReceipt(ctx context.Context, in *UploadRece
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(UploadReceiptResponse)
 	err := c.cc.Invoke(ctx, ReceiptService_UploadReceipt_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *receiptServiceClient) CreateReceipt(ctx context.Context, in *CreateReceiptRequest, opts ...grpc.CallOption) (*CreateReceiptResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateReceiptResponse)
+	err := c.cc.Invoke(ctx, ReceiptService_CreateReceipt_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +124,7 @@ func (c *receiptServiceClient) RetryParseReceipt(ctx context.Context, in *RetryP
 // for forward compatibility.
 type ReceiptServiceServer interface {
 	UploadReceipt(context.Context, *UploadReceiptRequest) (*UploadReceiptResponse, error)
+	CreateReceipt(context.Context, *CreateReceiptRequest) (*CreateReceiptResponse, error)
 	ListReceipts(context.Context, *ListReceiptsRequest) (*ListReceiptsResponse, error)
 	GetReceipt(context.Context, *GetReceiptRequest) (*GetReceiptResponse, error)
 	UpdateReceipt(context.Context, *UpdateReceiptRequest) (*UpdateReceiptResponse, error)
@@ -129,6 +142,9 @@ type UnimplementedReceiptServiceServer struct{}
 
 func (UnimplementedReceiptServiceServer) UploadReceipt(context.Context, *UploadReceiptRequest) (*UploadReceiptResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UploadReceipt not implemented")
+}
+func (UnimplementedReceiptServiceServer) CreateReceipt(context.Context, *CreateReceiptRequest) (*CreateReceiptResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateReceipt not implemented")
 }
 func (UnimplementedReceiptServiceServer) ListReceipts(context.Context, *ListReceiptsRequest) (*ListReceiptsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListReceipts not implemented")
@@ -180,6 +196,24 @@ func _ReceiptService_UploadReceipt_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ReceiptServiceServer).UploadReceipt(ctx, req.(*UploadReceiptRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ReceiptService_CreateReceipt_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateReceiptRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ReceiptServiceServer).CreateReceipt(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ReceiptService_CreateReceipt_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ReceiptServiceServer).CreateReceipt(ctx, req.(*CreateReceiptRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -284,6 +318,10 @@ var ReceiptService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UploadReceipt",
 			Handler:    _ReceiptService_UploadReceipt_Handler,
+		},
+		{
+			MethodName: "CreateReceipt",
+			Handler:    _ReceiptService_CreateReceipt_Handler,
 		},
 		{
 			MethodName: "ListReceipts",

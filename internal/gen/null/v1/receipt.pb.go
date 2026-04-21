@@ -176,7 +176,7 @@ type Receipt struct {
 	Id                  int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
 	UserId              string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	TransactionId       *int64                 `protobuf:"varint,3,opt,name=transaction_id,json=transactionId,proto3,oneof" json:"transaction_id,omitempty"`
-	ImagePath           string                 `protobuf:"bytes,4,opt,name=image_path,json=imagePath,proto3" json:"image_path,omitempty"`
+	ImagePath           *string                `protobuf:"bytes,4,opt,name=image_path,json=imagePath,proto3,oneof" json:"image_path,omitempty"`
 	Merchant            *string                `protobuf:"bytes,5,opt,name=merchant,proto3,oneof" json:"merchant,omitempty"`
 	ReceiptDate         *date.Date             `protobuf:"bytes,6,opt,name=receipt_date,json=receiptDate,proto3,oneof" json:"receipt_date,omitempty"`
 	Currency            *string                `protobuf:"bytes,7,opt,name=currency,proto3,oneof" json:"currency,omitempty"`
@@ -192,6 +192,7 @@ type Receipt struct {
 	TransactionAmount   *money.Money           `protobuf:"bytes,17,opt,name=transaction_amount,json=transactionAmount,proto3,oneof" json:"transaction_amount,omitempty"`
 	ImageTakenAt        *timestamppb.Timestamp `protobuf:"bytes,18,opt,name=image_taken_at,json=imageTakenAt,proto3,oneof" json:"image_taken_at,omitempty"`
 	BestDate            *date.Date             `protobuf:"bytes,19,opt,name=best_date,json=bestDate,proto3,oneof" json:"best_date,omitempty"`
+	Source              string                 `protobuf:"bytes,20,opt,name=source,proto3" json:"source,omitempty"`
 	unknownFields       protoimpl.UnknownFields
 	sizeCache           protoimpl.SizeCache
 }
@@ -248,8 +249,8 @@ func (x *Receipt) GetTransactionId() int64 {
 }
 
 func (x *Receipt) GetImagePath() string {
-	if x != nil {
-		return x.ImagePath
+	if x != nil && x.ImagePath != nil {
+		return *x.ImagePath
 	}
 	return ""
 }
@@ -357,6 +358,13 @@ func (x *Receipt) GetBestDate() *date.Date {
 		return x.BestDate
 	}
 	return nil
+}
+
+func (x *Receipt) GetSource() string {
+	if x != nil {
+		return x.Source
+	}
+	return ""
 }
 
 type ReceiptLinkCandidate struct {
@@ -475,22 +483,22 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"unit_price\x18\x06 \x01(\v2\x12.google.type.MoneyR\tunitPrice\x12\x1d\n" +
 	"\n" +
 	"sort_order\x18\a \x01(\x05R\tsortOrderB\a\n" +
-	"\x05_name\"\xb9\b\n" +
+	"\x05_name\"\xe5\b\n" +
 	"\aReceipt\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12*\n" +
-	"\x0etransaction_id\x18\x03 \x01(\x03H\x00R\rtransactionId\x88\x01\x01\x12\x1d\n" +
+	"\x0etransaction_id\x18\x03 \x01(\x03H\x00R\rtransactionId\x88\x01\x01\x12\"\n" +
 	"\n" +
-	"image_path\x18\x04 \x01(\tR\timagePath\x12\x1f\n" +
-	"\bmerchant\x18\x05 \x01(\tH\x01R\bmerchant\x88\x01\x01\x129\n" +
-	"\freceipt_date\x18\x06 \x01(\v2\x11.google.type.DateH\x02R\vreceiptDate\x88\x01\x01\x12\x1f\n" +
-	"\bcurrency\x18\a \x01(\tH\x03R\bcurrency\x88\x01\x01\x123\n" +
-	"\bsubtotal\x18\b \x01(\v2\x12.google.type.MoneyH\x04R\bsubtotal\x88\x01\x01\x12)\n" +
-	"\x03tax\x18\t \x01(\v2\x12.google.type.MoneyH\x05R\x03tax\x88\x01\x01\x12-\n" +
+	"image_path\x18\x04 \x01(\tH\x01R\timagePath\x88\x01\x01\x12\x1f\n" +
+	"\bmerchant\x18\x05 \x01(\tH\x02R\bmerchant\x88\x01\x01\x129\n" +
+	"\freceipt_date\x18\x06 \x01(\v2\x11.google.type.DateH\x03R\vreceiptDate\x88\x01\x01\x12\x1f\n" +
+	"\bcurrency\x18\a \x01(\tH\x04R\bcurrency\x88\x01\x01\x123\n" +
+	"\bsubtotal\x18\b \x01(\v2\x12.google.type.MoneyH\x05R\bsubtotal\x88\x01\x01\x12)\n" +
+	"\x03tax\x18\t \x01(\v2\x12.google.type.MoneyH\x06R\x03tax\x88\x01\x01\x12-\n" +
 	"\x05total\x18\n" +
-	" \x01(\v2\x12.google.type.MoneyH\x06R\x05total\x88\x01\x01\x12#\n" +
+	" \x01(\v2\x12.google.type.MoneyH\aR\x05total\x88\x01\x01\x12#\n" +
 	"\n" +
-	"confidence\x18\v \x01(\x02H\aR\n" +
+	"confidence\x18\v \x01(\x02H\bR\n" +
 	"confidence\x88\x01\x01\x12.\n" +
 	"\x06status\x18\f \x01(\x0e2\x16.null.v1.ReceiptStatusR\x06status\x12*\n" +
 	"\x05items\x18\r \x03(\v2\x14.null.v1.ReceiptItemR\x05items\x129\n" +
@@ -498,12 +506,14 @@ const file_null_v1_receipt_proto_rawDesc = "" +
 	"created_at\x18\x0e \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x129\n" +
 	"\n" +
 	"updated_at\x18\x0f \x01(\v2\x1a.google.protobuf.TimestampR\tupdatedAt\x126\n" +
-	"\x14transaction_merchant\x18\x10 \x01(\tH\bR\x13transactionMerchant\x88\x01\x01\x12F\n" +
-	"\x12transaction_amount\x18\x11 \x01(\v2\x12.google.type.MoneyH\tR\x11transactionAmount\x88\x01\x01\x12E\n" +
-	"\x0eimage_taken_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampH\n" +
-	"R\fimageTakenAt\x88\x01\x01\x123\n" +
-	"\tbest_date\x18\x13 \x01(\v2\x11.google.type.DateH\vR\bbestDate\x88\x01\x01B\x11\n" +
-	"\x0f_transaction_idB\v\n" +
+	"\x14transaction_merchant\x18\x10 \x01(\tH\tR\x13transactionMerchant\x88\x01\x01\x12F\n" +
+	"\x12transaction_amount\x18\x11 \x01(\v2\x12.google.type.MoneyH\n" +
+	"R\x11transactionAmount\x88\x01\x01\x12E\n" +
+	"\x0eimage_taken_at\x18\x12 \x01(\v2\x1a.google.protobuf.TimestampH\vR\fimageTakenAt\x88\x01\x01\x123\n" +
+	"\tbest_date\x18\x13 \x01(\v2\x11.google.type.DateH\fR\bbestDate\x88\x01\x01\x12\x16\n" +
+	"\x06source\x18\x14 \x01(\tR\x06sourceB\x11\n" +
+	"\x0f_transaction_idB\r\n" +
+	"\v_image_pathB\v\n" +
 	"\t_merchantB\x0f\n" +
 	"\r_receipt_dateB\v\n" +
 	"\t_currencyB\v\n" +

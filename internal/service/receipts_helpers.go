@@ -214,6 +214,7 @@ func receiptToPb(r *sqlc.Receipt, items []sqlc.ReceiptItem) *pb.Receipt {
 		Status:        pb.ReceiptStatus(r.Status),
 		CreatedAt:     timestamppb.New(r.CreatedAt),
 		UpdatedAt:     timestamppb.New(r.UpdatedAt),
+		Source:        r.Source,
 	}
 
 	if r.ReceiptDate != nil {
@@ -258,6 +259,7 @@ func receiptListRowToPb(r *sqlc.ListReceiptsRow, items []sqlc.ReceiptItem) *pb.R
 		Status:        pb.ReceiptStatus(r.Status),
 		CreatedAt:     timestamppb.New(r.CreatedAt),
 		UpdatedAt:     timestamppb.New(r.UpdatedAt),
+		Source:        r.Source,
 	}
 
 	if r.ReceiptDate != nil {

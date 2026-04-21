@@ -34,6 +34,19 @@ func (s *Server) UploadReceipt(ctx context.Context, req *connect.Request[pb.Uplo
 	}), nil
 }
 
+func (s *Server) CreateReceipt(ctx context.Context, req *connect.Request[pb.CreateReceiptRequest]) (*connect.Response[pb.CreateReceiptResponse], error) {
+	userID, err := getUserID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
+	receipt, err := s.services.Receipts.Create(ctx, userID, req.Msg)
+	if err != nil {
+		return nil, wrapErr(err)
+	}
+	return connect.NewResponse(&pb.CreateReceiptResponse{Receipt: receipt}), nil
+}
+
 func (s *Server) ListReceipts(ctx context.Context, req *connect.Request[pb.ListReceiptsRequest]) (*connect.Response[pb.ListReceiptsResponse], error) {
 	userID, err := getUserID(ctx)
 	if err != nil {

@@ -26,6 +26,7 @@ import (
 
 type ReceiptService interface {
 	Upload(ctx context.Context, userID uuid.UUID, imageData []byte, contentType string) (*pb.Receipt, error)
+	Create(ctx context.Context, userID uuid.UUID, req *pb.CreateReceiptRequest) (*pb.Receipt, error)
 	Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, []byte, error)
 	List(ctx context.Context, userID uuid.UUID, req *pb.ListReceiptsRequest) ([]*pb.Receipt, int64, error)
 	Update(ctx context.Context, userID uuid.UUID, id int64, req *pb.UpdateReceiptRequest) (*pb.Receipt, error)
@@ -129,6 +130,56 @@ func (s *rcptSvc) Upload(ctx context.Context, userID uuid.UUID, imageData []byte
 	return receiptToPb(&row, nil), nil
 }
 
+func (s *rcptSvc) Create(ctx context.Context, userID uuid.UUID, req *pb.CreateReceiptRequest) (*pb.Receipt, error) {
+	status := pb.ReceiptStatus_RECEIPT_STATUS_PARSED
+	if req.TransactionId != nil {
+		status = pb.ReceiptStatus_RECEIPT_STATUS_LINKED
+	}
+
+	var receiptDate *time.Time
+	if d := req.GetReceiptDate(); d != nil {
+		t := time.Date(int(d.Year), time.Month(d.Month), int(d.Day), 0, 0, 0, 0, time.UTC)
+		receiptDate = &t
+	}
+
+	row, err := s.queries.CreateReceiptRecord(ctx, sqlc.CreateReceiptRecordParams{
+		UserID:        userID,
+		TransactionID: req.TransactionId,
+		Merchant:      req.Merchant,
+		ReceiptDate:   receiptDate,
+		Currency:      req.Currency,
+		SubtotalCents: req.SubtotalCents,
+		TaxCents:      req.TaxCents,
+		TotalCents:    req.TotalCents,
+		Status:        int16(status),
+	})
+	if err != nil {
+		return nil, wrapErr("ReceiptService.Create", err)
+	}
+
+	currency := receiptCurrencyOrDefault(row.Currency)
+	for i, item := range req.Items {
+		_, err := s.queries.CreateReceiptItem(ctx, sqlc.CreateReceiptItemParams{
+			ReceiptID:      row.ID,
+			RawName:        item.RawName,
+			Name:           item.Name,
+			Quantity:       item.Quantity,
+			UnitPriceCents: item.UnitPriceCents,
+			UnitCurrency:   currency,
+			SortOrder:      int32(i),
+		})
+		if err != nil {
+			return nil, wrapErr("ReceiptService.Create.CreateItem", err)
+		}
+	}
+
+	items, err := s.queries.ListReceiptItems(ctx, row.ID)
+	if err != nil {
+		return nil, wrapErr("ReceiptService.Create.ListItems", err)
+	}
+	return receiptToPb(&row, items), nil
+}
+
 func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Receipt, []*pb.ReceiptLinkCandidate, []byte, error) {
 	row, err := s.queries.GetReceipt(ctx, sqlc.GetReceiptParams{
 		ID:     id,
@@ -145,9 +196,12 @@ func (s *rcptSvc) Get(ctx context.Context, userID uuid.UUID, id int64) (*pb.Rece
 
 	receipt := receiptToPb(&row, items)
 
-	imageData, err := s.store.Get(ctx, row.ImagePath)
-	if err != nil {
-		return nil, nil, nil, fmt.Errorf("ReceiptService.Get: %w", err)
+	var imageData []byte
+	if row.ImagePath != nil {
+		imageData, err = s.store.Get(ctx, *row.ImagePath)
+		if err != nil {
+			return nil, nil, nil, fmt.Errorf("ReceiptService.Get: %w", err)
+		}
 	}
 
 	var candidates []*pb.ReceiptLinkCandidate
@@ -251,8 +305,10 @@ func (s *rcptSvc) Delete(ctx context.Context, userID uuid.UUID, id int64) error 
 		return wrapErr("ReceiptService.Delete", err)
 	}
 
-	if err := s.store.Delete(ctx, row.ImagePath); err != nil {
-		s.log.Warn("failed to remove receipt image", "key", row.ImagePath, "error", err)
+	if row.ImagePath != nil {
+		if err := s.store.Delete(ctx, *row.ImagePath); err != nil {
+			s.log.Warn("failed to remove receipt image", "key", *row.ImagePath, "error", err)
+		}
 	}
 
 	return nil
@@ -360,14 +416,19 @@ func (s *rcptSvc) retryUnlinkedReceipts(ctx context.Context) {
 }
 
 func (s *rcptSvc) processOneReceipt(ctx context.Context, receipt sqlc.Receipt) {
-	imageData, err := s.store.Get(ctx, receipt.ImagePath)
+	if receipt.ImagePath == nil {
+		s.log.Error("pending receipt has no image_path", "id", receipt.ID)
+		s.setReceiptFailed(ctx, receipt)
+		return
+	}
+	imageData, err := s.store.Get(ctx, *receipt.ImagePath)
 	if err != nil {
-		s.log.Error("failed to read receipt image", "id", receipt.ID, "key", receipt.ImagePath, "error", err)
+		s.log.Error("failed to read receipt image", "id", receipt.ID, "key", *receipt.ImagePath, "error", err)
 		s.setReceiptFailed(ctx, receipt)
 		return
 	}
 
-	contentType := extToContentType(path.Ext(receipt.ImagePath))
+	contentType := extToContentType(path.Ext(*receipt.ImagePath))
 
 	ocrCtx, cancel := context.WithTimeout(ctx, 5*time.Minute)
 	defer cancel()

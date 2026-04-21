@@ -58,7 +58,7 @@ type Receipt struct {
 	ID            int64              `db:"id" json:"id"`
 	UserID        uuid.UUID          `db:"user_id" json:"user_id"`
 	TransactionID *int64             `db:"transaction_id" json:"transaction_id"`
-	ImagePath     string             `db:"image_path" json:"image_path"`
+	ImagePath     *string            `db:"image_path" json:"image_path"`
 	Merchant      *string            `db:"merchant" json:"merchant"`
 	ReceiptDate   *time.Time         `db:"receipt_date" json:"receipt_date"`
 	Currency      *string            `db:"currency" json:"currency"`
@@ -71,6 +71,7 @@ type Receipt struct {
 	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
 	ImageHash     *string            `db:"image_hash" json:"image_hash"`
 	ImageTakenAt  *time.Time         `db:"image_taken_at" json:"image_taken_at"`
+	Source        string             `db:"source" json:"source"`
 }
 
 type ReceiptItem struct {

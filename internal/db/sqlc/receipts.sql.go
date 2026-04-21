@@ -28,7 +28,7 @@ VALUES (
   $4::timestamptz,
   $5::smallint
 )
-RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 `
 
 type CreateReceiptParams struct {
@@ -65,6 +65,7 @@ func (q *Queries) CreateReceipt(ctx context.Context, arg CreateReceiptParams) (R
 		&i.UpdatedAt,
 		&i.ImageHash,
 		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }
@@ -123,6 +124,81 @@ func (q *Queries) CreateReceiptItem(ctx context.Context, arg CreateReceiptItemPa
 		&i.SortOrder,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const createReceiptRecord = `-- name: CreateReceiptRecord :one
+INSERT INTO receipts (
+  user_id,
+  transaction_id,
+  merchant,
+  receipt_date,
+  currency,
+  subtotal_cents,
+  tax_cents,
+  total_cents,
+  status,
+  source
+)
+VALUES (
+  $1::uuid,
+  $2::bigint,
+  $3::text,
+  $4::date,
+  $5::text,
+  $6::bigint,
+  $7::bigint,
+  $8::bigint,
+  $9::smallint,
+  'manual'
+)
+RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
+`
+
+type CreateReceiptRecordParams struct {
+	UserID        uuid.UUID  `db:"user_id" json:"user_id"`
+	TransactionID *int64     `db:"transaction_id" json:"transaction_id"`
+	Merchant      *string    `db:"merchant" json:"merchant"`
+	ReceiptDate   *time.Time `db:"receipt_date" json:"receipt_date"`
+	Currency      *string    `db:"currency" json:"currency"`
+	SubtotalCents *int64     `db:"subtotal_cents" json:"subtotal_cents"`
+	TaxCents      *int64     `db:"tax_cents" json:"tax_cents"`
+	TotalCents    *int64     `db:"total_cents" json:"total_cents"`
+	Status        int16      `db:"status" json:"status"`
+}
+
+func (q *Queries) CreateReceiptRecord(ctx context.Context, arg CreateReceiptRecordParams) (Receipt, error) {
+	row := q.db.QueryRow(ctx, createReceiptRecord,
+		arg.UserID,
+		arg.TransactionID,
+		arg.Merchant,
+		arg.ReceiptDate,
+		arg.Currency,
+		arg.SubtotalCents,
+		arg.TaxCents,
+		arg.TotalCents,
+		arg.Status,
+	)
+	var i Receipt
+	err := row.Scan(
+		&i.ID,
+		&i.UserID,
+		&i.TransactionID,
+		&i.ImagePath,
+		&i.Merchant,
+		&i.ReceiptDate,
+		&i.Currency,
+		&i.SubtotalCents,
+		&i.TaxCents,
+		&i.TotalCents,
+		&i.Confidence,
+		&i.Status,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.ImageHash,
+		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }
@@ -242,7 +318,7 @@ func (q *Queries) FindReceiptLinkCandidates(ctx context.Context, arg FindReceipt
 }
 
 const getParsedUnlinkedReceipts = `-- name: GetParsedUnlinkedReceipts :many
-SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 FROM receipts
 WHERE status = 2
   AND transaction_id IS NULL
@@ -278,6 +354,7 @@ func (q *Queries) GetParsedUnlinkedReceipts(ctx context.Context) ([]Receipt, err
 			&i.UpdatedAt,
 			&i.ImageHash,
 			&i.ImageTakenAt,
+			&i.Source,
 		); err != nil {
 			return nil, err
 		}
@@ -290,7 +367,7 @@ func (q *Queries) GetParsedUnlinkedReceipts(ctx context.Context) ([]Receipt, err
 }
 
 const getPendingReceipts = `-- name: GetPendingReceipts :many
-SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 FROM receipts
 WHERE status = 1
 ORDER BY created_at ASC
@@ -323,6 +400,7 @@ func (q *Queries) GetPendingReceipts(ctx context.Context) ([]Receipt, error) {
 			&i.UpdatedAt,
 			&i.ImageHash,
 			&i.ImageTakenAt,
+			&i.Source,
 		); err != nil {
 			return nil, err
 		}
@@ -335,7 +413,7 @@ func (q *Queries) GetPendingReceipts(ctx context.Context) ([]Receipt, error) {
 }
 
 const getReceipt = `-- name: GetReceipt :one
-SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 FROM receipts
 WHERE id = $1::bigint
   AND user_id = $2::uuid
@@ -366,12 +444,13 @@ func (q *Queries) GetReceipt(ctx context.Context, arg GetReceiptParams) (Receipt
 		&i.UpdatedAt,
 		&i.ImageHash,
 		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }
 
 const getReceiptByImageHash = `-- name: GetReceiptByImageHash :one
-SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+SELECT id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 FROM receipts
 WHERE user_id = $1::uuid
   AND image_hash = $2::text
@@ -402,6 +481,7 @@ func (q *Queries) GetReceiptByImageHash(ctx context.Context, arg GetReceiptByIma
 		&i.UpdatedAt,
 		&i.ImageHash,
 		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }
@@ -446,7 +526,7 @@ func (q *Queries) ListReceiptItems(ctx context.Context, receiptID int64) ([]Rece
 
 const listReceipts = `-- name: ListReceipts :many
 SELECT
-  r.id, r.user_id, r.transaction_id, r.image_path, r.merchant, r.receipt_date, r.currency, r.subtotal_cents, r.tax_cents, r.total_cents, r.confidence, r.status, r.created_at, r.updated_at, r.image_hash, r.image_taken_at,
+  r.id, r.user_id, r.transaction_id, r.image_path, r.merchant, r.receipt_date, r.currency, r.subtotal_cents, r.tax_cents, r.total_cents, r.confidence, r.status, r.created_at, r.updated_at, r.image_hash, r.image_taken_at, r.source,
   count(*) OVER() AS total_count
 FROM receipts r
 WHERE r.user_id = $1::uuid
@@ -513,7 +593,7 @@ type ListReceiptsRow struct {
 	ID            int64              `db:"id" json:"id"`
 	UserID        uuid.UUID          `db:"user_id" json:"user_id"`
 	TransactionID *int64             `db:"transaction_id" json:"transaction_id"`
-	ImagePath     string             `db:"image_path" json:"image_path"`
+	ImagePath     *string            `db:"image_path" json:"image_path"`
 	Merchant      *string            `db:"merchant" json:"merchant"`
 	ReceiptDate   *time.Time         `db:"receipt_date" json:"receipt_date"`
 	Currency      *string            `db:"currency" json:"currency"`
@@ -526,6 +606,7 @@ type ListReceiptsRow struct {
 	UpdatedAt     time.Time          `db:"updated_at" json:"updated_at"`
 	ImageHash     *string            `db:"image_hash" json:"image_hash"`
 	ImageTakenAt  *time.Time         `db:"image_taken_at" json:"image_taken_at"`
+	Source        string             `db:"source" json:"source"`
 	TotalCount    int64              `db:"total_count" json:"total_count"`
 }
 
@@ -567,6 +648,7 @@ func (q *Queries) ListReceipts(ctx context.Context, arg ListReceiptsParams) ([]L
 			&i.UpdatedAt,
 			&i.ImageHash,
 			&i.ImageTakenAt,
+			&i.Source,
 			&i.TotalCount,
 		); err != nil {
 			return nil, err
@@ -593,7 +675,7 @@ SET
   transaction_id = NULL
 WHERE id = $1::bigint
   AND user_id = $2::uuid
-RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 `
 
 type ResetReceiptForRetryParams struct {
@@ -621,6 +703,7 @@ func (q *Queries) ResetReceiptForRetry(ctx context.Context, arg ResetReceiptForR
 		&i.UpdatedAt,
 		&i.ImageHash,
 		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }
@@ -639,7 +722,7 @@ SET
   status         = coalesce($9::smallint, status)
 WHERE id = $10::bigint
   AND user_id = $11::uuid
-RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at
+RETURNING id, user_id, transaction_id, image_path, merchant, receipt_date, currency, subtotal_cents, tax_cents, total_cents, confidence, status, created_at, updated_at, image_hash, image_taken_at, source
 `
 
 type UpdateReceiptParams struct {
@@ -688,6 +771,7 @@ func (q *Queries) UpdateReceipt(ctx context.Context, arg UpdateReceiptParams) (R
 		&i.UpdatedAt,
 		&i.ImageHash,
 		&i.ImageTakenAt,
+		&i.Source,
 	)
 	return i, err
 }

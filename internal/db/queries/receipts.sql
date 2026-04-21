@@ -15,6 +15,33 @@ VALUES (
 )
 RETURNING *;
 
+-- name: CreateReceiptRecord :one
+INSERT INTO receipts (
+  user_id,
+  transaction_id,
+  merchant,
+  receipt_date,
+  currency,
+  subtotal_cents,
+  tax_cents,
+  total_cents,
+  status,
+  source
+)
+VALUES (
+  sqlc.arg(user_id)::uuid,
+  sqlc.narg('transaction_id')::bigint,
+  sqlc.narg('merchant')::text,
+  sqlc.narg('receipt_date')::date,
+  sqlc.narg('currency')::text,
+  sqlc.narg('subtotal_cents')::bigint,
+  sqlc.narg('tax_cents')::bigint,
+  sqlc.narg('total_cents')::bigint,
+  sqlc.arg(status)::smallint,
+  'manual'
+)
+RETURNING *;
+
 -- name: GetReceiptByImageHash :one
 SELECT *
 FROM receipts

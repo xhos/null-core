@@ -24,14 +24,17 @@ const (
 )
 
 type Connection struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
-	Provider      string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	Status        string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"` // 'active' | 'disabled' | 'broken'
-	LastSynced    *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=last_synced,json=lastSynced,proto3,oneof" json:"last_synced,omitempty"`
-	CreatedAt     *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state      protoimpl.MessageState `protogen:"open.v1"`
+	Id         int64                  `protobuf:"varint,1,opt,name=id,proto3" json:"id,omitempty"`
+	Provider   string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
+	Status     string                 `protobuf:"bytes,3,opt,name=status,proto3" json:"status,omitempty"` // 'active' | 'disabled' | 'broken'
+	LastSynced *timestamppb.Timestamp `protobuf:"bytes,4,opt,name=last_synced,json=lastSynced,proto3,oneof" json:"last_synced,omitempty"`
+	CreatedAt  *timestamppb.Timestamp `protobuf:"bytes,5,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	// null = manual-only (no scheduled sync)
+	SyncIntervalMinutes *int32                 `protobuf:"varint,6,opt,name=sync_interval_minutes,json=syncIntervalMinutes,proto3,oneof" json:"sync_interval_minutes,omitempty"`
+	NextRunAt           *timestamppb.Timestamp `protobuf:"bytes,7,opt,name=next_run_at,json=nextRunAt,proto3,oneof" json:"next_run_at,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *Connection) Reset() {
@@ -95,6 +98,20 @@ func (x *Connection) GetLastSynced() *timestamppb.Timestamp {
 func (x *Connection) GetCreatedAt() *timestamppb.Timestamp {
 	if x != nil {
 		return x.CreatedAt
+	}
+	return nil
+}
+
+func (x *Connection) GetSyncIntervalMinutes() int32 {
+	if x != nil && x.SyncIntervalMinutes != nil {
+		return *x.SyncIntervalMinutes
+	}
+	return 0
+}
+
+func (x *Connection) GetNextRunAt() *timestamppb.Timestamp {
+	if x != nil {
+		return x.NextRunAt
 	}
 	return nil
 }
@@ -188,12 +205,13 @@ func (x *ListConnectionsResponse) GetConnections() []*Connection {
 }
 
 type CreateConnectionRequest struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Provider      string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
-	Credentials   string                 `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state               protoimpl.MessageState `protogen:"open.v1"`
+	UserId              string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Provider            string                 `protobuf:"bytes,2,opt,name=provider,proto3" json:"provider,omitempty"`
+	Credentials         string                 `protobuf:"bytes,3,opt,name=credentials,proto3" json:"credentials,omitempty"`
+	SyncIntervalMinutes *int32                 `protobuf:"varint,4,opt,name=sync_interval_minutes,json=syncIntervalMinutes,proto3,oneof" json:"sync_interval_minutes,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
 }
 
 func (x *CreateConnectionRequest) Reset() {
@@ -245,6 +263,13 @@ func (x *CreateConnectionRequest) GetCredentials() string {
 		return x.Credentials
 	}
 	return ""
+}
+
+func (x *CreateConnectionRequest) GetSyncIntervalMinutes() int32 {
+	if x != nil && x.SyncIntervalMinutes != nil {
+		return *x.SyncIntervalMinutes
+	}
+	return 0
 }
 
 type CreateConnectionResponse struct {
@@ -379,11 +404,196 @@ func (*DeleteConnectionResponse) Descriptor() ([]byte, []int) {
 	return file_null_v1_connection_services_proto_rawDescGZIP(), []int{6}
 }
 
+type TriggerSyncRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id            int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TriggerSyncRequest) Reset() {
+	*x = TriggerSyncRequest{}
+	mi := &file_null_v1_connection_services_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TriggerSyncRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerSyncRequest) ProtoMessage() {}
+
+func (x *TriggerSyncRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_connection_services_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerSyncRequest.ProtoReflect.Descriptor instead.
+func (*TriggerSyncRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_connection_services_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *TriggerSyncRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *TriggerSyncRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+type TriggerSyncResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TriggerSyncResponse) Reset() {
+	*x = TriggerSyncResponse{}
+	mi := &file_null_v1_connection_services_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TriggerSyncResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TriggerSyncResponse) ProtoMessage() {}
+
+func (x *TriggerSyncResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_connection_services_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TriggerSyncResponse.ProtoReflect.Descriptor instead.
+func (*TriggerSyncResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_connection_services_proto_rawDescGZIP(), []int{8}
+}
+
+type SetSyncIntervalRequest struct {
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	UserId string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Id     int64                  `protobuf:"varint,2,opt,name=id,proto3" json:"id,omitempty"`
+	// omit to switch to manual-only (no scheduled sync)
+	SyncIntervalMinutes *int32 `protobuf:"varint,3,opt,name=sync_interval_minutes,json=syncIntervalMinutes,proto3,oneof" json:"sync_interval_minutes,omitempty"`
+	unknownFields       protoimpl.UnknownFields
+	sizeCache           protoimpl.SizeCache
+}
+
+func (x *SetSyncIntervalRequest) Reset() {
+	*x = SetSyncIntervalRequest{}
+	mi := &file_null_v1_connection_services_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSyncIntervalRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSyncIntervalRequest) ProtoMessage() {}
+
+func (x *SetSyncIntervalRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_connection_services_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSyncIntervalRequest.ProtoReflect.Descriptor instead.
+func (*SetSyncIntervalRequest) Descriptor() ([]byte, []int) {
+	return file_null_v1_connection_services_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *SetSyncIntervalRequest) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *SetSyncIntervalRequest) GetId() int64 {
+	if x != nil {
+		return x.Id
+	}
+	return 0
+}
+
+func (x *SetSyncIntervalRequest) GetSyncIntervalMinutes() int32 {
+	if x != nil && x.SyncIntervalMinutes != nil {
+		return *x.SyncIntervalMinutes
+	}
+	return 0
+}
+
+type SetSyncIntervalResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *SetSyncIntervalResponse) Reset() {
+	*x = SetSyncIntervalResponse{}
+	mi := &file_null_v1_connection_services_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *SetSyncIntervalResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*SetSyncIntervalResponse) ProtoMessage() {}
+
+func (x *SetSyncIntervalResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_null_v1_connection_services_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use SetSyncIntervalResponse.ProtoReflect.Descriptor instead.
+func (*SetSyncIntervalResponse) Descriptor() ([]byte, []int) {
+	return file_null_v1_connection_services_proto_rawDescGZIP(), []int{10}
+}
+
 var File_null_v1_connection_services_proto protoreflect.FileDescriptor
 
 const file_null_v1_connection_services_proto_rawDesc = "" +
 	"\n" +
-	"!null/v1/connection_services.proto\x12\anull.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\xdd\x01\n" +
+	"!null/v1/connection_services.proto\x12\anull.v1\x1a\x1bbuf/validate/validate.proto\x1a\x1fgoogle/protobuf/timestamp.proto\"\x81\x03\n" +
 	"\n" +
 	"Connection\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\x12\x1a\n" +
@@ -392,26 +602,44 @@ const file_null_v1_connection_services_proto_rawDesc = "" +
 	"\vlast_synced\x18\x04 \x01(\v2\x1a.google.protobuf.TimestampH\x00R\n" +
 	"lastSynced\x88\x01\x01\x129\n" +
 	"\n" +
-	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAtB\x0e\n" +
-	"\f_last_synced\";\n" +
+	"created_at\x18\x05 \x01(\v2\x1a.google.protobuf.TimestampR\tcreatedAt\x127\n" +
+	"\x15sync_interval_minutes\x18\x06 \x01(\x05H\x01R\x13syncIntervalMinutes\x88\x01\x01\x12?\n" +
+	"\vnext_run_at\x18\a \x01(\v2\x1a.google.protobuf.TimestampH\x02R\tnextRunAt\x88\x01\x01B\x0e\n" +
+	"\f_last_syncedB\x18\n" +
+	"\x16_sync_interval_minutesB\x0e\n" +
+	"\f_next_run_at\";\n" +
 	"\x16ListConnectionsRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\"P\n" +
 	"\x17ListConnectionsResponse\x125\n" +
-	"\vconnections\x18\x01 \x03(\v2\x13.null.v1.ConnectionR\vconnections\"\x8c\x01\n" +
+	"\vconnections\x18\x01 \x03(\v2\x13.null.v1.ConnectionR\vconnections\"\xe8\x01\n" +
 	"\x17CreateConnectionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12#\n" +
 	"\bprovider\x18\x02 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\bprovider\x12)\n" +
-	"\vcredentials\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vcredentials\"*\n" +
+	"\vcredentials\x18\x03 \x01(\tB\a\xbaH\x04r\x02\x10\x01R\vcredentials\x12@\n" +
+	"\x15sync_interval_minutes\x18\x04 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00H\x00R\x13syncIntervalMinutes\x88\x01\x01B\x18\n" +
+	"\x16_sync_interval_minutes\"*\n" +
 	"\x18CreateConnectionResponse\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\x03R\x02id\"U\n" +
 	"\x17DeleteConnectionRequest\x12!\n" +
 	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
 	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"\x1a\n" +
-	"\x18DeleteConnectionResponse2\x9c\x02\n" +
+	"\x18DeleteConnectionResponse\"P\n" +
+	"\x12TriggerSyncRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\"\x15\n" +
+	"\x13TriggerSyncResponse\"\xb0\x01\n" +
+	"\x16SetSyncIntervalRequest\x12!\n" +
+	"\auser_id\x18\x01 \x01(\tB\b\xbaH\x05r\x03\xb0\x01\x01R\x06userId\x12\x17\n" +
+	"\x02id\x18\x02 \x01(\x03B\a\xbaH\x04\"\x02 \x00R\x02id\x12@\n" +
+	"\x15sync_interval_minutes\x18\x03 \x01(\x05B\a\xbaH\x04\x1a\x02 \x00H\x00R\x13syncIntervalMinutes\x88\x01\x01B\x18\n" +
+	"\x16_sync_interval_minutes\"\x19\n" +
+	"\x17SetSyncIntervalResponse2\xbc\x03\n" +
 	"\x12ConnectionsService\x12T\n" +
 	"\x0fListConnections\x12\x1f.null.v1.ListConnectionsRequest\x1a .null.v1.ListConnectionsResponse\x12W\n" +
 	"\x10CreateConnection\x12 .null.v1.CreateConnectionRequest\x1a!.null.v1.CreateConnectionResponse\x12W\n" +
-	"\x10DeleteConnection\x12 .null.v1.DeleteConnectionRequest\x1a!.null.v1.DeleteConnectionResponseB\x8c\x01\n" +
+	"\x10DeleteConnection\x12 .null.v1.DeleteConnectionRequest\x1a!.null.v1.DeleteConnectionResponse\x12H\n" +
+	"\vTriggerSync\x12\x1b.null.v1.TriggerSyncRequest\x1a\x1c.null.v1.TriggerSyncResponse\x12T\n" +
+	"\x0fSetSyncInterval\x12\x1f.null.v1.SetSyncIntervalRequest\x1a .null.v1.SetSyncIntervalResponseB\x8c\x01\n" +
 	"\vcom.null.v1B\x17ConnectionServicesProtoP\x01Z%null-core/internal/gen/null/v1;nullv1\xa2\x02\x03NXX\xaa\x02\aNull.V1\xca\x02\bNull_\\V1\xe2\x02\x14Null_\\V1\\GPBMetadata\xea\x02\bNull::V1b\x06proto3"
 
 var (
@@ -426,7 +654,7 @@ func file_null_v1_connection_services_proto_rawDescGZIP() []byte {
 	return file_null_v1_connection_services_proto_rawDescData
 }
 
-var file_null_v1_connection_services_proto_msgTypes = make([]protoimpl.MessageInfo, 7)
+var file_null_v1_connection_services_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
 var file_null_v1_connection_services_proto_goTypes = []any{
 	(*Connection)(nil),               // 0: null.v1.Connection
 	(*ListConnectionsRequest)(nil),   // 1: null.v1.ListConnectionsRequest
@@ -435,23 +663,32 @@ var file_null_v1_connection_services_proto_goTypes = []any{
 	(*CreateConnectionResponse)(nil), // 4: null.v1.CreateConnectionResponse
 	(*DeleteConnectionRequest)(nil),  // 5: null.v1.DeleteConnectionRequest
 	(*DeleteConnectionResponse)(nil), // 6: null.v1.DeleteConnectionResponse
-	(*timestamppb.Timestamp)(nil),    // 7: google.protobuf.Timestamp
+	(*TriggerSyncRequest)(nil),       // 7: null.v1.TriggerSyncRequest
+	(*TriggerSyncResponse)(nil),      // 8: null.v1.TriggerSyncResponse
+	(*SetSyncIntervalRequest)(nil),   // 9: null.v1.SetSyncIntervalRequest
+	(*SetSyncIntervalResponse)(nil),  // 10: null.v1.SetSyncIntervalResponse
+	(*timestamppb.Timestamp)(nil),    // 11: google.protobuf.Timestamp
 }
 var file_null_v1_connection_services_proto_depIdxs = []int32{
-	7, // 0: null.v1.Connection.last_synced:type_name -> google.protobuf.Timestamp
-	7, // 1: null.v1.Connection.created_at:type_name -> google.protobuf.Timestamp
-	0, // 2: null.v1.ListConnectionsResponse.connections:type_name -> null.v1.Connection
-	1, // 3: null.v1.ConnectionsService.ListConnections:input_type -> null.v1.ListConnectionsRequest
-	3, // 4: null.v1.ConnectionsService.CreateConnection:input_type -> null.v1.CreateConnectionRequest
-	5, // 5: null.v1.ConnectionsService.DeleteConnection:input_type -> null.v1.DeleteConnectionRequest
-	2, // 6: null.v1.ConnectionsService.ListConnections:output_type -> null.v1.ListConnectionsResponse
-	4, // 7: null.v1.ConnectionsService.CreateConnection:output_type -> null.v1.CreateConnectionResponse
-	6, // 8: null.v1.ConnectionsService.DeleteConnection:output_type -> null.v1.DeleteConnectionResponse
-	6, // [6:9] is the sub-list for method output_type
-	3, // [3:6] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	11, // 0: null.v1.Connection.last_synced:type_name -> google.protobuf.Timestamp
+	11, // 1: null.v1.Connection.created_at:type_name -> google.protobuf.Timestamp
+	11, // 2: null.v1.Connection.next_run_at:type_name -> google.protobuf.Timestamp
+	0,  // 3: null.v1.ListConnectionsResponse.connections:type_name -> null.v1.Connection
+	1,  // 4: null.v1.ConnectionsService.ListConnections:input_type -> null.v1.ListConnectionsRequest
+	3,  // 5: null.v1.ConnectionsService.CreateConnection:input_type -> null.v1.CreateConnectionRequest
+	5,  // 6: null.v1.ConnectionsService.DeleteConnection:input_type -> null.v1.DeleteConnectionRequest
+	7,  // 7: null.v1.ConnectionsService.TriggerSync:input_type -> null.v1.TriggerSyncRequest
+	9,  // 8: null.v1.ConnectionsService.SetSyncInterval:input_type -> null.v1.SetSyncIntervalRequest
+	2,  // 9: null.v1.ConnectionsService.ListConnections:output_type -> null.v1.ListConnectionsResponse
+	4,  // 10: null.v1.ConnectionsService.CreateConnection:output_type -> null.v1.CreateConnectionResponse
+	6,  // 11: null.v1.ConnectionsService.DeleteConnection:output_type -> null.v1.DeleteConnectionResponse
+	8,  // 12: null.v1.ConnectionsService.TriggerSync:output_type -> null.v1.TriggerSyncResponse
+	10, // 13: null.v1.ConnectionsService.SetSyncInterval:output_type -> null.v1.SetSyncIntervalResponse
+	9,  // [9:14] is the sub-list for method output_type
+	4,  // [4:9] is the sub-list for method input_type
+	4,  // [4:4] is the sub-list for extension type_name
+	4,  // [4:4] is the sub-list for extension extendee
+	0,  // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_null_v1_connection_services_proto_init() }
@@ -460,13 +697,15 @@ func file_null_v1_connection_services_proto_init() {
 		return
 	}
 	file_null_v1_connection_services_proto_msgTypes[0].OneofWrappers = []any{}
+	file_null_v1_connection_services_proto_msgTypes[3].OneofWrappers = []any{}
+	file_null_v1_connection_services_proto_msgTypes[9].OneofWrappers = []any{}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_null_v1_connection_services_proto_rawDesc), len(file_null_v1_connection_services_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   7,
+			NumMessages:   11,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

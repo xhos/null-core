@@ -42,6 +42,12 @@ const (
 	// ConnectionsServiceDeleteConnectionProcedure is the fully-qualified name of the
 	// ConnectionsService's DeleteConnection RPC.
 	ConnectionsServiceDeleteConnectionProcedure = "/null.v1.ConnectionsService/DeleteConnection"
+	// ConnectionsServiceTriggerSyncProcedure is the fully-qualified name of the ConnectionsService's
+	// TriggerSync RPC.
+	ConnectionsServiceTriggerSyncProcedure = "/null.v1.ConnectionsService/TriggerSync"
+	// ConnectionsServiceSetSyncIntervalProcedure is the fully-qualified name of the
+	// ConnectionsService's SetSyncInterval RPC.
+	ConnectionsServiceSetSyncIntervalProcedure = "/null.v1.ConnectionsService/SetSyncInterval"
 )
 
 // ConnectionsServiceClient is a client for the null.v1.ConnectionsService service.
@@ -49,6 +55,8 @@ type ConnectionsServiceClient interface {
 	ListConnections(context.Context, *connect.Request[v1.ListConnectionsRequest]) (*connect.Response[v1.ListConnectionsResponse], error)
 	CreateConnection(context.Context, *connect.Request[v1.CreateConnectionRequest]) (*connect.Response[v1.CreateConnectionResponse], error)
 	DeleteConnection(context.Context, *connect.Request[v1.DeleteConnectionRequest]) (*connect.Response[v1.DeleteConnectionResponse], error)
+	TriggerSync(context.Context, *connect.Request[v1.TriggerSyncRequest]) (*connect.Response[v1.TriggerSyncResponse], error)
+	SetSyncInterval(context.Context, *connect.Request[v1.SetSyncIntervalRequest]) (*connect.Response[v1.SetSyncIntervalResponse], error)
 }
 
 // NewConnectionsServiceClient constructs a client for the null.v1.ConnectionsService service. By
@@ -80,6 +88,18 @@ func NewConnectionsServiceClient(httpClient connect.HTTPClient, baseURL string, 
 			connect.WithSchema(connectionsServiceMethods.ByName("DeleteConnection")),
 			connect.WithClientOptions(opts...),
 		),
+		triggerSync: connect.NewClient[v1.TriggerSyncRequest, v1.TriggerSyncResponse](
+			httpClient,
+			baseURL+ConnectionsServiceTriggerSyncProcedure,
+			connect.WithSchema(connectionsServiceMethods.ByName("TriggerSync")),
+			connect.WithClientOptions(opts...),
+		),
+		setSyncInterval: connect.NewClient[v1.SetSyncIntervalRequest, v1.SetSyncIntervalResponse](
+			httpClient,
+			baseURL+ConnectionsServiceSetSyncIntervalProcedure,
+			connect.WithSchema(connectionsServiceMethods.ByName("SetSyncInterval")),
+			connect.WithClientOptions(opts...),
+		),
 	}
 }
 
@@ -88,6 +108,8 @@ type connectionsServiceClient struct {
 	listConnections  *connect.Client[v1.ListConnectionsRequest, v1.ListConnectionsResponse]
 	createConnection *connect.Client[v1.CreateConnectionRequest, v1.CreateConnectionResponse]
 	deleteConnection *connect.Client[v1.DeleteConnectionRequest, v1.DeleteConnectionResponse]
+	triggerSync      *connect.Client[v1.TriggerSyncRequest, v1.TriggerSyncResponse]
+	setSyncInterval  *connect.Client[v1.SetSyncIntervalRequest, v1.SetSyncIntervalResponse]
 }
 
 // ListConnections calls null.v1.ConnectionsService.ListConnections.
@@ -105,11 +127,23 @@ func (c *connectionsServiceClient) DeleteConnection(ctx context.Context, req *co
 	return c.deleteConnection.CallUnary(ctx, req)
 }
 
+// TriggerSync calls null.v1.ConnectionsService.TriggerSync.
+func (c *connectionsServiceClient) TriggerSync(ctx context.Context, req *connect.Request[v1.TriggerSyncRequest]) (*connect.Response[v1.TriggerSyncResponse], error) {
+	return c.triggerSync.CallUnary(ctx, req)
+}
+
+// SetSyncInterval calls null.v1.ConnectionsService.SetSyncInterval.
+func (c *connectionsServiceClient) SetSyncInterval(ctx context.Context, req *connect.Request[v1.SetSyncIntervalRequest]) (*connect.Response[v1.SetSyncIntervalResponse], error) {
+	return c.setSyncInterval.CallUnary(ctx, req)
+}
+
 // ConnectionsServiceHandler is an implementation of the null.v1.ConnectionsService service.
 type ConnectionsServiceHandler interface {
 	ListConnections(context.Context, *connect.Request[v1.ListConnectionsRequest]) (*connect.Response[v1.ListConnectionsResponse], error)
 	CreateConnection(context.Context, *connect.Request[v1.CreateConnectionRequest]) (*connect.Response[v1.CreateConnectionResponse], error)
 	DeleteConnection(context.Context, *connect.Request[v1.DeleteConnectionRequest]) (*connect.Response[v1.DeleteConnectionResponse], error)
+	TriggerSync(context.Context, *connect.Request[v1.TriggerSyncRequest]) (*connect.Response[v1.TriggerSyncResponse], error)
+	SetSyncInterval(context.Context, *connect.Request[v1.SetSyncIntervalRequest]) (*connect.Response[v1.SetSyncIntervalResponse], error)
 }
 
 // NewConnectionsServiceHandler builds an HTTP handler from the service implementation. It returns
@@ -137,6 +171,18 @@ func NewConnectionsServiceHandler(svc ConnectionsServiceHandler, opts ...connect
 		connect.WithSchema(connectionsServiceMethods.ByName("DeleteConnection")),
 		connect.WithHandlerOptions(opts...),
 	)
+	connectionsServiceTriggerSyncHandler := connect.NewUnaryHandler(
+		ConnectionsServiceTriggerSyncProcedure,
+		svc.TriggerSync,
+		connect.WithSchema(connectionsServiceMethods.ByName("TriggerSync")),
+		connect.WithHandlerOptions(opts...),
+	)
+	connectionsServiceSetSyncIntervalHandler := connect.NewUnaryHandler(
+		ConnectionsServiceSetSyncIntervalProcedure,
+		svc.SetSyncInterval,
+		connect.WithSchema(connectionsServiceMethods.ByName("SetSyncInterval")),
+		connect.WithHandlerOptions(opts...),
+	)
 	return "/null.v1.ConnectionsService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
 		case ConnectionsServiceListConnectionsProcedure:
@@ -145,6 +191,10 @@ func NewConnectionsServiceHandler(svc ConnectionsServiceHandler, opts ...connect
 			connectionsServiceCreateConnectionHandler.ServeHTTP(w, r)
 		case ConnectionsServiceDeleteConnectionProcedure:
 			connectionsServiceDeleteConnectionHandler.ServeHTTP(w, r)
+		case ConnectionsServiceTriggerSyncProcedure:
+			connectionsServiceTriggerSyncHandler.ServeHTTP(w, r)
+		case ConnectionsServiceSetSyncIntervalProcedure:
+			connectionsServiceSetSyncIntervalHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -164,4 +214,12 @@ func (UnimplementedConnectionsServiceHandler) CreateConnection(context.Context, 
 
 func (UnimplementedConnectionsServiceHandler) DeleteConnection(context.Context, *connect.Request[v1.DeleteConnectionRequest]) (*connect.Response[v1.DeleteConnectionResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.ConnectionsService.DeleteConnection is not implemented"))
+}
+
+func (UnimplementedConnectionsServiceHandler) TriggerSync(context.Context, *connect.Request[v1.TriggerSyncRequest]) (*connect.Response[v1.TriggerSyncResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.ConnectionsService.TriggerSync is not implemented"))
+}
+
+func (UnimplementedConnectionsServiceHandler) SetSyncInterval(context.Context, *connect.Request[v1.SetSyncIntervalRequest]) (*connect.Response[v1.SetSyncIntervalResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("null.v1.ConnectionsService.SetSyncInterval is not implemented"))
 }

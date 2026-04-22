@@ -12,20 +12,49 @@ import (
 	"github.com/google/uuid"
 )
 
+const completeSyncJob = `-- name: CompleteSyncJob :exec
+update connected_accounts
+set sync_cursor = $1::timestamptz,
+    status      = coalesce($2::text, status),
+    next_run_at = case
+      when sync_interval_minutes is not null
+        then now() + (sync_interval_minutes * interval '1 minute')
+      else null
+    end
+where id = $3::bigint
+`
+
+type CompleteSyncJobParams struct {
+	SyncCursor *time.Time `db:"sync_cursor" json:"sync_cursor"`
+	Status     *string    `db:"status" json:"status"`
+	ID         int64      `db:"id" json:"id"`
+}
+
+func (q *Queries) CompleteSyncJob(ctx context.Context, arg CompleteSyncJobParams) error {
+	_, err := q.db.Exec(ctx, completeSyncJob, arg.SyncCursor, arg.Status, arg.ID)
+	return err
+}
+
 const createConnectedAccount = `-- name: CreateConnectedAccount :one
-insert into connected_accounts (user_id, provider, credentials)
-values ($1::uuid, $2::text, $3::bytea)
-returning id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at
+insert into connected_accounts (user_id, provider, credentials, sync_interval_minutes)
+values ($1::uuid, $2::text, $3::bytea, $4::int)
+returning id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at, sync_interval_minutes, next_run_at
 `
 
 type CreateConnectedAccountParams struct {
-	UserID      uuid.UUID `db:"user_id" json:"user_id"`
-	Provider    string    `db:"provider" json:"provider"`
-	Credentials []byte    `db:"credentials" json:"credentials"`
+	UserID              uuid.UUID `db:"user_id" json:"user_id"`
+	Provider            string    `db:"provider" json:"provider"`
+	Credentials         []byte    `db:"credentials" json:"credentials"`
+	SyncIntervalMinutes *int32    `db:"sync_interval_minutes" json:"sync_interval_minutes"`
 }
 
 func (q *Queries) CreateConnectedAccount(ctx context.Context, arg CreateConnectedAccountParams) (ConnectedAccount, error) {
-	row := q.db.QueryRow(ctx, createConnectedAccount, arg.UserID, arg.Provider, arg.Credentials)
+	row := q.db.QueryRow(ctx, createConnectedAccount,
+		arg.UserID,
+		arg.Provider,
+		arg.Credentials,
+		arg.SyncIntervalMinutes,
+	)
 	var i ConnectedAccount
 	err := row.Scan(
 		&i.ID,
@@ -36,6 +65,8 @@ func (q *Queries) CreateConnectedAccount(ctx context.Context, arg CreateConnecte
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SyncIntervalMinutes,
+		&i.NextRunAt,
 	)
 	return i, err
 }
@@ -59,7 +90,7 @@ func (q *Queries) DeleteConnectedAccount(ctx context.Context, arg DeleteConnecte
 }
 
 const getConnectedAccount = `-- name: GetConnectedAccount :one
-select id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at
+select id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at, sync_interval_minutes, next_run_at
 from connected_accounts
 where id = $1::bigint
 `
@@ -76,59 +107,27 @@ func (q *Queries) GetConnectedAccount(ctx context.Context, id int64) (ConnectedA
 		&i.Status,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.SyncIntervalMinutes,
+		&i.NextRunAt,
 	)
 	return i, err
 }
 
-const listActiveConnectedAccounts = `-- name: ListActiveConnectedAccounts :many
-select id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at
-from connected_accounts
-where status = 'active'
-order by id
-`
-
-func (q *Queries) ListActiveConnectedAccounts(ctx context.Context) ([]ConnectedAccount, error) {
-	rows, err := q.db.Query(ctx, listActiveConnectedAccounts)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []ConnectedAccount
-	for rows.Next() {
-		var i ConnectedAccount
-		if err := rows.Scan(
-			&i.ID,
-			&i.UserID,
-			&i.Provider,
-			&i.Credentials,
-			&i.SyncCursor,
-			&i.Status,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
-}
-
 const listConnectionsForUser = `-- name: ListConnectionsForUser :many
-select id, provider, status, sync_cursor, created_at
+select id, provider, status, sync_cursor, sync_interval_minutes, next_run_at, created_at
 from connected_accounts
 where user_id = $1::uuid
 order by created_at desc
 `
 
 type ListConnectionsForUserRow struct {
-	ID         int64      `db:"id" json:"id"`
-	Provider   string     `db:"provider" json:"provider"`
-	Status     string     `db:"status" json:"status"`
-	SyncCursor *time.Time `db:"sync_cursor" json:"sync_cursor"`
-	CreatedAt  time.Time  `db:"created_at" json:"created_at"`
+	ID                  int64      `db:"id" json:"id"`
+	Provider            string     `db:"provider" json:"provider"`
+	Status              string     `db:"status" json:"status"`
+	SyncCursor          *time.Time `db:"sync_cursor" json:"sync_cursor"`
+	SyncIntervalMinutes *int32     `db:"sync_interval_minutes" json:"sync_interval_minutes"`
+	NextRunAt           *time.Time `db:"next_run_at" json:"next_run_at"`
+	CreatedAt           time.Time  `db:"created_at" json:"created_at"`
 }
 
 func (q *Queries) ListConnectionsForUser(ctx context.Context, userID uuid.UUID) ([]ListConnectionsForUserRow, error) {
@@ -145,6 +144,8 @@ func (q *Queries) ListConnectionsForUser(ctx context.Context, userID uuid.UUID) 
 			&i.Provider,
 			&i.Status,
 			&i.SyncCursor,
+			&i.SyncIntervalMinutes,
+			&i.NextRunAt,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -157,20 +158,84 @@ func (q *Queries) ListConnectionsForUser(ctx context.Context, userID uuid.UUID) 
 	return items, nil
 }
 
-const updateConnectedAccountCursor = `-- name: UpdateConnectedAccountCursor :exec
-update connected_accounts
-set sync_cursor = $1::timestamptz,
-    status      = coalesce($2::text, status)
-where id = $3::bigint
+const listDueSyncJobs = `-- name: ListDueSyncJobs :many
+select id, user_id, provider, credentials, sync_cursor, status, created_at, updated_at, sync_interval_minutes, next_run_at
+from connected_accounts
+where status = 'active' and next_run_at is not null and next_run_at <= now()
+order by next_run_at
 `
 
-type UpdateConnectedAccountCursorParams struct {
-	SyncCursor *time.Time `db:"sync_cursor" json:"sync_cursor"`
-	Status     *string    `db:"status" json:"status"`
-	ID         int64      `db:"id" json:"id"`
+func (q *Queries) ListDueSyncJobs(ctx context.Context) ([]ConnectedAccount, error) {
+	rows, err := q.db.Query(ctx, listDueSyncJobs)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ConnectedAccount
+	for rows.Next() {
+		var i ConnectedAccount
+		if err := rows.Scan(
+			&i.ID,
+			&i.UserID,
+			&i.Provider,
+			&i.Credentials,
+			&i.SyncCursor,
+			&i.Status,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.SyncIntervalMinutes,
+			&i.NextRunAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
-func (q *Queries) UpdateConnectedAccountCursor(ctx context.Context, arg UpdateConnectedAccountCursorParams) error {
-	_, err := q.db.Exec(ctx, updateConnectedAccountCursor, arg.SyncCursor, arg.Status, arg.ID)
-	return err
+const setSyncInterval = `-- name: SetSyncInterval :execrows
+update connected_accounts
+set sync_interval_minutes = $1::int,
+    next_run_at = case
+      when $1::int is not null and next_run_at is null
+        then now() + ($1::int * interval '1 minute')
+      else next_run_at
+    end
+where id = $2::bigint and user_id = $3::uuid
+`
+
+type SetSyncIntervalParams struct {
+	SyncIntervalMinutes *int32    `db:"sync_interval_minutes" json:"sync_interval_minutes"`
+	ID                  int64     `db:"id" json:"id"`
+	UserID              uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) SetSyncInterval(ctx context.Context, arg SetSyncIntervalParams) (int64, error) {
+	result, err := q.db.Exec(ctx, setSyncInterval, arg.SyncIntervalMinutes, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
+}
+
+const triggerSync = `-- name: TriggerSync :execrows
+update connected_accounts
+set next_run_at = now()
+where id = $1::bigint and user_id = $2::uuid
+`
+
+type TriggerSyncParams struct {
+	ID     int64     `db:"id" json:"id"`
+	UserID uuid.UUID `db:"user_id" json:"user_id"`
+}
+
+func (q *Queries) TriggerSync(ctx context.Context, arg TriggerSyncParams) (int64, error) {
+	result, err := q.db.Exec(ctx, triggerSync, arg.ID, arg.UserID)
+	if err != nil {
+		return 0, err
+	}
+	return result.RowsAffected(), nil
 }

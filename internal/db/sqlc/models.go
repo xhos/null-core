@@ -44,14 +44,16 @@ type Category struct {
 }
 
 type ConnectedAccount struct {
-	ID          int64      `db:"id" json:"id"`
-	UserID      uuid.UUID  `db:"user_id" json:"user_id"`
-	Provider    string     `db:"provider" json:"provider"`
-	Credentials []byte     `db:"credentials" json:"credentials"`
-	SyncCursor  *time.Time `db:"sync_cursor" json:"sync_cursor"`
-	Status      string     `db:"status" json:"status"`
-	CreatedAt   time.Time  `db:"created_at" json:"created_at"`
-	UpdatedAt   time.Time  `db:"updated_at" json:"updated_at"`
+	ID                  int64      `db:"id" json:"id"`
+	UserID              uuid.UUID  `db:"user_id" json:"user_id"`
+	Provider            string     `db:"provider" json:"provider"`
+	Credentials         []byte     `db:"credentials" json:"credentials"`
+	SyncCursor          *time.Time `db:"sync_cursor" json:"sync_cursor"`
+	Status              string     `db:"status" json:"status"`
+	CreatedAt           time.Time  `db:"created_at" json:"created_at"`
+	UpdatedAt           time.Time  `db:"updated_at" json:"updated_at"`
+	SyncIntervalMinutes *int32     `db:"sync_interval_minutes" json:"sync_interval_minutes"`
+	NextRunAt           *time.Time `db:"next_run_at" json:"next_run_at"`
 }
 
 type Receipt struct {

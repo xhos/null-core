@@ -38,7 +38,7 @@ func newConnSvc(queries *sqlc.Queries, cipher *crypto.Cipher, logger *log.Logger
 }
 
 func (s *connSvc) ListSyncJobs(ctx context.Context) ([]SyncJob, error) {
-	rows, err := s.queries.ListActiveConnectedAccounts(ctx)
+	rows, err := s.queries.ListDueSyncJobs(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("ConnectorService.ListSyncJobs: %w", err)
 	}
@@ -71,7 +71,7 @@ func (s *connSvc) CompleteSyncJob(ctx context.Context, id int64, cursor *time.Ti
 		}
 	}
 
-	if err := s.queries.UpdateConnectedAccountCursor(ctx, sqlc.UpdateConnectedAccountCursorParams{
+	if err := s.queries.CompleteSyncJob(ctx, sqlc.CompleteSyncJobParams{
 		ID:         id,
 		SyncCursor: cursor,
 		Status:     status,
